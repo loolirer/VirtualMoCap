@@ -1,0 +1,71 @@
+# Importing modules...
+import numpy as np
+import plotly.graph_objects as go
+
+class Viewer2D: 
+    def __init__(self, title='', resolution=(480,480), image = None, graphical=False):
+        self.title = title
+        self.graphical = graphical # Toggle to activate graphical mode
+        self.res = resolution # Change feed dimensions 
+
+        # Create Figure 
+        self.figure = go.Figure(
+            data=go.Image(z=image), 
+            layout=go.Layout(
+                height=700, 
+                width=700, 
+                title=go.layout.Title(text=self.title)
+            )
+
+        )
+
+        self.figure.update_yaxes(
+            scaleanchor="x",
+            scaleratio=1
+        )
+        
+        self.figure.update_layout(
+            xaxis_title='x',
+            yaxis_title='y',
+            plot_bgcolor='white',
+            font=dict(
+                family='Arial',
+                size=15,
+                color='black'
+            ),
+            xaxis=dict(
+                gridcolor='lightgray',
+                dtick = resolution[0]/10,
+                range=[0, self.res[0]]
+            ),
+            yaxis=dict(
+                gridcolor='lightgray',
+                dtick = resolution[1]/10,
+                range=[self.res[1], 0]
+            )
+        )
+
+        self.figure.add_shape(
+            type='rect',
+            x0=0, y0=0, x1=resolution[0], y1=resolution[1],
+            line=dict(color='black'),
+        )
+
+    def add_points(self, point, name, color=None):
+        self.figure.add_trace(
+            go.Scatter(
+                x=point[0],
+                y=point[1],
+                mode='markers',
+                marker=dict(
+                    size=5,
+                    opacity=0.80,
+                    color=color
+                ),
+                name=name,
+                legendgroup='Points',
+                legendgrouptitle_text='Points',
+                showlegend=self.graphical
+            )
+        )
+
