@@ -5,8 +5,8 @@ import plotly.graph_objects as go
 class Viewer2D: 
     def __init__(self, title='', resolution=(480,480), image = None, graphical=False):
         self.title = title
+        self.resolution = resolution # Change feed dimensions 
         self.graphical = graphical # Toggle to activate graphical mode
-        self.res = resolution # Change feed dimensions 
 
         # Create Figure 
         self.figure = go.Figure(
@@ -36,12 +36,12 @@ class Viewer2D:
             xaxis=dict(
                 gridcolor='lightgray',
                 dtick = resolution[0]/10,
-                range=[0, self.res[0]]
+                range=[0, self.resolution[0]]
             ),
             yaxis=dict(
                 gridcolor='lightgray',
                 dtick = resolution[1]/10,
-                range=[self.res[1], 0]
+                range=[self.resolution[1], 0]
             )
         )
 

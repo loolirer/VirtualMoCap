@@ -5,8 +5,8 @@ import plotly.graph_objects as go
 class Viewer3D: 
     def __init__(self, title='', size=5, graphical=False):
         self.title = title
-        self.graphical = graphical # Toggle to activate graphical mode
         self.size = size # Change graph dimensions 
+        self.graphical = graphical # Toggle to activate graphical mode
 
         # Create Figure 
         self.figure = go.Figure(
