@@ -5,11 +5,12 @@ from modules.camera.linear_model import *
 
 class Camera:
     def __init__(self, 
-                 resolution=(480,480), 
-                 fov_degrees=60, 
+                 resolution=(256,256), # Standard Coppelia resolution
+                 fov_degrees=60, # Standard Coppelia fov
                  object_matrix=np.hstack((np.eye(3), np.zeros((3,1))))):
         
         self.resolution = resolution
+        self.aspect_ratio = resolution[0]/resolution[1]
         self.fov_degrees = fov_degrees
         self.R, self.t = object_matrix[:, :-1], object_matrix[:, [-1]]
         
