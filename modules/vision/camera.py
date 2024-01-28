@@ -1,7 +1,7 @@
 # Importing modules...
 import numpy as np
 
-from modules.camera.linear_model import *
+from modules.vision.linear_model import *
 
 class Camera:
     def __init__(self, 

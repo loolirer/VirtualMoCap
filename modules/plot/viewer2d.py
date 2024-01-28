@@ -1,5 +1,4 @@
 # Importing modules...
-import numpy as np
 import plotly.graph_objects as go
 
 class Viewer2D: 
