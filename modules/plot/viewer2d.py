@@ -1,4 +1,5 @@
 # Importing modules...
+import numpy as np
 import plotly.graph_objects as go
 
 class Viewer2D: 
@@ -67,4 +68,23 @@ class Viewer2D:
                 showlegend=self.graphical
             )
         )
+
+    def add_lines(self, lines, color=None):
+        for line in lines:
+            a, b, c = line
+            x, y = self.resolution[0], self.resolution[1]
+
+            points = np.array([[   0, -c/a,          x, (-c-b*y)/a],
+                               [-c/b,    0, (-c-a*x)/b,          y]])
+            
+            self.figure.add_trace(
+                go.Scatter(
+                    x=points[0],
+                    y=points[1],
+                    mode='lines',
+                    line=dict(color=color, 
+                              width=1),
+                    showlegend=False
+                )
+            )
 

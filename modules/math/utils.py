@@ -14,9 +14,9 @@ def skew_symmetric_matrix(t):
                      [t[2], 0, -t[0]],
                      [-t[1], t[0], 0]])
 
-def distance_to_line(P, line):
+def point_to_line_distance(point, line):
     a, b, c = line
-    x, y = P
+    x, y = point
 
     distance = np.abs(a*x +b*y + c) / np.sqrt(a**2 + b**2)
 
