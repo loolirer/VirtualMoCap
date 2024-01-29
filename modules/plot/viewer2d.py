@@ -1,5 +1,4 @@
 # Importing modules...
-import numpy as np
 import plotly.graph_objects as go
 
 class Viewer2D: 
@@ -74,8 +73,8 @@ class Viewer2D:
             a, b, c = line
             x, y = self.resolution[0], self.resolution[1]
 
-            points = np.array([[   0, -c/a,          x, (-c-b*y)/a],
-                               [-c/b,    0, (-c-a*x)/b,          y]])
+            points = [[   0, -c/a,          x, (-c-b*y)/a],
+                      [-c/b,    0, (-c-a*x)/b,          y]]
             
             self.figure.add_trace(
                 go.Scatter(
