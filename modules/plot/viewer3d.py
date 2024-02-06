@@ -113,17 +113,19 @@ class Viewer3D:
                 )
             )
 
-    def add_points(self, point, name, color=None):
+    def add_points(self, points, name, color=None, colorscale=None,colorbar=None):
         self.figure.add_trace(
             go.Scatter3d(
-                x=point[0],
-                y=point[1],
-                z=point[2],
+                x=points[0],
+                y=points[1],
+                z=points[2],
                 mode='markers',
                 marker=dict(
                     size=3,
                     opacity=0.80,
-                    color=color
+                    color=color,
+                    colorbar= dict(title=colorbar,lenmode='fraction', len=0.5) if colorbar is not None else colorbar,
+                    colorscale=colorscale
                 ),
                 name=name,
                 legendgroup='Points',
