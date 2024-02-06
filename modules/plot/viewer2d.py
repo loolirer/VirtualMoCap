@@ -2,7 +2,7 @@
 import plotly.graph_objects as go
 
 class Viewer2D: 
-    def __init__(self, title='', resolution=(480,480), image = None, graphical=False):
+    def __init__(self, title='', resolution=(480,480), image=None, graphical=False):
         self.title = title
         self.resolution = resolution # Change feed dimensions 
         self.graphical = graphical # Toggle to activate graphical mode
@@ -50,16 +50,18 @@ class Viewer2D:
             line=dict(color='black'),
         )
 
-    def add_points(self, point, name, color=None):
+    def add_points(self, points, name, color=None, colorscale=None,colorbar=None):
         self.figure.add_trace(
             go.Scatter(
-                x=point[0],
-                y=point[1],
+                x=points[0],
+                y=points[1],
                 mode='markers',
                 marker=dict(
                     size=5,
                     opacity=0.80,
-                    color=color
+                    color=color,
+                    colorbar= dict(title=colorbar,lenmode='fraction', len=0.5) if colorbar is not None else colorbar,
+                    colorscale=colorscale
                 ),
                 name=name,
                 legendgroup='Points',
