@@ -2,7 +2,7 @@
 import plotly.graph_objects as go
 
 class Viewer2D: 
-    def __init__(self, title='', resolution=(480,480), image=None, graphical=False):
+    def __init__(self, title='', resolution=(720,720), image=None, graphical=False):
         self.title = title
         self.resolution = resolution # Change feed dimensions 
         self.graphical = graphical # Toggle to activate graphical mode
@@ -19,13 +19,13 @@ class Viewer2D:
         )
 
         self.figure.update_yaxes(
-            scaleanchor="x",
+            scaleanchor='x',
             scaleratio=1
         )
         
         self.figure.update_layout(
-            xaxis_title='x',
-            yaxis_title='y',
+            xaxis_title='u',
+            yaxis_title='v',
             plot_bgcolor='white',
             font=dict(
                 family='Arial',
