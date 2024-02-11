@@ -13,7 +13,6 @@ def detect_blobs(image, threshold):
     contours, _ = cv2.findContours(thresh_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     blob_centroids = None
-    blob_areas = None
 
     if contours: # Check if empty
         for contour in contours:
@@ -22,21 +21,18 @@ def detect_blobs(image, threshold):
             
             # Calculate x,y coordinate of center
             if moments['m00'] != 0:
-                x = int(moments['m10'] / moments['m00'])
-                y = int(moments['m01'] / moments['m00'])
+                u = int(moments['m10'] / moments['m00'])
+                v = int(moments['m01'] / moments['m00'])
 
-                centroid = np.array([[x], 
-                                     [y]])
+                centroid = np.array([[u], 
+                                     [v]])
                 
-                area = np.array([moments['m00']])
             else:
                 continue
 
             if blob_centroids is None:
                 blob_centroids = centroid
-                blob_areas = area
             else:
                 blob_centroids = np.hstack((blob_centroids, centroid))
-                blob_areas = np.append(blob_areas, area)
 
-    return blob_centroids, blob_areas
+    return blob_centroids
