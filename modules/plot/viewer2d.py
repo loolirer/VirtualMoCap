@@ -1,11 +1,16 @@
 # Importing modules...
 import plotly.graph_objects as go
+import numpy as np
 
 class Viewer2D: 
     def __init__(self, title='', resolution=(720,720), image=None, graphical=False):
         self.title = title
         self.resolution = resolution # Change feed dimensions 
         self.graphical = graphical # Toggle to activate graphical mode
+
+        if image is not None:
+            if image.ndim == 2: # For single channel images
+                image = np.repeat(np.expand_dims(image, axis=2), 3, axis=2) # Replicate the channels 3 times (Plotly only admits RGB data)
 
         # Create Figure 
         self.figure = go.Figure(
