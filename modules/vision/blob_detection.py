@@ -2,37 +2,60 @@
 import numpy as np
 import cv2
 
-def detect_blobs(image, threshold):
-    # Convert to grayscale
-    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+params = cv2.SimpleBlobDetector_Params()
 
-    # Convert the grayscale image to binary image
-    _, image_thresh = cv2.threshold(image_gray, threshold, 255, cv2.THRESH_BINARY)
+# Check if blob is stable in the three filters
+params.minRepeatability    = 3
 
-    # Find blob contours
-    contours, _ = cv2.findContours(image_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+# Three threshold filters
+params.minThreshold        = 50
+params.thresholdStep       = 50
+params.maxThreshold        = params.minThreshold + params.thresholdStep * params.minRepeatability
 
-    blob_centroids = None
+# Minimum distance between blobs is 1 pixel
+params.minDistBetweenBlobs = 1
 
-    if contours: # Check if empty
-        for contour in contours:
-            
-            moments = cv2.moments(contour) # Calculate moments of each contour
-            
-            # Calculate x,y coordinate of center
-            if moments['m00'] != 0:
-                u = int(moments['m10'] / moments['m00'])
-                v = int(moments['m01'] / moments['m00'])
+# Filter only dark blobs
+params.filterByColor       = True
+params.blobColor           = 0
 
-                centroid = np.array([[u], 
-                                     [v]])
-                
-            else:
-                continue
+# Filter only blobs with over 2 pixels
+params.filterByArea        = True
+params.minArea             = 2
 
-            if blob_centroids is None:
-                blob_centroids = centroid
-            else:
-                blob_centroids = np.hstack((blob_centroids, centroid))
+# Do not filter by convexity to allow distorted blobs to be detected
+params.filterByConvexity   = False
 
-    return blob_centroids
+# Instanciate marker detector object
+marker_detector = cv2.SimpleBlobDetector_create(params)
+
+def detect_blobs(image, detector=marker_detector):
+    # Apply threshold to image
+    thresh = 127
+    _, image_thresh = cv2.threshold(image, thresh, 255, cv2.THRESH_BINARY_INV)
+
+    # Optimization: finding a smaller sub-image that contains all blobs
+    zero_pixels = np.array(np.where(image_thresh == [0, 0, 0]))[:-1]
+
+    # Sub-image new corners
+    margin = 5
+    u_min, u_max = min(zero_pixels[1]) - margin, max(zero_pixels[1]) + margin
+    v_min, v_max = min(zero_pixels[0]) - margin, max(zero_pixels[0]) + margin
+
+    # Detect keypoints in sub-image
+    keypoints = detector.detect(image_thresh[v_min:v_max, u_min:u_max])
+
+    # Make detected blobs matrix
+    detected_blobs = None
+    for k in keypoints:
+        blob_centroid = np.array([[k.pt[0] + u_min], 
+                                  [k.pt[1] + v_min]])
+
+        if detected_blobs is None:
+            detected_blobs = blob_centroid
+        else:
+            detected_blobs = np.hstack((detected_blobs, blob_centroid))
+
+    detected_blobs = detected_blobs.astype(int) # Cast as interger
+
+    return detected_blobs
