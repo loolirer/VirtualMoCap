@@ -8,7 +8,7 @@ def build_intrinsic_matrix(fov_degrees, resolution):
     f_x = resolution[0] / (2 * np.tan(fov_radians / 2))
     f_y = resolution[1] / (2 * np.tan(fov_radians / 2))
 
-    aspect_ratio = resolution[0]/resolution[1]
+    aspect_ratio = resolution[0] / resolution[1]
 
     # Aspect ratio scaling
     if aspect_ratio > 1: # Landscape
