@@ -24,13 +24,10 @@ class Camera:
 
     def get_coppelia_image(self, api_method):
         image_raw, resolution_x, resolution_y = api_method(self.vision_sensor_handle)
-        image_bgr = np.frombuffer(image_raw, dtype=np.uint8).reshape(resolution_y, resolution_x, 3) # 3 Channel image buffer (BGR)
-
-        # Color format is RGB triplets, whereas OpenCV uses BGR
-        image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+        image_unflipped = np.frombuffer(image_raw, dtype=np.uint8).reshape(resolution_y, resolution_x, 3) # 3 Channel image buffer 
 
         # In CoppeliaSim images are left to right (x-axis), and bottom to top (y-axis)
         # This is consistent with the axes of vision sensors, pointing Z outwards, Y up
-        image = cv2.flip(image_rgb, 0)
+        image = cv2.flip(image_unflipped, 0)
 
         return image
