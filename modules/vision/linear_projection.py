@@ -5,8 +5,8 @@ def build_intrinsic_matrix(fov_degrees, resolution):
     fov_radians = np.radians(fov_degrees) # Convert to radians
 
     # Focal distances in pixels
-    f_x = resolution[0]/(2*np.tan(fov_radians/2))
-    f_y = resolution[1]/(2*np.tan(fov_radians/2))
+    f_x = resolution[0] / (2 * np.tan(fov_radians / 2))
+    f_y = resolution[1] / (2 * np.tan(fov_radians / 2))
 
     aspect_ratio = resolution[0]/resolution[1]
 
@@ -17,7 +17,7 @@ def build_intrinsic_matrix(fov_degrees, resolution):
         f_x /= aspect_ratio
 
     # Principle point
-    c_x, c_y = resolution[0]/2, resolution[1]/2
+    c_x, c_y = resolution[0] / 2, resolution[1] / 2
 
     intrinsic_matrix = np.array([[f_x,   0, c_x],
                                  [  0, f_y, c_y],
@@ -26,9 +26,9 @@ def build_intrinsic_matrix(fov_degrees, resolution):
     return intrinsic_matrix
 
 def build_extrinsic_matrix(object_matrix):
-    if object_matrix.shape == (3,4): # Check if object matrix is in 3x4 format
+    if object_matrix.shape == (3, 4): # Check if object matrix is in 3x4 format
         extrinsic_matrix = np.vstack((object_matrix, np.array([0, 0, 0, 1]))) # Make inversible 4x4 homogeneous transformation
-    elif object_matrix.shape == (4,4):
+    elif object_matrix.shape == (4, 4):
         extrinsic_matrix = object_matrix
     else:
         extrinsic_matrix = np.eye(4) 
@@ -36,8 +36,8 @@ def build_extrinsic_matrix(object_matrix):
     return extrinsic_matrix
 
 def build_projection_matrix(intrinsic_matrix, extrinsic_matrix):
-    if intrinsic_matrix.shape == (3,3): # Check if intrinsic matrix is in 3x3 format
-        intrinsic_matrix = np.hstack((intrinsic_matrix, np.zeros((3,1)))) # Convert to 3x4 shape
+    if intrinsic_matrix.shape == (3, 3): # Check if intrinsic matrix is in 3x3 format
+        intrinsic_matrix = np.hstack((intrinsic_matrix, np.zeros((3, 1)))) # Convert to 3x4 shape
 
     projection_matrix = intrinsic_matrix @ np.linalg.inv(extrinsic_matrix) 
 
