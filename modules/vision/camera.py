@@ -2,7 +2,7 @@
 import numpy as np
 import cv2
 
-from modules.vision.linear_model import *
+from modules.vision.linear_projection import *
 
 class Camera:
     def __init__(self, 
