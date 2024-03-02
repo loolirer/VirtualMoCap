@@ -4,13 +4,13 @@ import cv2
 
 def detect_blobs(image, threshold):
     # Convert to grayscale
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # Convert the grayscale image to binary image
-    _, thresh_image = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
+    _, image_thresh = cv2.threshold(image_gray, threshold, 255, cv2.THRESH_BINARY)
 
     # Find blob contours
-    contours, _ = cv2.findContours(thresh_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(image_thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     blob_centroids = None
 
