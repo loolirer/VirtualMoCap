@@ -1,9 +1,9 @@
 import numpy as np
 
-def distort_rational(image_point, camera_matrix, rational_coefficients):
+def distort_rational(image_point, intrinsic_matrix, rational_coefficients):
     # Get intrinsic parameters
-    f_x, f_y = camera_matrix[0][0], camera_matrix[1][1]
-    c_x, c_y = camera_matrix[0][2], camera_matrix[1][2]
+    f_x, f_y = intrinsic_matrix[0][0], intrinsic_matrix[1][1]
+    c_x, c_y = intrinsic_matrix[0][2], intrinsic_matrix[1][2]
 
     [[u], [v]] = image_point
 
@@ -34,10 +34,10 @@ def distort_rational(image_point, camera_matrix, rational_coefficients):
     return np.array([[u_d],
                      [v_d]]).astype(int) # Cast as interger
 
-def distort_fisheye(image_point, camera_matrix, fisheye_coefficients):
+def distort_fisheye(image_point, intrinsic_matrix, fisheye_coefficients):
     # Get intrinsic parameters
-    f_x, f_y = camera_matrix[0][0], camera_matrix[1][1]
-    c_x, c_y = camera_matrix[0][2], camera_matrix[1][2]
+    f_x, f_y = intrinsic_matrix[0][0], intrinsic_matrix[1][1]
+    c_x, c_y = intrinsic_matrix[0][2], intrinsic_matrix[1][2]
 
     [[u], [v]] = image_point
 
@@ -65,30 +65,37 @@ def distort_fisheye(image_point, camera_matrix, fisheye_coefficients):
     return np.array([[u_d],
                      [v_d]]).astype(int) # Cast as interger
 
-def gen_distortion_maps(model, distortion_coefficients, camera):
-    map_u = np.zeros((camera.resolution[0], camera.resolution[1], 1), dtype=np.float32)
-    map_v = np.zeros((camera.resolution[0], camera.resolution[1], 1), dtype=np.float32)
+def gen_distortion_maps(distortion_coefficients, model, intrinsic_matrix, resolution):
+    map_u = np.zeros((resolution[0], resolution[1], 1), dtype=np.float32)
+    map_v = np.zeros((resolution[0], resolution[1], 1), dtype=np.float32)
+
+    distort = np.any(distortion_coefficients)
 
     # Note that the u-axis represents the columns and the v-axis represents the rows
-    for v in range(camera.resolution[0]):
-        for u in range(camera.resolution[1]):
+    for v in range(resolution[0]):
+        for u in range(resolution[1]):
             pixel_coordinate = np.array([[u],
                                          [v]])
             
-            if model == 'rational':
-                distorted_pixel_coordinate = distort_rational(image_point=pixel_coordinate, 
-                                                              camera_matrix=camera.intrinsic_matrix,
-                                                              rational_coefficients=distortion_coefficients)
-            elif model == 'fisheye':
-                distorted_pixel_coordinate = distort_fisheye(image_point=pixel_coordinate, 
-                                                              camera_matrix=camera.intrinsic_matrix,
-                                                              fisheye_coefficients=distortion_coefficients)
+            if distort: # If distortion parameters are available
+                if model == 'rational':
+                    distorted_pixel_coordinate = distort_rational(image_point=pixel_coordinate, 
+                                                                intrinsic_matrix=intrinsic_matrix,
+                                                                rational_coefficients=distortion_coefficients)
+                elif model == 'fisheye':
+                    distorted_pixel_coordinate = distort_fisheye(image_point=pixel_coordinate, 
+                                                                intrinsic_matrix=intrinsic_matrix,
+                                                                fisheye_coefficients=distortion_coefficients)
   
-            [[u_d], [v_d]] = distorted_pixel_coordinate
+                [[u_d], [v_d]] = distorted_pixel_coordinate
 
-            # Do not remap points outside the image limits
-            if (u_d >= 0 and u_d < camera.resolution[1]) and (v_d >= 0 and v_d < camera.resolution[0]):
-                map_u[v_d][u_d] = u
-                map_v[v_d][u_d] = v
+                # Do not remap points outside the image limits
+                if (u_d >= 0 and u_d < resolution[1]) and (v_d >= 0 and v_d < resolution[0]):
+                    map_u[v_d][u_d] = u
+                    map_v[v_d][u_d] = v
+
+            else: # In case of no distortion 
+                map_u[v][u] = u
+                map_v[v][u] = v
 
     return map_u, map_v
