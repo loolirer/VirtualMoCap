@@ -35,7 +35,7 @@ def detect_blobs(image, detector=marker_detector):
     _, image_thresh = cv2.threshold(image, thresh, 255, cv2.THRESH_BINARY_INV)
 
     # Optimization: finding a smaller sub-image that contains all blobs
-    zero_pixels = np.array(np.where(image_thresh == [0, 0, 0]))[:-1]
+    zero_pixels = np.array(np.where(image_thresh == 0))
 
     # Sub-image new corners
     margin = 5
