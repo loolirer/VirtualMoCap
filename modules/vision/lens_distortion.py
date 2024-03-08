@@ -1,3 +1,4 @@
+# Importing modules...
 import numpy as np
 
 def distort_rational(image_point, intrinsic_matrix, rational_coefficients):

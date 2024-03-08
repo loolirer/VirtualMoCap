@@ -1,3 +1,4 @@
+# Importing modules...
 import numpy as np
 
 def add_noise(image_gray, snr):
