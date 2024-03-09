@@ -23,11 +23,11 @@ def distort_rational(image_point, intrinsic_matrix, rational_coefficients):
     # Get radial and tangential transformation vectors
     radial_transformation = normalized_image_point * (1 + k1*r**2 + k2*r**4 + k3*r**6)/(1 + k4*r**2 + k5*r**4 + k6*r**6)
 
-    tangential_transformationn = np.array([[2*p1*x*y + p2*(r**2 + 2*x**2)],
-                                           [p1*(r**2 + 2*y**2) + 2*p2*x*y]])
+    tangential_transformation = np.array([[2*p1*x*y + p2*(r**2 + 2*x**2)],
+                                          [p1*(r**2 + 2*y**2) + 2*p2*x*y]])
     
     # Get distorted normalized point
-    [[x_d], [y_d]] = radial_transformation + tangential_transformationn
+    [[x_d], [y_d]] = radial_transformation + tangential_transformation
 
     # Re-scale and re-center point
     u_d, v_d = x_d * f_x + c_x, y_d * f_y + c_y
@@ -81,12 +81,12 @@ def gen_distortion_maps(distortion_coefficients, model, intrinsic_matrix, resolu
             if distort: # If distortion parameters are available
                 if model == 'rational':
                     distorted_pixel_coordinate = distort_rational(image_point=pixel_coordinate, 
-                                                                intrinsic_matrix=intrinsic_matrix,
-                                                                rational_coefficients=distortion_coefficients)
+                                                                  intrinsic_matrix=intrinsic_matrix,
+                                                                  rational_coefficients=distortion_coefficients)
                 elif model == 'fisheye':
                     distorted_pixel_coordinate = distort_fisheye(image_point=pixel_coordinate, 
-                                                                intrinsic_matrix=intrinsic_matrix,
-                                                                fisheye_coefficients=distortion_coefficients)
+                                                                 intrinsic_matrix=intrinsic_matrix,
+                                                                 fisheye_coefficients=distortion_coefficients)
   
                 [[u_d], [v_d]] = distorted_pixel_coordinate
 
