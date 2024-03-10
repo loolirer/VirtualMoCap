@@ -37,6 +37,9 @@ def detect_blobs(image, detector=marker_detector):
     # Optimization: finding a smaller sub-image that contains all blobs
     zero_pixels = np.array(np.where(image_thresh == 0))
 
+    if not np.any(zero_pixels):
+        return None
+
     # Sub-image new corners
     margin = 5
     u_min, u_max = min(zero_pixels[1]) - margin, max(zero_pixels[1]) + margin
