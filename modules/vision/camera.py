@@ -66,10 +66,15 @@ class Camera:
         image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
         # Use cv2.remap with the custom remapped coordinates
-        image_distorted = cv2.remap(src=image_gray, 
+        image_distorted = cv2.remap(src=image_gray,
+                                    dst=image_gray, 
                                     map1=self.map_u, 
                                     map2=self.map_v, 
-                                    interpolation=cv2.INTER_LINEAR)
+                                    interpolation=cv2.INTER_NEAREST)
+        
+        if np.any(self.distortion_coefficients):
+            kernel = np.ones((2,2),np.float32) / 4
+            image_distorted = cv2.filter2D(image_distorted, -1 ,kernel)
         
         image_noisy = add_noise(image_distorted, self.snr)
 
