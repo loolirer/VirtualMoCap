@@ -12,7 +12,7 @@ params.minThreshold        = 50
 params.thresholdStep       = 50
 params.maxThreshold        = params.minThreshold + params.thresholdStep * params.minRepeatability
 
-# Minimum distance between blobs is 1 pixel
+# Minimum distance between blobs in pixels
 params.minDistBetweenBlobs = 1
 
 # Filter only dark blobs
@@ -21,7 +21,7 @@ params.blobColor           = 0
 
 # Filter only blobs with over 2 pixels
 params.filterByArea        = True
-params.minArea             = 2
+params.minArea             = 3
 
 # Do not filter by convexity to allow distorted blobs to be detected
 params.filterByConvexity   = False
