@@ -56,6 +56,4 @@ def detect_blobs(image, detector=marker_detector):
         else:
             detected_blobs = np.hstack((detected_blobs, blob_centroid))
 
-    detected_blobs = detected_blobs.astype(int) # Cast as interger
-
     return detected_blobs
