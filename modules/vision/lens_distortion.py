@@ -1,5 +1,7 @@
 # Importing modules...
+from scipy.interpolate import griddata
 import numpy as np
+import cv2
 
 def distort_rational(image_point, intrinsic_matrix, rational_coefficients):
     # Get intrinsic parameters
@@ -33,7 +35,7 @@ def distort_rational(image_point, intrinsic_matrix, rational_coefficients):
     u_d, v_d = x_d * f_x + c_x, y_d * f_y + c_y
 
     return np.array([[u_d],
-                     [v_d]]).astype(int) # Cast as interger
+                     [v_d]])
 
 def distort_fisheye(image_point, intrinsic_matrix, fisheye_coefficients):
     # Get intrinsic parameters
@@ -64,39 +66,63 @@ def distort_fisheye(image_point, intrinsic_matrix, fisheye_coefficients):
     u_d, v_d = x_d * f_x + c_x, y_d * f_y + c_y
 
     return np.array([[u_d],
-                     [v_d]]).astype(int) # Cast as interger
+                     [v_d]])
+
+def interpolate_map(map):
+    missing_indices = np.array(np.where(np.isnan(map))).T
+
+    # Create a grid of indices for the known values
+    known_indices = np.array(np.where(~np.isnan(map))).T
+    known_values = map[~np.isnan(map)]
+
+    # Use interpolation to estimate missing values
+    estimated_values = griddata(known_indices, known_values, missing_indices, method='nearest')
+
+    # Replace missing values with the estimated values
+    estimated_map = map.copy()
+    estimated_map[np.isnan(map)] = estimated_values
+
+    return estimated_map
 
 def gen_distortion_maps(distortion_coefficients, model, intrinsic_matrix, resolution):
-    map_u = np.zeros((resolution[0], resolution[1], 1), dtype=np.float32)
-    map_v = np.zeros((resolution[0], resolution[1], 1), dtype=np.float32)
+    # Make undistortion maps
+    if model == 'rational':
+        map_u, map_v = cv2.initUndistortRectifyMap(cameraMatrix=intrinsic_matrix,
+                                                   distCoeffs=distortion_coefficients,
+                                                   R=np.eye(3),
+                                                   newCameraMatrix=intrinsic_matrix,
+                                                   size=resolution,
+                                                   m1type=cv2.CV_32FC1)
+    
+    elif model == 'fisheye':
+        map_u, map_v = cv2.fisheye.initUndistortRectifyMap(K=intrinsic_matrix,
+                                                           D=distortion_coefficients,
+                                                           R=np.eye(3),
+                                                           P=intrinsic_matrix,
+                                                           size=resolution,
+                                                           m1type=cv2.CV_32FC1)
+        
+    # Round maps and cast to integer for exact indexing 
+    map_u = np.round(map_u).astype(int) 
+    map_v = np.round(map_v).astype(int) 
 
-    distort = np.any(distortion_coefficients)
+    # Invert undistortion maps
+    map_u_d = np.full(resolution, np.nan, dtype=np.float32)
+    map_v_d = np.full(resolution, np.nan, dtype=np.float32)
 
-    # Note that the u-axis represents the columns and the v-axis represents the rows
     for v in range(resolution[0]):
         for u in range(resolution[1]):
-            pixel_coordinate = np.array([[u],
-                                         [v]])
-            
-            if distort: # If distortion parameters are available
-                if model == 'rational':
-                    distorted_pixel_coordinate = distort_rational(image_point=pixel_coordinate, 
-                                                                  intrinsic_matrix=intrinsic_matrix,
-                                                                  rational_coefficients=distortion_coefficients)
-                elif model == 'fisheye':
-                    distorted_pixel_coordinate = distort_fisheye(image_point=pixel_coordinate, 
-                                                                 intrinsic_matrix=intrinsic_matrix,
-                                                                 fisheye_coefficients=distortion_coefficients)
-  
-                [[u_d], [v_d]] = distorted_pixel_coordinate
 
-                # Do not remap points outside the image limits
-                if (u_d >= 0 and u_d < resolution[1]) and (v_d >= 0 and v_d < resolution[0]):
-                    map_u[v_d][u_d] = u
-                    map_v[v_d][u_d] = v
+            u_d = map_u[v][u] 
+            v_d = map_v[v][u]
 
-            else: # In case of no distortion 
-                map_u[v][u] = u
-                map_v[v][u] = v
+            # Do not remap points outside the image limits
+            if (u_d >= 0 and u_d < resolution[1]) and (v_d >= 0 and v_d < resolution[0]):
+                map_u_d[v_d][u_d] = u
+                map_v_d[v_d][u_d] = v
+    
+    # Interpolate maps
+    map_u_d = interpolate_map(map_u_d).astype(np.float32)
+    map_v_d = interpolate_map(map_v_d).astype(np.float32)
 
-    return map_u, map_v
+    return map_u_d, map_v_d
