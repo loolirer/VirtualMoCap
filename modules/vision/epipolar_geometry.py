@@ -19,3 +19,29 @@ def build_fundamental_matrix(intrinsic_matrix_reference, intrinsic_matrix_auxili
     fundamental_matrix = np.linalg.inv(intrinsic_matrix_auxiliary).T @ essential_matrix @ np.linalg.inv(intrinsic_matrix_reference)
 
     return fundamental_matrix
+
+def point_to_line_distance(point, line):
+    a, b, c = line
+    x, y = point
+
+    distance = np.abs(a*x +b*y + c) / np.sqrt(a**2 + b**2)
+
+    return distance
+
+def order_centroids(blob_centroids_auxiliary, epilines_auxiliary):
+    # Ordered centroids based on reference's centroids 
+    ordered_centroids_auxiliary = np.zeros(blob_centroids_auxiliary.shape).T
+
+    for centroid_auxiliary in blob_centroids_auxiliary.T:
+        distances = [] # Distance from the centroid to each epipolar line
+
+        for epiline_auxiliary in epilines_auxiliary:
+            distances.append(point_to_line_distance(centroid_auxiliary, epiline_auxiliary)) # Distance from the centroid to an epipolar line
+
+        new_index = np.argmin(np.array(distances)) # The match will be made for the shortest point to line distance
+
+        ordered_centroids_auxiliary[new_index] = centroid_auxiliary # Assigning the new centroid order
+
+    ordered_centroids_auxiliary = ordered_centroids_auxiliary.T
+
+    return ordered_centroids_auxiliary
