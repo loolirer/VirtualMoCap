@@ -84,24 +84,15 @@ def interpolate_map(map):
 
     return estimated_map
 
-def gen_distortion_maps(distortion_coefficients, model, intrinsic_matrix, resolution):
+def build_distortion_map(distortion_coefficients, undistortion_map, intrinsic_matrix, resolution):
     # Make undistortion maps
-    if model == 'rational':
-        map_u, map_v = cv2.initUndistortRectifyMap(cameraMatrix=intrinsic_matrix,
-                                                   distCoeffs=distortion_coefficients,
-                                                   R=np.eye(3),
-                                                   newCameraMatrix=intrinsic_matrix,
-                                                   size=resolution,
-                                                   m1type=cv2.CV_32FC1)
-    
-    elif model == 'fisheye':
-        map_u, map_v = cv2.fisheye.initUndistortRectifyMap(K=intrinsic_matrix,
-                                                           D=distortion_coefficients,
-                                                           R=np.eye(3),
-                                                           P=intrinsic_matrix,
-                                                           size=resolution,
-                                                           m1type=cv2.CV_32FC1)
-        
+    map_u, map_v = undistortion_map(intrinsic_matrix,
+                                    distortion_coefficients,
+                                    np.eye(3),
+                                    intrinsic_matrix,
+                                    resolution,
+                                    cv2.CV_32FC1)
+
     # Round maps and cast to integer for exact indexing 
     map_u = np.round(map_u).astype(int) 
     map_v = np.round(map_v).astype(int) 
