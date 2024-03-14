@@ -81,11 +81,11 @@ class Camera:
 
         # In CoppeliaSim images are left to right (x-axis), and bottom to top (y-axis)
         # This is consistent with the axes of vision sensors, pointing Z outwards, Y up
-        image = cv2.flip(image_unflipped, 0)
+        image_gray = cv2.flip(image_unflipped, 0)
 
         # Use cv2.remap with the custom remapped coordinates
-        image_distorted = cv2.remap(src=image,
-                                    dst=image, 
+        image_distorted = cv2.remap(src=image_gray,
+                                    dst=image_gray, 
                                     map1=self.map_u, 
                                     map2=self.map_v, 
                                     interpolation=cv2.INTER_NEAREST)
