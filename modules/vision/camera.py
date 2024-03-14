@@ -73,23 +73,24 @@ class Camera:
         self.snr = np.power(10, (snr_dB / 20)) # Converted for ratio
 
     def get_coppelia_image(self, api_method):
-        image_raw, resolution_x, resolution_y = api_method(self.vision_sensor_handle)
+        # Get grayscale image buffer
+        buffer, resolution = api_method(self.vision_sensor_handle, 1) # Set second argument to 1 for grayscale, 0 for RGB
 
-        image_unflipped = np.frombuffer(image_raw, dtype=np.uint8).reshape(resolution_y, resolution_x, 3) # 3 Channel image buffer 
+        # Convert buffer into single channel image
+        image_unflipped = np.frombuffer(buffer, dtype=np.uint8).reshape(resolution[1], resolution[0])
 
         # In CoppeliaSim images are left to right (x-axis), and bottom to top (y-axis)
         # This is consistent with the axes of vision sensors, pointing Z outwards, Y up
         image = cv2.flip(image_unflipped, 0)
 
-        image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-
         # Use cv2.remap with the custom remapped coordinates
-        image_distorted = cv2.remap(src=image_gray,
-                                    dst=image_gray, 
+        image_distorted = cv2.remap(src=image,
+                                    dst=image, 
                                     map1=self.map_u, 
                                     map2=self.map_v, 
                                     interpolation=cv2.INTER_NEAREST)
         
+        # Add noise based on the desired SNR for the image
         image_noisy = add_noise(image_distorted, self.snr)
 
         simulated_image = image_noisy
