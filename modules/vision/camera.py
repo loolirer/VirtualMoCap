@@ -35,6 +35,7 @@ class Camera:
         self.resolution = resolution
         self.aspect_ratio = resolution[0]/resolution[1]
         self.fov_degrees = fov_degrees
+        self.fov_radians = np.radians(fov_degrees)
 
         # Extrinsic Parameters
         self.object_matrix = object_matrix
