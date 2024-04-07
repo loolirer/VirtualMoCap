@@ -40,6 +40,11 @@ class Camera:
         # Extrinsic Parameters
         self.object_matrix = object_matrix
         self.R, self.t = self.object_matrix[:, :-1], self.object_matrix[:, [-1]]
+
+        # X and Y axis of Coppelia's Vision Sensor are inverted
+        self.coppeliasim_object_matrix = np.copy(self.object_matrix)
+        self.coppeliasim_object_matrix[:,0] *= -1 # Invert x vector column
+        self.coppeliasim_object_matrix[:,1] *= -1 # Invert y vector column
         
         # Compressing data into matrices
         self.intrinsic_matrix = build_intrinsic_matrix(fov_degrees=self.fov_degrees, 
