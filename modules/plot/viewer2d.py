@@ -67,7 +67,7 @@ class Viewer2D:
                     color=color,
                     cmin=range[0] if colorbar is not None else None,
                     cmax=range[1] if colorbar is not None else None,
-                    colorbar= dict(title=colorbar,lenmode='fraction', len=0.5) if colorbar is not None else colorbar,
+                    colorbar=dict(title=colorbar,lenmode='fraction', len=0.5) if colorbar is not None else colorbar,
                     colorscale=colorscale
                 ),
                 name=name,
