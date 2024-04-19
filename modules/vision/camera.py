@@ -9,7 +9,6 @@ from modules.vision.image_noise import *
 
 class Camera:
     def __init__(self, 
-                  
                  # Simulation handling
                  vision_sensor_handle=-1, # Coppelia's World handle 
  
