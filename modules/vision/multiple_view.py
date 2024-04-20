@@ -5,10 +5,10 @@ from modules.vision.camera import *
 from modules.vision.epipolar_geometry import * 
 
 class MultipleView:
-    def __init__(self, camera):
+    def __init__(self, cameras):
         # Camera model information
-        self.camera = camera
-        self.n_cameras = len(camera)
+        self.cameras = cameras
+        self.n_cameras = len(cameras)
 
         # Build all fundamental matrices between camera pairs
         self.fundamental_matrix = np.array(np.zeros((self.n_cameras, self.n_cameras, 3, 3)))
@@ -18,38 +18,44 @@ class MultipleView:
                 if reference == auxiliary:
                     continue
 
-                E = build_essential_matrix(camera[reference].extrinsic_matrix, camera[auxiliary].extrinsic_matrix)
+                E = build_essential_matrix(self.cameras[reference].extrinsic_matrix, self.cameras[auxiliary].extrinsic_matrix)
 
-                F = build_fundamental_matrix(camera[reference].intrinsic_matrix, camera[auxiliary].intrinsic_matrix, E)
+                F = build_fundamental_matrix(self.cameras[reference].intrinsic_matrix, self.cameras[auxiliary].intrinsic_matrix, E)
 
                 self.fundamental_matrix[reference][auxiliary] = F
 
-    def triangulate_by_pair(self, pair, distorted_blobs):
-        reference, auxiliary = pair
+    def triangulate_by_pair(self, pair, distorted_centroids_pair):
+        # Gathering pair info
+        camera_pair = [self.cameras[pair[0]], self.cameras[pair[1]]]
+        pair_fundamental_matrix = self.fundamental_matrix[pair[0]][pair[1]]
+        
+        reference, auxiliary = (0, 1) # Naming for the sake of code readability
 
         # Undistort blobs
-        undistorted_blobs = [self.camera[ID].undistort_points(distorted_blobs[ID].T.reshape(1, -1, 2).astype(np.float32), 
-                                                              self.camera[ID].intrinsic_matrix, 
-                                                              self.camera[ID].distortion_coefficients,
+        undistorted_centroids_pair = [camera.undistort_points(distorted_centroids.T.reshape(1, -1, 2).astype(np.float32), 
+                                                              camera.intrinsic_matrix, 
+                                                              camera.distortion_coefficients,
                                                               np.array([]),
-                                                              self.camera[ID].intrinsic_matrix).reshape(-1,2).T for ID in pair]
+                                                              camera.intrinsic_matrix).reshape(-1,2).T 
+                                                                           
+                                      for (camera, distorted_centroids) in zip(camera_pair, distorted_centroids_pair)]
 
         # Compute epipolar lines
-        epilines_auxiliary = cv2.computeCorrespondEpilines(points=undistorted_blobs[reference].T, 
+        epilines_auxiliary = cv2.computeCorrespondEpilines(points=undistorted_centroids_pair[reference].T, 
                                                            whichImage=1, 
-                                                           F=self.fundamental_matrix[reference][auxiliary]).reshape(-1,3)
+                                                           F=pair_fundamental_matrix).reshape(-1,3)
         
         # Order blobs
-        undistorted_blobs[auxiliary] = order_centroids(undistorted_blobs[auxiliary], epilines_auxiliary)
+        undistorted_centroids_pair[auxiliary] = order_centroids(undistorted_centroids_pair[auxiliary], epilines_auxiliary)
 
         # Triangulate markers
-        triangulated_positions = cv2.triangulatePoints(self.camera[reference].projection_matrix.astype(float), 
-                                                       self.camera[auxiliary].projection_matrix.astype(float), 
-                                                       undistorted_blobs[reference].astype(float), 
-                                                       undistorted_blobs[auxiliary].astype(float))
+        triangulated_points_4D = cv2.triangulatePoints(camera_pair[reference].projection_matrix.astype(float), 
+                                                       camera_pair[auxiliary].projection_matrix.astype(float), 
+                                                       undistorted_centroids_pair[reference].astype(float), 
+                                                       undistorted_centroids_pair[auxiliary].astype(float))
         
-        # Normalize homogeneous coordinates
-        triangulated_positions = (triangulated_positions / triangulated_positions[-1])[:-1, :]
+        # Normalize homogeneous coordinates and discard last row
+        triangulated_points_3D = (triangulated_points_4D / triangulated_points_4D[-1])[:-1, :]
 
-        return triangulated_positions
+        return triangulated_points_3D
         
