@@ -51,12 +51,12 @@ def detect_blobs(image, detector=marker_detector):
     # Make detected blobs matrix
     detected_blobs = None
     for k in keypoints:
-        blob_centroid = np.array([[k.pt[0] + u_min], 
+        blob = np.array([[k.pt[0] + u_min], 
                                   [k.pt[1] + v_min]])
 
         if detected_blobs is None:
-            detected_blobs = blob_centroid
+            detected_blobs = blob
         else:
-            detected_blobs = np.hstack((detected_blobs, blob_centroid))
+            detected_blobs = np.hstack((detected_blobs, blob))
 
     return detected_blobs

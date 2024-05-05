@@ -24,35 +24,26 @@ class MultipleView:
 
                 self.fundamental_matrix[reference][auxiliary] = F
 
-    def triangulate_by_pair(self, pair, distorted_centroids_pair):
+    def triangulate_by_pair(self, pair, undistorted_blobs_pair):
         # Gathering pair info
         camera_pair = [self.cameras[pair[0]], self.cameras[pair[1]]]
         pair_fundamental_matrix = self.fundamental_matrix[pair[0]][pair[1]]
         
         reference, auxiliary = (0, 1) # Naming for the sake of code readability
 
-        # Undistort blobs
-        undistorted_centroids_pair = [camera.undistort_points(distorted_centroids.T.reshape(1, -1, 2).astype(np.float32), 
-                                                              camera.intrinsic_matrix, 
-                                                              camera.distortion_coefficients,
-                                                              np.array([]),
-                                                              camera.intrinsic_matrix).reshape(-1,2).T 
-                                                                           
-                                      for (camera, distorted_centroids) in zip(camera_pair, distorted_centroids_pair)]
-
         # Compute epipolar lines
-        epilines_auxiliary = cv2.computeCorrespondEpilines(points=undistorted_centroids_pair[reference].T, 
+        epilines_auxiliary = cv2.computeCorrespondEpilines(points=undistorted_blobs_pair[reference].T, 
                                                            whichImage=1, 
                                                            F=pair_fundamental_matrix).reshape(-1,3)
         
         # Order blobs
-        undistorted_centroids_pair[auxiliary] = order_centroids(undistorted_centroids_pair[auxiliary], epilines_auxiliary)
+        undistorted_blobs_pair[auxiliary] = epiline_order(undistorted_blobs_pair[auxiliary], epilines_auxiliary)
 
         # Triangulate markers
         triangulated_points_4D = cv2.triangulatePoints(camera_pair[reference].projection_matrix.astype(float), 
                                                        camera_pair[auxiliary].projection_matrix.astype(float), 
-                                                       undistorted_centroids_pair[reference].astype(float), 
-                                                       undistorted_centroids_pair[auxiliary].astype(float))
+                                                       undistorted_blobs_pair[reference].astype(float), 
+                                                       undistorted_blobs_pair[auxiliary].astype(float))
         
         # Normalize homogeneous coordinates and discard last row
         triangulated_points_3D = (triangulated_points_4D / triangulated_points_4D[-1])[:-1, :]

@@ -58,15 +58,15 @@ class Camera:
 
         # Build distortion model parameters
         self.undistortion_map = None
-        self.undistort_points = None
+        self.undistortion_function = None
 
         if self.distortion_model == 'rational' or self.distortion_model is None:
             self.undistortion_map = cv2.initUndistortRectifyMap
-            self.undistort_points = cv2.undistortPoints
+            self.undistortion_function = cv2.undistortPoints
 
         elif self.distortion_model == 'fisheye':
             self.undistortion_map = cv2.fisheye.initUndistortRectifyMap
-            self.undistort_points = cv2.fisheye.undistortPoints
+            self.undistortion_function = cv2.fisheye.undistortPoints
 
         self.map_u, self.map_v = build_distortion_map(self.distortion_coefficients, 
                                                       self.undistortion_map, 
@@ -101,3 +101,10 @@ class Camera:
         simulated_image = image_noisy
 
         return simulated_image
+    
+    def undistort_points(self, distorted_centroids):
+        return self.undistortion_function(distorted_centroids.T.reshape(1, -1, 2).astype(np.float64), 
+                                          self.intrinsic_matrix, 
+                                          self.distortion_coefficients,
+                                          np.array([]),
+                                          self.intrinsic_matrix).reshape(-1,2).T 
