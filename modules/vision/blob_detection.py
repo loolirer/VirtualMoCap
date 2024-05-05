@@ -45,18 +45,17 @@ def detect_blobs(image, detector=marker_detector):
     u_min, u_max = min(zero_pixels[1]) - margin, max(zero_pixels[1]) + margin
     v_min, v_max = min(zero_pixels[0]) - margin, max(zero_pixels[0]) + margin
 
+    # Clip values to not go beyond the image limits
+    u_min, u_max = np.clip([u_min, u_max], 0, image_thresh.shape[1] - 1)
+    v_min, v_max = np.clip([v_min, v_max], 0, image_thresh.shape[0] - 1)
+
+    # Sub-image reference for coordinate transformation
+    sub_image_origin = np.array([u_min, v_min])
+
     # Detect keypoints in sub-image
-    keypoints = detector.detect(image_thresh[v_min:v_max, u_min:u_max])
+    keypoints = detector.detect(image_thresh[v_min:v_max+1, u_min:u_max+1]) # Slice ends are exclusive!
 
     # Make detected blobs matrix
-    detected_blobs = None
-    for k in keypoints:
-        blob = np.array([[k.pt[0] + u_min], 
-                                  [k.pt[1] + v_min]])
-
-        if detected_blobs is None:
-            detected_blobs = blob
-        else:
-            detected_blobs = np.hstack((detected_blobs, blob))
+    detected_blobs = np.array([k.pt for k in keypoints]) + sub_image_origin
 
     return detected_blobs
