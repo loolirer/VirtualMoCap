@@ -103,8 +103,8 @@ class Camera:
         return simulated_image
     
     def undistort_points(self, distorted_centroids):
-        return self.undistortion_function(distorted_centroids.T.reshape(1, -1, 2).astype(np.float64), 
+        return self.undistortion_function(distorted_centroids.reshape(1, -1, 2).astype(np.float32), 
                                           self.intrinsic_matrix, 
                                           self.distortion_coefficients,
                                           np.array([]),
-                                          self.intrinsic_matrix).reshape(-1,2).T 
+                                          self.intrinsic_matrix).reshape(-1,2)

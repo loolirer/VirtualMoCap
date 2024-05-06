@@ -37,15 +37,16 @@ def detect_blobs(image, detector=marker_detector):
     # Optimization: finding a smaller sub-image that contains all blobs
     zero_pixels = np.array(np.where(image_thresh == 0))
 
-    if not np.any(zero_pixels):
-        return None
+    # Image blacked out after thresh
+    if not zero_pixels.size:
+        return np.array([])
 
     # Sub-image new corners
-    margin = 5
+    margin = 5 # Arbitrary margin for sub-image  
     u_min, u_max = min(zero_pixels[1]) - margin, max(zero_pixels[1]) + margin
     v_min, v_max = min(zero_pixels[0]) - margin, max(zero_pixels[0]) + margin
 
-    # Clip values to not go beyond the image limits
+    # Clip values to not go beyond the original image limits
     u_min, u_max = np.clip([u_min, u_max], 0, image_thresh.shape[1] - 1)
     v_min, v_max = np.clip([v_min, v_max], 0, image_thresh.shape[0] - 1)
 
@@ -53,9 +54,13 @@ def detect_blobs(image, detector=marker_detector):
     sub_image_origin = np.array([u_min, v_min])
 
     # Detect keypoints in sub-image
-    keypoints = detector.detect(image_thresh[v_min:v_max+1, u_min:u_max+1]) # Slice ends are exclusive!
+    keypoints = detector.detect(image_thresh[v_min:v_max+1, u_min:u_max+1]) # End of slice is exclusive!
 
-    # Make detected blobs matrix
+    # No valid blob found!
+    if not keypoints:
+        return np.array([])
+
+    # Make detected blobs matrix in the original image reference
     detected_blobs = np.array([k.pt for k in keypoints]) + sub_image_origin
 
     return detected_blobs

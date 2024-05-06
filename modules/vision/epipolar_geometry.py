@@ -30,18 +30,16 @@ def point_to_line_distance(point, line):
 
 def epiline_order(blobs_auxiliary, epilines_auxiliary):
     # Ordered centroids based on reference's centroids 
-    ordered_blobs_auxiliary = np.zeros(blobs_auxiliary.shape).T
+    ordered_blobs_auxiliary = np.zeros_like(blobs_auxiliary)
 
-    for centroid_auxiliary in blobs_auxiliary.T:
+    for blob_auxiliary in blobs_auxiliary:
         distances = [] # Distance from the centroid to each epipolar line
 
         for epiline_auxiliary in epilines_auxiliary:
-            distances.append(point_to_line_distance(centroid_auxiliary, epiline_auxiliary)) # Distance from the centroid to an epipolar line
+            distances.append(point_to_line_distance(blob_auxiliary, epiline_auxiliary)) # Distance from the centroid to an epipolar line
 
         new_index = np.argmin(np.array(distances)) # The match will be made for the shortest point to line distance
 
-        ordered_blobs_auxiliary[new_index] = centroid_auxiliary # Assigning the new centroid order
-
-    ordered_blobs_auxiliary = ordered_blobs_auxiliary.T
+        ordered_blobs_auxiliary[new_index] = blob_auxiliary # Assigning the new centroid order
 
     return ordered_blobs_auxiliary

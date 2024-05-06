@@ -32,7 +32,7 @@ class MultipleView:
         reference, auxiliary = (0, 1) # Naming for the sake of code readability
 
         # Compute epipolar lines
-        epilines_auxiliary = cv2.computeCorrespondEpilines(points=undistorted_blobs_pair[reference].T, 
+        epilines_auxiliary = cv2.computeCorrespondEpilines(points=undistorted_blobs_pair[reference], 
                                                            whichImage=1, 
                                                            F=pair_fundamental_matrix).reshape(-1,3)
         
@@ -40,10 +40,10 @@ class MultipleView:
         undistorted_blobs_pair[auxiliary] = epiline_order(undistorted_blobs_pair[auxiliary], epilines_auxiliary)
 
         # Triangulate markers
-        triangulated_points_4D = cv2.triangulatePoints(camera_pair[reference].projection_matrix.astype(float), 
-                                                       camera_pair[auxiliary].projection_matrix.astype(float), 
-                                                       undistorted_blobs_pair[reference].astype(float), 
-                                                       undistorted_blobs_pair[auxiliary].astype(float))
+        triangulated_points_4D = cv2.triangulatePoints(camera_pair[reference].projection_matrix.astype(np.float32), 
+                                                       camera_pair[auxiliary].projection_matrix.astype(np.float32), 
+                                                       undistorted_blobs_pair[reference].T.astype(np.float32), 
+                                                       undistorted_blobs_pair[auxiliary].T.astype(np.float32))
         
         # Normalize homogeneous coordinates and discard last row
         triangulated_points_3D = (triangulated_points_4D / triangulated_points_4D[-1])[:-1, :]
