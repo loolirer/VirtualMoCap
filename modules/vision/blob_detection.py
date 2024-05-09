@@ -29,7 +29,7 @@ params.filterByConvexity   = False
 # Instanciate marker detector object
 marker_detector = cv2.SimpleBlobDetector_create(params)
 
-def detect_blobs(image, detector=marker_detector):
+def detect_blobs(image, area=False, detector=marker_detector):
     # Apply threshold to image
     thresh = 127
     _, image_thresh = cv2.threshold(image, thresh, 255, cv2.THRESH_BINARY_INV)
@@ -50,7 +50,7 @@ def detect_blobs(image, detector=marker_detector):
     u_min, u_max = np.clip([u_min, u_max], 0, image_thresh.shape[1] - 1)
     v_min, v_max = np.clip([v_min, v_max], 0, image_thresh.shape[0] - 1)
 
-    # Sub-image reference for coordinate transformation
+    # Sub-image reference 
     sub_image_origin = np.array([u_min, v_min])
 
     # Detect keypoints in sub-image
@@ -60,7 +60,12 @@ def detect_blobs(image, detector=marker_detector):
     if not keypoints:
         return np.array([])
 
-    # Make detected blobs matrix in the original image reference
+    # If valid blobs were found, make detected blobs matrix in the original image reference
     detected_blobs = np.array([k.pt for k in keypoints]) + sub_image_origin
+
+    # Append blob areas to the matrix if needed
+    if area:
+        blob_areas = np.array([k.size for k in keypoints])
+        detected_blobs = np.hstack((detected_blobs, blob_areas.reshape(-1, 1)))
 
     return detected_blobs
