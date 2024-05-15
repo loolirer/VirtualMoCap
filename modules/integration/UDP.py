@@ -2,7 +2,7 @@ import socket
 
 class UDP(socket.socket): 
     def __init__(self,  
-                 address=('127.0.0.1', 0000)
+                 address=('127.0.0.1', 1024) # First valid address for free use
                  ):
         
         # Socket info
