@@ -18,7 +18,7 @@ class Server:
         # Creating multiple view object
         self.multiple_view = MultipleView([c.camera for c in clients])
 
-    def client_lookup(self):
+    def handshake_clients(self):
         print(f'[SERVER] Waiting for clients...')
 
         # Address lookup 
