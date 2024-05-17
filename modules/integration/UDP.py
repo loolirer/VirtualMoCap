@@ -1,4 +1,5 @@
 import socket
+import sys
 
 class UDP(socket.socket): 
     def __init__(self,  
@@ -18,7 +19,7 @@ class UDP(socket.socket):
             
         except socket.error as err: 
             print(err)
-            exit()
+            sys.exit()
 
         # Binding socket to the address
         try:
@@ -26,4 +27,4 @@ class UDP(socket.socket):
 
         except socket.error as err:
             print(err)
-            exit()
+            sys.exit()
