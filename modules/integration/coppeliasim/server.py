@@ -129,8 +129,10 @@ class CoppeliaSim_Server(Server):
 
             except: # Invalid message for decoding
                 continue # Look for another message
-
-            self.client_addresses[address] = ID
+            
+            # Register address
+            self.client_addresses[address] = ID 
+            self.clients[ID].address = address
 
             print(f'\tClient {ID} registered')
 
