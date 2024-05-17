@@ -1,0 +1,117 @@
+from modules.integration.server import *
+
+class CoppeliaSim_Server(Server): 
+    def __init__(self, 
+                 clients,
+                 server_address,
+                 controller_address
+                 ):
+        
+        Server.__init__(self, 
+                        clients, 
+                        server_address)
+        
+        self.controller_address = controller_address
+
+    def request_scene(self):
+        # Send scene request 
+        request = 'Scene'
+        request_bytes = request.encode()
+        self.udp_socket.sendto(request_bytes, self.controller_address)
+
+        # Initializing buffer
+        buffer_array = None
+
+        print('[SERVER] Wrapping up CoppeliaSim scene info')
+
+        for C in [c.camera for c in self.clients]:
+            # Wrap vision sensor parameters
+            parameter_array = np.array([# Options
+                                        2+4, # Bit 1 set: Perspective Mode
+                                             # Bit 2 set: Invisible Viewing Frustum 
+                                                                            
+                                        # Integer parameters
+                                        C.resolution[0], 
+                                        C.resolution[1],
+                                        0, # Reserved
+                                        0, # Reserved
+
+                                        # Float parameters
+                                        0.01, # Near clipping plane in meters
+                                        10, # Far clipping plane in meters
+                                        C.fov_radians, # FOV view angle in radians
+                                        0.1, # Sensor X size
+                                        0.0, # Reserved
+                                        0.0, # Reserved
+                                        0.0, # Null pixel red-value
+                                        0.0, # Null pixel green-value
+                                        0.0, # Null pixel blue-value
+                                        0.0, # Reserved
+                                        0.0  # Reserved
+                                        ])
+
+            transformation_array = np.ravel(C.coppeliasim_object_matrix)
+
+            if buffer_array is not None:
+                buffer_array = np.concatenate((buffer_array, parameter_array, transformation_array))
+
+            else:
+                buffer_array = np.concatenate((parameter_array, transformation_array))
+
+        # Send scene info
+        buffer = buffer_array.astype(np.float32).tobytes()
+
+        self.udp_socket.sendto(buffer, self.controller_address)
+
+        print('[SERVER] Scene info sent')
+
+        # Wait for controller setup confirmation
+        try:
+            confirmation_bytes, _ = self.udp_socket.recvfrom(1024)
+            confirmation = confirmation_bytes.decode()
+
+            if confirmation == 'Success':
+                print('[SERVER] Scene set!')
+
+                return True
+            
+            print('[SERVER] Scene setup failed!')
+
+            return False # Did not confirm
+            
+        except:
+            print('[SERVER] Parsing failed!')
+
+            return False # Confirmation parsing failed
+
+    def request_capture(self, capture_time):
+        # Send capture request 
+        request = 'Capture'
+        request_bytes = request.encode()
+        self.udp_socket.sendto(request_bytes, self.controller_address)
+
+        # Send capture time
+        message = str(capture_time)
+        message_bytes = message.encode()
+        self.udp_socket.sendto(message_bytes, self.controller_address)
+
+        print('[SERVER] Capture info sent')
+
+        # Wait for controller setup confirmation
+        try:
+            confirmation_bytes, _ = self.udp_socket.recvfrom(1024)
+            confirmation = confirmation_bytes.decode()
+
+            if confirmation == 'Success':
+                print('[SERVER] Capture confirmed!')
+
+                return True
+            
+            print('[SERVER] Capture start failed!')
+
+            return False # Did not confirm
+            
+        except:
+            print('[SERVER] Parsing failed!')
+
+            return False # Confirmation parsing failed
