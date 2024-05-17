@@ -12,7 +12,7 @@ class CoppeliaSim_Server(Server):
                         server_address)
         
         self.controller_address = controller_address
-        self.std_buffer_size = 1024 # In bytes
+        self.buffer_size = 1024 # In bytes
 
     def request_scene(self):
         # Send scene request 
@@ -27,7 +27,7 @@ class CoppeliaSim_Server(Server):
 
         for C in [c.camera for c in self.clients]:
             # Wrap vision sensor parameters
-            parameter_array = np.array([# Options
+            intrinsic_array = np.array([# Options
                                         2+4, # Bit 1 set: Perspective Mode
                                              # Bit 2 set: Invisible Viewing Frustum 
                                                                             
@@ -51,24 +51,28 @@ class CoppeliaSim_Server(Server):
                                         0.0  # Reserved
                                         ])
 
-            transformation_array = np.ravel(C.coppeliasim_object_matrix)
+            # X and Y axis of Coppelia's Vision Sensor are inverted
+            coppeliasim_object_matrix = np.copy(C.object_matrix)
+            coppeliasim_object_matrix[:,0] *= -1 # Invert x vector column
+            coppeliasim_object_matrix[:,1] *= -1 # Invert y vector column
+
+            extrinsic_array = np.ravel(coppeliasim_object_matrix)
 
             if buffer_array is not None:
-                buffer_array = np.concatenate((buffer_array, parameter_array, transformation_array))
+                buffer_array = np.concatenate((buffer_array, intrinsic_array, extrinsic_array))
 
             else:
-                buffer_array = np.concatenate((parameter_array, transformation_array))
+                buffer_array = np.concatenate((intrinsic_array, extrinsic_array))
 
         # Send scene info
         buffer = buffer_array.astype(np.float32).tobytes()
-
         self.udp_socket.sendto(buffer, self.controller_address)
 
         print('[SERVER] Scene info sent')
 
         # Wait for controller setup confirmation
         try:
-            confirmation_bytes, _ = self.udp_socket.recvfrom(self.std_buffer_size)
+            confirmation_bytes, _ = self.udp_socket.recvfrom(self.buffer_size)
             confirmation = confirmation_bytes.decode()
 
             if confirmation == 'Success':
@@ -100,7 +104,7 @@ class CoppeliaSim_Server(Server):
 
         # Wait for controller setup confirmation
         try:
-            confirmation_bytes, _ = self.udp_socket.recvfrom(self.std_buffer_size)
+            confirmation_bytes, _ = self.udp_socket.recvfrom(self.buffer_size)
             confirmation = confirmation_bytes.decode()
 
             if confirmation == 'Success':
@@ -122,7 +126,7 @@ class CoppeliaSim_Server(Server):
 
         # Address lookup 
         while len(self.client_addresses.keys()) < self.n_clients: # Until all clients are identified
-            buffer, address = self.udp_socket.recvfrom(self.std_buffer_size)
+            buffer, address = self.udp_socket.recvfrom(self.buffer_size)
 
             try:
                 ID = int(buffer.decode()) # Decode message
