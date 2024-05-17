@@ -12,6 +12,7 @@ class CoppeliaSim_Server(Server):
                         server_address)
         
         self.controller_address = controller_address
+        self.std_buffer_size = 1024
 
     def request_scene(self):
         # Send scene request 
@@ -67,7 +68,7 @@ class CoppeliaSim_Server(Server):
 
         # Wait for controller setup confirmation
         try:
-            confirmation_bytes, _ = self.udp_socket.recvfrom(1024)
+            confirmation_bytes, _ = self.udp_socket.recvfrom(self.std_buffer_size)
             confirmation = confirmation_bytes.decode()
 
             if confirmation == 'Success':
@@ -99,7 +100,7 @@ class CoppeliaSim_Server(Server):
 
         # Wait for controller setup confirmation
         try:
-            confirmation_bytes, _ = self.udp_socket.recvfrom(1024)
+            confirmation_bytes, _ = self.udp_socket.recvfrom(self.std_buffer_size)
             confirmation = confirmation_bytes.decode()
 
             if confirmation == 'Success':
@@ -121,7 +122,7 @@ class CoppeliaSim_Server(Server):
 
         # Address lookup 
         while len(self.client_addresses.keys()) < self.n_clients: # Until all clients are identified
-            buffer, address = self.udp_socket.recvfrom(1024)
+            buffer, address = self.udp_socket.recvfrom(self.std_buffer_size)
 
             try:
                 ID = int(buffer.decode()) # Decode message
