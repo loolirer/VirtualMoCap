@@ -115,3 +115,22 @@ class CoppeliaSim_Server(Server):
             print('[SERVER] Parsing failed!')
 
             return False # Confirmation parsing failed
+        
+    def register_clients(self):
+        print('[SERVER] Waiting for clients...')
+
+        # Address lookup 
+        while len(self.client_addresses.keys()) < self.n_clients: # Until all clients are identified
+            buffer, address = self.udp_socket.recvfrom(1024)
+
+            try:
+                ID = int(buffer.decode()) # Decode message
+
+            except: # Invalid message for decoding
+                continue # Look for another message
+
+            self.client_addresses[address] = ID
+
+            print(f'\tClient {ID} registered')
+
+        print('[SERVER] All clients registered!')
