@@ -12,7 +12,7 @@ class CoppeliaSim_Server(Server):
                         server_address)
         
         self.controller_address = controller_address
-        self.std_buffer_size = 1024
+        self.std_buffer_size = 1024 # In bytes
 
     def request_scene(self):
         # Send scene request 
@@ -130,7 +130,7 @@ class CoppeliaSim_Server(Server):
             except: # Invalid message for decoding
                 continue # Look for another message
             
-            # Register address
+            # Register client address
             self.client_addresses[address] = ID 
             self.clients[ID].address = address
 
