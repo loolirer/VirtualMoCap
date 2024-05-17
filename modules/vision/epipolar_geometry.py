@@ -1,5 +1,6 @@
 # Importing modules...
 import numpy as np
+from scipy.optimize import linear_sum_assignment
 
 def build_essential_matrix(extrinsic_matrix_reference, extrinsic_matrix_auxiliary):
     # Compute relative transformation between the camera pair
@@ -29,17 +30,11 @@ def point_to_line_distance(point, line):
     return distance
 
 def epiline_order(blobs_auxiliary, epilines_auxiliary):
-    # Ordered centroids based on reference's centroids 
-    ordered_blobs_auxiliary = np.zeros_like(blobs_auxiliary)
+    distance_matrix = np.array([[point_to_line_distance(blob_auxiliary, epiline_auxiliary)
+                                for blob_auxiliary in blobs_auxiliary] 
+                                for epiline_auxiliary in epilines_auxiliary])
 
-    for blob_auxiliary in blobs_auxiliary:
-        distances = [] # Distance from the centroid to each epipolar line
+    # Using the hungarian (Munkres) assignment algorithm to find unique correspondences between blobs and epilines
+    _, new_indices = linear_sum_assignment(distance_matrix)
 
-        for epiline_auxiliary in epilines_auxiliary:
-            distances.append(point_to_line_distance(blob_auxiliary, epiline_auxiliary)) # Distance from the centroid to an epipolar line
-
-        new_index = np.argmin(np.array(distances)) # The match will be made for the shortest point to line distance
-
-        ordered_blobs_auxiliary[new_index] = blob_auxiliary # Assigning the new centroid order
-
-    return ordered_blobs_auxiliary
+    return blobs_auxiliary[new_indices]
