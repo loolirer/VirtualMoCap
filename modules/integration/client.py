@@ -2,9 +2,9 @@ class Client:
     def __init__(self, 
                  address = (),
                  camera = None,
-                 capture_data = None
+                 synchronizer = None
                  ):
         
         self.address = address # Network address (IP, Port)
         self.camera = camera # Associated camera model
-        self.capture_data = capture_data # Capture data structure
+        self.synchronizer = synchronizer # Synchronizer structure
