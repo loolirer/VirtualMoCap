@@ -1,3 +1,4 @@
+import copy
 from modules.integration.server import *
 
 class CoppeliaSim_Server(Server): 
@@ -89,14 +90,18 @@ class CoppeliaSim_Server(Server):
 
             return False # Confirmation parsing failed
 
-    def request_capture(self, capture_time):
+    def request_capture(self, synchronizer):
+        # Initialize synchronizers
+        for client in self.clients:
+            client.synchronizer = copy.deepcopy(synchronizer)
+
         # Send capture request 
         request = 'Capture'
         request_bytes = request.encode()
         self.udp_socket.sendto(request_bytes, self.controller_address)
 
         # Send capture time
-        message = str(capture_time)
+        message = str(synchronizer.capture_time)
         message_bytes = message.encode()
         self.udp_socket.sendto(message_bytes, self.controller_address)
 

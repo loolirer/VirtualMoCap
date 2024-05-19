@@ -1,6 +1,7 @@
+from modules.vision.multiple_view import *
+from modules.vision.synchronizer import *
 from modules.integration.client import *
 from modules.integration.UDP import *
-from modules.vision.multiple_view import *
 
 class Server: 
     def __init__(self, 
