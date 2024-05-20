@@ -127,9 +127,12 @@ class CoppeliaSim_Server(Server):
             return False # Confirmation parsing failed
         
     def register_clients(self):
+        # Clearing the previous addresses (client addresses may change from capture to capture)
+        self.client_addresses.clear()
+
         print('[SERVER] Waiting for clients...')
 
-        # Address lookup 
+        # Address registration
         while len(self.client_addresses.keys()) < self.n_clients: # Until all clients are identified
             buffer, address = self.udp_socket.recvfrom(self.buffer_size)
 
@@ -141,7 +144,7 @@ class CoppeliaSim_Server(Server):
             
             # Register client address
             self.client_addresses[address] = ID 
-            self.clients[ID].address = address
+            self.clients[ID].address = address # Update the client's address
 
             print(f'\tClient {ID} registered')
 
