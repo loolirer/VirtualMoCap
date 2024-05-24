@@ -18,5 +18,9 @@ class Server:
         self.address = address
         self.udp_socket = UDP(self.address)
 
-        # Creating multiple view object
-        self.multiple_view = MultipleView([c.camera for c in self.clients])
+        # Create Multiple View only if all clients have an associated camera model
+        self.multiple_view = None
+        camera_models = [c.camera for c in self.clients]
+
+        if not None in camera_models:
+            self.multiple_view = MultipleView(camera_models)
