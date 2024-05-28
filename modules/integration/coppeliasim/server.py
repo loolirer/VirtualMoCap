@@ -134,9 +134,8 @@ class CoppeliaSim_Server(Server):
 
         # Address registration
         while len(self.client_addresses.keys()) < self.n_clients: # Until all clients are identified
-            buffer, address = self.udp_socket.recvfrom(self.buffer_size)
-
             try:
+                buffer, address = self.udp_socket.recvfrom(self.buffer_size)
                 ID = int(buffer.decode()) # Decode message
 
             except: # Invalid message for decoding
