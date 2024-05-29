@@ -92,7 +92,9 @@ class Viewer2D:
                     mode='lines',
                     line=dict(color=color, 
                               width=1),
-                    showlegend=False
+                    legendgroup='Lines',
+                    legendgrouptitle_text='Lines',
+                    showlegend=self.graphical
                 )
             )
 
