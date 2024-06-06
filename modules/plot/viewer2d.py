@@ -77,8 +77,8 @@ class Viewer2D:
             )
         )
 
-    def add_lines(self, lines, color=None):
-        for line in lines:
+    def add_lines(self, lines, name=None, color=None):
+        for line_number, line in enumerate(lines):
             a, b, c = line
             x, y = self.resolution[0], self.resolution[1]
 
@@ -92,9 +92,10 @@ class Viewer2D:
                     mode='lines',
                     line=dict(color=color, 
                               width=1),
+                    name=name,
                     legendgroup='Lines',
                     legendgrouptitle_text='Lines',
-                    showlegend=self.graphical
+                    showlegend=self.graphical if not line_number else False
                 )
             )
 
