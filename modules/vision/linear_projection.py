@@ -48,6 +48,5 @@ def perspective_projection(points_to_project, projection_matrix):
     projected_points = projection_matrix @ points_to_project_h  # Project points to plane
     projected_points /= projected_points[-1]        # Normalize homogeneous coordinates
     projected_points = projected_points[:-1, :]     # Discard the last row
-    projected_points = projected_points.astype(int) # Cast as interger
     
     return projected_points
