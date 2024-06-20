@@ -8,3 +8,4 @@ class Client:
         self.address = address # Network address (IP, Port)
         self.camera = camera # Associated camera model
         self.synchronizer = synchronizer # Synchronizer structure
+        self.message_log = [] # Message history

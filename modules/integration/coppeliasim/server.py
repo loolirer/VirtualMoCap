@@ -91,9 +91,10 @@ class CoppeliaSim_Server(Server):
             return False # Confirmation parsing failed
 
     def request_capture(self, synchronizer):
-        # Initialize synchronizers
+        # Initialize synchronizers and message logs
         for client in self.clients:
             client.synchronizer = copy.deepcopy(synchronizer)
+            client.message_log = []
 
         # Send capture request 
         request = 'Capture'
