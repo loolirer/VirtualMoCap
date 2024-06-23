@@ -76,7 +76,15 @@ class Camera:
                                                           self.undistortion_map, 
                                                           self.intrinsic_matrix, 
                                                           self.resolution)
-    
+            
+    def update_reference(self, new_object_matrix):
+        # Update all extrinsic parameters to new reference
+        self.object_matrix = new_object_matrix
+        self.R, self.t = self.object_matrix[:, :-1], self.object_matrix[:, [-1]]
+        self.extrinsic_matrix = build_extrinsic_matrix(object_matrix=self.object_matrix)
+        self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
+                                                         extrinsic_matrix=self.extrinsic_matrix)
+        
     def undistort_points(self, distorted_centroids):
         return self.undistortion_function(distorted_centroids.reshape(1, -1, 2).astype(np.float32), 
                                           self.intrinsic_matrix, 
