@@ -10,8 +10,8 @@ def build_essential_matrix(extrinsic_matrix_reference, extrinsic_matrix_auxiliar
 
     t = t.ravel() # Make array unidimensional
     t_ss = np.array([[    0, -t[2],  t[1]],
-                    [ t[2],     0, -t[0]],
-                    [-t[1],  t[0],     0]]) # Skew symmetric matrix
+                     [ t[2],     0, -t[0]],
+                     [-t[1],  t[0],     0]]) # Skew symmetric matrix
 
     essential_matrix = t_ss @ R
 
