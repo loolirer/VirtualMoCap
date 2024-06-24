@@ -13,7 +13,7 @@ class Camera:
                  resolution, 
                  fov_degrees=None, # If not given, consider uncalibrated
  
-                 # Extrinsic Parameters
+                 # Camera Orientation
                  object_matrix=np.eye(4)[:3, :4], 
  
                  # Lens Distortion Model
