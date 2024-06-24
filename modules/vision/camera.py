@@ -14,7 +14,7 @@ class Camera:
                  fov_degrees=None, # If not given, consider uncalibrated
  
                  # Extrinsic Parameters
-                 object_matrix=np.hstack((np.eye(3), np.zeros((3,1)))), 
+                 object_matrix=np.eye(4)[:3, :4], 
  
                  # Lens Distortion Model
                  distortion_model=None,
