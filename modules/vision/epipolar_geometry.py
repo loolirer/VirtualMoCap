@@ -51,7 +51,7 @@ def decompose_essential_matrix(E,
     # Decompose the essential matrix
     R1, R2, t = cv2.decomposeEssentialMat(E)
     
-    # Possible rotations and translations for the auxiliary camera
+    # Possible nase changes from the reference frame to
     R_t_options = [[R1,  t],
                    [R1, -t],
                    [R2,  t],
@@ -60,13 +60,11 @@ def decompose_essential_matrix(E,
     best_option = None
 
     # Projection matrix of the first camera
-    P_reference = build_projection_matrix(intrinsic_matrix=intrinsic_matrix_reference,
-                                          extrinsic_matrix=np.eye(4))
+    P_reference = intrinsic_matrix_reference @ np.eye(4)[:3, :4]
     
     # Triangulate points and check their validity
     for option, R_t in enumerate(R_t_options):
-        P_auxiliary = build_projection_matrix(intrinsic_matrix=intrinsic_matrix_auxiliary,
-                                              extrinsic_matrix=build_extrinsic_matrix(np.hstack(R_t)))
+        P_auxiliary = intrinsic_matrix_auxiliary @ np.hstack(R_t)
 
         triangulated_points_4D = cv2.triangulatePoints(P_reference.astype(np.float32), 
                                                        P_auxiliary.astype(np.float32), 
