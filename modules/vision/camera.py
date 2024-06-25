@@ -13,8 +13,8 @@ class Camera:
                  resolution, 
                  fov_degrees=None, # If not given, consider uncalibrated
  
-                 # Camera Orientation
-                 object_matrix=np.eye(4)[:3, :4], 
+                 # Camera Pose
+                 pose=np.eye(4), 
  
                  # Lens Distortion Model
                  distortion_model=None,
@@ -31,12 +31,12 @@ class Camera:
         self.fov_degrees = None
         self.fov_radians = None
 
-        # Extrinsic Parameters
-        self.object_matrix = object_matrix
-        self.R, self.t = self.object_matrix[:, :-1], self.object_matrix[:, [-1]]
+        # Camera Pose
+        self.pose = pose
+        self.R, self.t = self.pose[:, :-1], self.pose[:, [-1]]
         
         # Compressing data into matrices
-        self.extrinsic_matrix = build_extrinsic_matrix(object_matrix=self.object_matrix)
+        self.extrinsic_matrix = np.linalg.inv(pose)
         self.intrinsic_matrix = None 
         self.projection_matrix = None
 
@@ -77,11 +77,11 @@ class Camera:
                                                           self.intrinsic_matrix, 
                                                           self.resolution)
             
-    def update_reference(self, new_object_matrix):
-        # Update all extrinsic parameters to new reference
-        self.object_matrix = new_object_matrix
-        self.R, self.t = self.object_matrix[:, :-1], self.object_matrix[:, [-1]]
-        self.extrinsic_matrix = build_extrinsic_matrix(object_matrix=self.object_matrix)
+    def update_reference(self, new_camera_pose):
+        # Update all extrinsic dependent parameters to new reference
+        self.pose = new_camera_pose
+        self.R, self.t = self.pose[:, :-1], self.pose[:, [-1]]
+        self.extrinsic_matrix = np.linalg.inv(self.pose)
         self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
                                                          extrinsic_matrix=self.extrinsic_matrix)
         

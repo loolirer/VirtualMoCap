@@ -26,44 +26,43 @@ class CoppeliaSim_Server(Server):
 
         print('[SERVER] Wrapping up CoppeliaSim scene info')
 
-        for C in [c.camera for c in self.clients]:
+        for camera in [c.camera for c in self.clients]:
             # Wrap vision sensor parameters
-            intrinsic_array = np.array([# Options
-                                        2+4, # Bit 1 set: Perspective Mode
-                                             # Bit 2 set: Invisible Viewing Frustum 
-                                                                            
-                                        # Integer parameters
-                                        C.resolution[0], 
-                                        C.resolution[1],
-                                        0, # Reserved
-                                        0, # Reserved
-
-                                        # Float parameters
-                                        0.01, # Near clipping plane in meters
-                                        10, # Far clipping plane in meters
-                                        C.fov_radians, # FOV view angle in radians
-                                        0.1, # Sensor X size
-                                        0.0, # Reserved
-                                        0.0, # Reserved
-                                        0.0, # Null pixel red-value
-                                        0.0, # Null pixel green-value
-                                        0.0, # Null pixel blue-value
-                                        0.0, # Reserved
-                                        0.0  # Reserved
-                                        ])
-
+            camera_array = np.array([# Options
+                                     2+4, # Bit 1 set: Perspective Mode
+                                          # Bit 2 set: Invisible Viewing Frustum 
+                                                                         
+                                     # Integer parameters
+                                     camera.resolution[0], 
+                                     camera.resolution[1],
+                                     0, # Reserved
+                                     0, # Reserved
+ 
+                                     # Float parameters
+                                     0.01, # Near clipping plane in meters
+                                     10, # Far clipping plane in meters
+                                     camera.fov_radians, # FOV view angle in radians
+                                     0.1, # Sensor X size
+                                     0.0, # Reserved
+                                     0.0, # Reserved
+                                     0.0, # Null pixel red-value
+                                     0.0, # Null pixel green-value
+                                     0.0, # Null pixel blue-value
+                                     0.0, # Reserved
+                                     0.0  # Reserved
+                                    ])
+ 
             # X and Y axis of Coppelia's Vision Sensor are inverted
-            coppeliasim_object_matrix = np.copy(C.object_matrix)
-            coppeliasim_object_matrix[:,0] *= -1 # Invert x vector column
-            coppeliasim_object_matrix[:,1] *= -1 # Invert y vector column
+            coppeliasim_object_matrix = np.copy(camera.pose[:3, :4])
+            coppeliasim_object_matrix[:, :2] *= -1 # Multiplies by -1 the first two columns
 
-            extrinsic_array = np.ravel(coppeliasim_object_matrix)
+            pose_array = np.ravel(coppeliasim_object_matrix)
 
             if buffer_array is not None:
-                buffer_array = np.concatenate((buffer_array, intrinsic_array, extrinsic_array))
+                buffer_array = np.concatenate((buffer_array, camera_array, pose_array))
 
             else:
-                buffer_array = np.concatenate((intrinsic_array, extrinsic_array))
+                buffer_array = np.concatenate((camera_array, pose_array))
 
         # Send scene info
         buffer = buffer_array.astype(np.float32).tobytes()

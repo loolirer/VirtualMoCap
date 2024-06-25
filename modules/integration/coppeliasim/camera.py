@@ -5,12 +5,12 @@ class CoppeliaSim_Camera(Camera):
                  # Simulation handling
                  vision_sensor_handle,
  
-                 resolution, 
                  # Intrinsic Parameters
+                 resolution, 
                  fov_degrees=None, # If not given, consider uncalibrated
  
-                 # Extrinsic Parameters
-                 object_matrix=np.hstack((np.eye(3), np.zeros((3,1)))), 
+                 # Camera Pose
+                 pose=np.eye(4), 
  
                  # Lens Distortion Model
                  distortion_model=None,
@@ -26,7 +26,7 @@ class CoppeliaSim_Camera(Camera):
         Camera.__init__(self,
                         resolution,
                         fov_degrees,
-                        object_matrix,
+                        pose,
                         distortion_model,
                         distortion_coefficients,
                         snr_dB)
