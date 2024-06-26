@@ -27,7 +27,6 @@ class Camera:
         # Intrinsic Parameters
         self.resolution = resolution
         self.aspect_ratio = resolution[0] / resolution[1]
-
         self.fov_degrees = None
         self.fov_radians = None
 
@@ -46,6 +45,8 @@ class Camera:
         # Distortion model parameters
         self.undistortion_map = None
         self.undistortion_function = None
+        self.map_u = None 
+        self.map_v = None 
 
         if self.distortion_model == 'rational' or self.distortion_model is None:
             self.undistortion_map = cv2.initUndistortRectifyMap
@@ -54,12 +55,6 @@ class Camera:
         elif self.distortion_model == 'fisheye':
             self.undistortion_map = cv2.fisheye.initUndistortRectifyMap
             self.undistortion_function = cv2.fisheye.undistortPoints
-
-        self.map_u, self.map_v = None, None 
-
-        # Image Noise Model
-        self.snr_dB = snr_dB
-        self.snr = np.power(10, (snr_dB / 20)) # Converted for ratio
         
         # If calibrated
         if fov_degrees is not None:
@@ -75,6 +70,10 @@ class Camera:
                                                           self.undistortion_map, 
                                                           self.intrinsic_matrix, 
                                                           self.resolution)
+ 
+        # Image Noise Model
+        self.snr_dB = snr_dB
+        self.snr = np.power(10, (snr_dB / 20)) # Converted for ratio
             
     def update_reference(self, new_camera_pose):
         # Update all extrinsic dependent parameters to new reference
