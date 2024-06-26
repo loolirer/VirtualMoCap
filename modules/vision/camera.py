@@ -33,7 +33,6 @@ class Camera:
 
         # Camera Pose
         self.pose = pose
-        self.R, self.t = self.pose[:, :-1], self.pose[:, [-1]]
         
         # Compressing data into matrices
         self.extrinsic_matrix = np.linalg.inv(pose)
@@ -80,7 +79,6 @@ class Camera:
     def update_reference(self, new_camera_pose):
         # Update all extrinsic dependent parameters to new reference
         self.pose = new_camera_pose
-        self.R, self.t = self.pose[:, :-1], self.pose[:, [-1]]
         self.extrinsic_matrix = np.linalg.inv(self.pose)
         self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
                                                          extrinsic_matrix=self.extrinsic_matrix)
