@@ -26,7 +26,7 @@ class Camera:
 
         # Intrinsic Parameters
         self.resolution = resolution
-        self.aspect_ratio = resolution[0]/resolution[1]
+        self.aspect_ratio = resolution[0] / resolution[1]
 
         self.fov_degrees = None
         self.fov_radians = None
