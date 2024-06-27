@@ -59,11 +59,11 @@ class MultipleView:
         reference = 0 # The 0th camera will be the reference by default
         pairs = [(reference, ID) for ID in camera_ids[camera_ids != reference]]
 
-        # New extrinsic matrices
-        self.camera_models[reference].update_reference(np.eye(4)[:3, :4]) 
+        # New reference pose
+        self.camera_models[reference].update_reference(np.eye(4)) 
 
         # Getting wand data
-        wand_ratio = (1, wand_distances[1] / wand_distances[0]) 
+        wand_ratio = (1.0, wand_distances[1] / wand_distances[0]) 
 
         for pair in pairs:
             # Getting data from pair
@@ -124,16 +124,10 @@ class MultipleView:
                 print('> No valid decomposition!')
                 continue
 
-            object_matrix_auxiliary = np.hstack((R, t))
-            extrinsic_matrix_auxiliary = np.linalg.inv(build_extrinsic_matrix(object_matrix_auxiliary))
-
             # Calculating projection matrices
             # The reference camera will be the reference frame, thus the identity matrix
-            P_reference = build_projection_matrix(intrinsic_matrix=self.camera_models[reference].intrinsic_matrix, 
-                                                  extrinsic_matrix=np.eye(4)) 
-            
-            P_auxiliary = build_projection_matrix(intrinsic_matrix=self.camera_models[auxiliary].intrinsic_matrix, 
-                                                  extrinsic_matrix=extrinsic_matrix_auxiliary)
+            P_reference = self.camera_models[reference].intrinsic_matrix @ np.eye(4)[:3, :4]
+            P_auxiliary = self.camera_models[auxiliary].intrinsic_matrix @ np.hstack((R, t))
             
             all_triangulated_points_3D = [] # List of triangulated points
             all_unscaled_distances = [] # List of all measured distance
@@ -162,11 +156,13 @@ class MultipleView:
             scale = np.mean(np.array(scales))
 
             # Saving scaled matrix
-            object_matrix_auxiliary = np.hstack((R, t * scale))
-            extrinsic_matrix_auxiliary = np.linalg.inv(build_extrinsic_matrix(object_matrix_auxiliary))
-            self.camera_models[auxiliary].update_reference(extrinsic_matrix_auxiliary[:3, :4])
+            # Saving scaled matrix
+            extrinsic_matrix_auxiliary = np.vstack((np.hstack((R, t * scale)),
+                                                    np.array([0, 0, 0, 1])))
+            pose_auxiliary = np.linalg.inv(extrinsic_matrix_auxiliary)
+            self.camera_models[auxiliary].update_reference(pose_auxiliary)
 
-        # Rebuild fundamental matrices with updated extrinsics
+        # Rebuild fundamental matrices with updated references
         self.build_fundamental_matrices()
 
 def collinear_order(blobs, ratio):
@@ -190,7 +186,7 @@ def collinear_order(blobs, ratio):
                                      distances[0] + distances[1],
                                      distances[1] + distances[2]])
     
-    # Exprected unique distance sums
+    # Expected unique distance sums
     expected_unique_sums = np.array([ratio[0] + ratio[0] + ratio[1],
                                      ratio[0] + ratio[1],
                                      ratio[0] + ratio[1] + ratio[1]])
