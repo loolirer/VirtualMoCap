@@ -156,7 +156,6 @@ class MultipleView:
             scale = np.mean(np.array(scales))
 
             # Saving scaled matrix
-            # Saving scaled matrix
             extrinsic_matrix_auxiliary = np.vstack((np.hstack((R, t * scale)),
                                                     np.array([0, 0, 0, 1])))
             pose_auxiliary = np.linalg.inv(extrinsic_matrix_auxiliary)
