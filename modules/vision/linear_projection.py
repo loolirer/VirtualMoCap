@@ -36,4 +36,10 @@ def perspective_projection(points_to_project, projection_matrix):
     projected_points /= projected_points[-1] # Normalize homogeneous coordinates
     projected_points = projected_points[:-1, :] # Discard the last row
     
-    return projected_points
+    return projected_points.T
+
+def reprojection_error(points_to_project, points_in_image, projection_matrix):
+    projected_points = perspective_projection(points_to_project, projection_matrix)
+    residuals = np.linalg.norm(points_in_image - projected_points, axis=1)
+
+    return residuals
