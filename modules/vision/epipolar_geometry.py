@@ -80,9 +80,13 @@ def decompose_essential_matrix(E,
 
         # No markers were shot behind the cameras
         if frontal_points == triangulated_points_3D.shape[1]:
+            # Ambiguous decompostions found
+            if best_option is not None:
+                return None, None 
+            
             best_option = option # Where all points are frontal points
 
-    # No valid decomposition
+    # No valid decomposition found
     if best_option is None:
         return None, None 
     
