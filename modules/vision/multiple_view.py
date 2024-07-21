@@ -4,6 +4,7 @@ import scipy as sp
 
 from modules.vision.camera import *
 from modules.vision.epipolar_geometry import * 
+from modules.vision.rigid_transformations import *
 
 class MultipleView:
     def __init__(self, camera_models):
@@ -239,6 +240,40 @@ class MultipleView:
             camera.update_reference(adjusted_pose)
 
         # Rebuild fundamental matrices with updated references
+        self.build_fundamental_matrices()
+
+    def update_reference(self, wand_blobs, wand_distances, pair):
+        # Order all wand markers
+        all_triangulated_markers = []
+        for sync_blobs in zip(*[wand_blobs[ID] for ID in pair]):
+            triangulated_markers = self.triangulate_by_pair(pair, [sync_blobs[0], sync_blobs[1]])
+            ordered_triangulated_markers = perpendicular_order(triangulated_markers.T, wand_distances)
+            all_triangulated_markers.append(ordered_triangulated_markers)
+
+        # Mean position of all wand markers
+        mean_triangulated_markers = np.mean(np.array(all_triangulated_markers), axis=0)
+
+        # Get measured O, X and Y
+        O_measured = mean_triangulated_markers[0].reshape(3, -1)
+        X_measured = mean_triangulated_markers[1].reshape(3, -1)
+        Y_measured = mean_triangulated_markers[2].reshape(3, -1)
+
+        # Calculate expected O, X and Y
+        O_expected = np.array([[0], [0], [0]])
+        X_expected = np.array([[wand_distances[0]], [0], [0]])
+        Y_expected = np.array([[0], [wand_distances[1]], [0]])
+
+        # Create point cloud
+        measured = np.hstack((O_measured, X_measured, Y_measured)) 
+        expected = np.hstack((O_expected, X_expected, Y_expected)) 
+
+        # Calculate transformation and pose
+        transformation = kabsch(measured, expected)
+
+        # Update references
+        for camera in self.camera_models:
+            camera.update_reference(transformation @ camera.pose)
+
         self.build_fundamental_matrices()
 
 def total_reprojection_error(optimize, intrinsic_matrices, all_ordered_blobs):
