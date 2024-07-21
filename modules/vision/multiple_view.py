@@ -13,11 +13,12 @@ class MultipleView:
         self.n_cameras = len(camera_models)
 
         # Fundamental matrices between each pair
-        self.fundamental_matrix = np.array(np.zeros((self.n_cameras, self.n_cameras, 3, 3)))
         self.build_fundamental_matrices()
 
     def build_fundamental_matrices(self):
         # Build all fundamental matrices between camera pairs
+        self.fundamental_matrix = np.array(np.zeros((self.n_cameras, self.n_cameras, 3, 3)))
+
         for reference in range(self.n_cameras):
             for auxiliary in range(self.n_cameras):
                 if reference == auxiliary:
