@@ -245,7 +245,7 @@ class MultipleView:
     def update_reference(self, wand_blobs, wand_distances, pair):
         # Order all wand markers
         all_triangulated_markers = []
-        for sync_blobs in zip(*[wand_blobs[ID] for ID in pair]):
+        for sync_blobs in zip(*wand_blobs):
             triangulated_markers = self.triangulate_by_pair(pair, list(sync_blobs))
             ordered_triangulated_markers = perpendicular_order(triangulated_markers.T, wand_distances)
             all_triangulated_markers.append(ordered_triangulated_markers)
