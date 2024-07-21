@@ -246,7 +246,7 @@ class MultipleView:
         # Order all wand markers
         all_triangulated_markers = []
         for sync_blobs in zip(*[wand_blobs[ID] for ID in pair]):
-            triangulated_markers = self.triangulate_by_pair(pair, [sync_blobs[0], sync_blobs[1]])
+            triangulated_markers = self.triangulate_by_pair(pair, list(sync_blobs))
             ordered_triangulated_markers = perpendicular_order(triangulated_markers.T, wand_distances)
             all_triangulated_markers.append(ordered_triangulated_markers)
 
@@ -277,13 +277,16 @@ class MultipleView:
         self.build_fundamental_matrices()
 
 def total_reprojection_error(optimize, intrinsic_matrices, all_ordered_blobs):
+    # Retrieve parameters
     n_cameras = len(intrinsic_matrices)
-    rvecs_tvecs = optimize[:n_cameras * 6].reshape(n_cameras, 2, 3)
+    rvecs_tvecs = optimize[:n_cameras * 6].reshape(n_cameras, 2, 3) # 6 DoF per Camera
     all_triangulated_points = optimize[n_cameras * 6:].reshape(3, -1)
 
+    # Calculate new projection matrices
     extrinsic_matrices = [np.hstack((cv2.Rodrigues(rvec)[0], tvec.reshape(3, -1))) for rvec, tvec in rvecs_tvecs]
     projection_matrices = [I @ E for I, E in zip(intrinsic_matrices, extrinsic_matrices)]
 
+    # Compute residuals
     residuals = []
     for projection_matrix, all_detected_blobs in zip(projection_matrices, all_ordered_blobs):
         camera_residuals = reprojection_error(points_to_project=all_triangulated_points, 
