@@ -12,6 +12,7 @@ class Camera:
                  # Intrinsic Parameters
                  resolution, 
                  fov_degrees=None, # If not given, consider uncalibrated
+                 intrinsic_matrix=np.eye(3),
  
                  # Camera Pose
                  pose=np.eye(4), 
@@ -55,7 +56,10 @@ class Camera:
         elif self.distortion_model == 'fisheye':
             self.undistortion_map = cv2.fisheye.initUndistortRectifyMap
             self.undistortion_function = cv2.fisheye.undistortPoints
-        
+
+        # Intrinsic matrix given by user
+        self.intrinsic_matrix = intrinsic_matrix  
+
         # If calibrated
         if fov_degrees is not None:
             self.fov_degrees = fov_degrees
@@ -63,13 +67,15 @@ class Camera:
 
             self.intrinsic_matrix = build_intrinsic_matrix(fov_degrees=self.fov_degrees, 
                                                            resolution=self.resolution)
-            self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
-                                                             extrinsic_matrix=self.extrinsic_matrix)
-            
-            self.map_u, self.map_v = build_distortion_map(self.distortion_coefficients, 
-                                                          self.undistortion_map, 
-                                                          self.intrinsic_matrix, 
-                                                          self.resolution)
+
+        self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
+                                                         extrinsic_matrix=self.extrinsic_matrix)
+        
+        self.map_u, self.map_v = build_distortion_map(self.distortion_coefficients, 
+                                                      self.undistortion_map, 
+                                                      self.intrinsic_matrix, 
+                                                      self.resolution)
+
  
         # Image Noise Model
         self.snr_dB = snr_dB
