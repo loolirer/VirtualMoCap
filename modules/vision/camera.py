@@ -11,7 +11,7 @@ class Camera:
     def __init__(self, 
                  # Intrinsic Parameters
                  resolution, 
-                 fov_degrees=None, # If not given, consider uncalibrated
+                 fov_degrees=None, # If not given, consider intrinsic matrix
                  intrinsic_matrix=np.eye(3),
  
                  # Camera Pose
@@ -38,14 +38,15 @@ class Camera:
         self.extrinsic_matrix = np.linalg.inv(pose)
         self.intrinsic_matrix = intrinsic_matrix
         
-        # If calibrated
+        # If FOV was given, make intrinsic matrix based on that
         if fov_degrees is not None:
             self.fov_degrees = fov_degrees
             self.fov_radians = np.radians(fov_degrees)
 
             self.intrinsic_matrix = build_intrinsic_matrix(fov_degrees=self.fov_degrees, 
                                                            resolution=self.resolution)
-            
+        
+        # Pinhole Model
         self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
                                                          extrinsic_matrix=self.extrinsic_matrix)
 
