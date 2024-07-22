@@ -36,8 +36,18 @@ class Camera:
         
         # Compressing data into matrices
         self.extrinsic_matrix = np.linalg.inv(pose)
-        self.intrinsic_matrix = None 
-        self.projection_matrix = None
+        self.intrinsic_matrix = intrinsic_matrix
+        
+        # If calibrated
+        if fov_degrees is not None:
+            self.fov_degrees = fov_degrees
+            self.fov_radians = np.radians(fov_degrees)
+
+            self.intrinsic_matrix = build_intrinsic_matrix(fov_degrees=self.fov_degrees, 
+                                                           resolution=self.resolution)
+            
+        self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
+                                                         extrinsic_matrix=self.extrinsic_matrix)
 
         # Lens Distortion Model
         self.distortion_model = distortion_model
@@ -55,27 +65,12 @@ class Camera:
 
         elif self.distortion_model == 'fisheye':
             self.undistortion_map = cv2.fisheye.initUndistortRectifyMap
-            self.undistortion_function = cv2.fisheye.undistortPoints
+            self.undistortion_function = cv2.fisheye.undistortPoints 
 
-        # Intrinsic matrix given by user
-        self.intrinsic_matrix = intrinsic_matrix  
-
-        # If calibrated
-        if fov_degrees is not None:
-            self.fov_degrees = fov_degrees
-            self.fov_radians = np.radians(fov_degrees)
-
-            self.intrinsic_matrix = build_intrinsic_matrix(fov_degrees=self.fov_degrees, 
-                                                           resolution=self.resolution)
-
-        self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
-                                                         extrinsic_matrix=self.extrinsic_matrix)
-        
         self.map_u, self.map_v = build_distortion_map(self.distortion_coefficients, 
                                                       self.undistortion_map, 
                                                       self.intrinsic_matrix, 
                                                       self.resolution)
-
  
         # Image Noise Model
         self.snr_dB = snr_dB
