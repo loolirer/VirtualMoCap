@@ -1,4 +1,5 @@
 import copy
+import sys
 
 from modules.integration.server import *
 from modules.vision.synchronizer import *
@@ -19,22 +20,19 @@ class MoCapRasp_Server(Server):
         # Clearing the previous addresses (client addresses may change from capture to capture)
         self.client_addresses.clear()
 
-        print('[SERVER] Waiting for clients...')
-
-        # Address registration
-        while len(self.client_addresses.keys()) < self.n_clients: # Until all clients are identified
+        # IP lookup from hostname
+        for ID, client in enumerate(self.clients):
             try:
-                buffer, address = self.udp_socket.recvfrom(self.buffer_size)
-                ID = int(buffer.decode()) # Decode message
+                # Get client address
+                address = socket.gethostbyname(f'cam{ID}.local')
 
-            except: # Invalid message for decoding
-                continue # Look for another message
-            
-            # Register client address
-            self.client_addresses[address] = ID 
-            self.clients[ID].address = address # Update the client's address
+                 # Register client address
+                self.client_addresses[address] = ID 
+                client.address = address # Update the client's address
 
-            print(f'\tClient {ID} registered')
+            except:
+                print('[SERVER] Client {ID} not found!')
+                sys.exit()
 
         print('[SERVER] All clients registered!')
 
@@ -67,80 +65,6 @@ class MoCapRasp_Server(Server):
                 return True
             
             print('[SERVER] Capture start failed!')
-
-            return False # Did not confirm
-            
-        except:
-            print('[SERVER] Parsing failed!')
-
-            return False # Confirmation parsing failed
-        
-    def request_calibration(self, synchronizer):
-        # Initialize synchronizers and message logs
-        for client in self.clients:
-            client.synchronizer = copy.deepcopy(synchronizer)
-            client.message_log = []
-
-        # Send extrinsic calibration request 
-        request = 'Calibration'
-        request_bytes = request.encode()
-        self.udp_socket.sendto(request_bytes, self.controller_address)
-
-        # Send capture time
-        message = str(synchronizer.capture_time)
-        message_bytes = message.encode()
-        self.udp_socket.sendto(message_bytes, self.controller_address)
-
-        print('[SERVER] Extrinsic Calibration info sent')
-
-        # Wait for controller setup confirmation
-        try:
-            confirmation_bytes, _ = self.udp_socket.recvfrom(self.buffer_size)
-            confirmation = confirmation_bytes.decode()
-
-            if confirmation == 'Success':
-                print('[SERVER] Extrinsic Calibration confirmed!')
-
-                return True
-            
-            print('[SERVER] Extrinsic Calibration start failed!')
-
-            return False # Did not confirm
-            
-        except:
-            print('[SERVER] Parsing failed!')
-
-            return False # Confirmation parsing failed
-        
-    def request_reference(self, synchronizer):
-        # Initialize synchronizers and message logs
-        for client in self.clients:
-            client.synchronizer = copy.deepcopy(synchronizer)
-            client.message_log = []
-
-        # Send reference update request 
-        request = 'Reference'
-        request_bytes = request.encode()
-        self.udp_socket.sendto(request_bytes, self.controller_address)
-
-        # Send capture time
-        message = str(synchronizer.capture_time)
-        message_bytes = message.encode()
-        self.udp_socket.sendto(message_bytes, self.controller_address)
-
-        print('[SERVER] Reference Update info sent')
-
-        # Wait for controller setup confirmation
-        try:
-            confirmation_bytes, _ = self.udp_socket.recvfrom(self.buffer_size)
-            confirmation = confirmation_bytes.decode()
-
-            if confirmation == 'Success':
-                print('[SERVER] Reference Update confirmed!')
-
-                return True
-            
-            print('[SERVER] Reference Update start failed!')
 
             return False # Did not confirm
             
