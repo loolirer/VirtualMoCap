@@ -49,13 +49,13 @@ class CoppeliaSim_Camera(Camera):
     def get_image(self, api_method):
         # If any Vision Sensor handle is associated with camera, return black image
         if self.vision_sensor_handle is None:
-            return np.zeros(self.resolution)
+            return np.zeros(self.image_shape)
 
         # Get grayscale image buffer
-        buffer, resolution = api_method(self.vision_sensor_handle, 1) # Set second argument to 1 for grayscale, 0 for RGB
+        buffer, _ = api_method(self.vision_sensor_handle, 1) # Set second argument to 1 for grayscale, 0 for RGB
 
         # Convert buffer into single channel image
-        image_unflipped = np.frombuffer(buffer, dtype=np.uint8).reshape(resolution[1], resolution[0])
+        image_unflipped = np.frombuffer(buffer, dtype=np.uint8).reshape(self.image_shape)
 
         # In CoppeliaSim images are left to right (x-axis), and bottom to top (y-axis)
         # This is consistent with the axes of vision sensors, pointing Z outwards, Y up
