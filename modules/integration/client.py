@@ -1,11 +1,10 @@
 class Client: 
     def __init__(self, 
                  address = (),
-                 camera = None,
-                 synchronizer = None
+                 camera = None
                  ):
         
         self.address = address # Network address (IP, Port)
         self.camera = camera # Associated camera model
-        self.synchronizer = synchronizer # Synchronizer structure
+        self.synchronizer = None # Synchronizer structure changed through server requests
         self.message_log = [] # Message history
