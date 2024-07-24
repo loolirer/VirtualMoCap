@@ -85,6 +85,8 @@ def interpolate_map(map):
     return estimated_map
 
 def build_distortion_map(distortion_coefficients, undistortion_map, intrinsic_matrix, resolution):
+    image_shape = resolution[::-1]
+
     # Make undistortion maps
     map_u, map_v = undistortion_map(intrinsic_matrix,
                                     distortion_coefficients,
@@ -98,17 +100,17 @@ def build_distortion_map(distortion_coefficients, undistortion_map, intrinsic_ma
     map_v = np.round(map_v).astype(int) 
 
     # Invert undistortion maps
-    map_u_d = np.full(resolution, np.nan, dtype=np.float32)
-    map_v_d = np.full(resolution, np.nan, dtype=np.float32)
+    map_u_d = np.full(image_shape, np.nan, dtype=np.float32)
+    map_v_d = np.full(image_shape, np.nan, dtype=np.float32)
 
-    for v in range(resolution[0]):
-        for u in range(resolution[1]):
+    for v in range(image_shape[0]):
+        for u in range(image_shape[1]):
 
             u_d = map_u[v][u] 
             v_d = map_v[v][u]
 
             # Do not remap points outside the image limits
-            if (u_d >= 0 and u_d < resolution[1]) and (v_d >= 0 and v_d < resolution[0]):
+            if (u_d >= 0 and u_d < image_shape[1]) and (v_d >= 0 and v_d < image_shape[0]):
                 map_u_d[v_d][u_d] = u
                 map_v_d[v_d][u_d] = v
     
