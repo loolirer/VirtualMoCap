@@ -24,7 +24,8 @@ class Camera:
 
         # Image Parameters
         self.resolution = resolution
-        self.aspect_ratio = resolution[0] / resolution[1]
+        self.aspect_ratio = self.resolution[0] / self.resolution[1]
+        self.image_shape = self.resolution[::-1]
 
         # Pinhole Camera Model
         self.extrinsic_matrix = extrinsic_matrix
