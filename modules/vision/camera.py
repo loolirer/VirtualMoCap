@@ -2,53 +2,38 @@
 import numpy as np
 import cv2
 
-from modules.vision.blob_detection import *
 from modules.vision.linear_projection import *
 from modules.vision.lens_distortion import *
 from modules.vision.image_noise import *
 
 class Camera:
     def __init__(self, 
-                 # Intrinsic Parameters
-                 resolution, 
-                 fov_degrees=None, # If not given, consider intrinsic matrix
+                 resolution=(1, 1), 
+                 
+                 # Pinhole Camera Model
                  intrinsic_matrix=np.eye(3),
- 
-                 # Camera Pose
-                 pose=np.eye(4), 
+                 extrinsic_matrix=np.eye(4), 
  
                  # Lens Distortion Model
-                 distortion_model=None,
-                 distortion_coefficients=np.zeros(4),
+                 distortion_model=None, 
+                 distortion_coefficients=np.zeros(4), 
  
                  # Image Noise Model
                  snr_dB=np.inf # No noise
                  ):
 
-        # Intrinsic Parameters
+        # Image Parameters
         self.resolution = resolution
         self.aspect_ratio = resolution[0] / resolution[1]
-        self.fov_degrees = None
-        self.fov_radians = None
 
-        # Camera Pose
-        self.pose = pose
-        
-        # Compressing data into matrices
-        self.extrinsic_matrix = np.linalg.inv(pose)
+        # Pinhole Camera Model
+        self.extrinsic_matrix = extrinsic_matrix
         self.intrinsic_matrix = intrinsic_matrix
-        
-        # If FOV was given, make intrinsic matrix based on that
-        if fov_degrees is not None:
-            self.fov_degrees = fov_degrees
-            self.fov_radians = np.radians(fov_degrees)
-
-            self.intrinsic_matrix = build_intrinsic_matrix(fov_degrees=self.fov_degrees, 
-                                                           resolution=self.resolution)
-        
-        # Pinhole Model
         self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
                                                          extrinsic_matrix=self.extrinsic_matrix)
+        
+        # Camera Pose
+        self.pose = np.linalg.inv(self.extrinsic_matrix)
 
         # Lens Distortion Model
         self.distortion_model = distortion_model
@@ -57,8 +42,6 @@ class Camera:
         # Distortion model parameters
         self.undistortion_map = None
         self.undistortion_function = None
-        self.map_u = None 
-        self.map_v = None 
 
         if self.distortion_model == 'rational' or self.distortion_model is None:
             self.undistortion_map = cv2.initUndistortRectifyMap
@@ -68,25 +51,46 @@ class Camera:
             self.undistortion_map = cv2.fisheye.initUndistortRectifyMap
             self.undistortion_function = cv2.fisheye.undistortPoints 
 
-        self.map_u, self.map_v = build_distortion_map(self.distortion_coefficients, 
-                                                      self.undistortion_map, 
-                                                      self.intrinsic_matrix, 
-                                                      self.resolution)
+        self.map_u_d, self.map_v_d = build_distortion_map(self.distortion_coefficients, 
+                                                          self.undistortion_map, 
+                                                          self.intrinsic_matrix, 
+                                                          self.resolution)
  
         # Image Noise Model
         self.snr_dB = snr_dB
         self.snr = np.power(10, (snr_dB / 20)) # Converted for ratio
-            
-    def update_reference(self, new_camera_pose):
-        # Update all extrinsic dependent parameters to new reference
-        self.pose = new_camera_pose
-        self.extrinsic_matrix = np.linalg.inv(self.pose)
+    
+    # Pinhole Camera Model Methods
+    def update_intrinsic(self, new_intrinsic_matrix):
+        self.intrinsic_matrix = new_intrinsic_matrix
         self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
                                                          extrinsic_matrix=self.extrinsic_matrix)
-        
-    def undistort_points(self, distorted_centroids):
-        return self.undistortion_function(distorted_centroids.reshape(1, -1, 2).astype(np.float32), 
+        self.map_u_d, self.map_v_d = build_distortion_map(self.distortion_coefficients, 
+                                                          self.undistortion_map, 
+                                                          self.intrinsic_matrix, 
+                                                          self.resolution)
+
+    def update_extrinsic(self, new_extrinsic_matrix):
+        self.extrinsic_matrix = new_extrinsic_matrix
+        self.pose = np.linalg.inv(self.extrinsic_matrix)
+        self.projection_matrix = build_projection_matrix(intrinsic_matrix=self.intrinsic_matrix, 
+                                                         extrinsic_matrix=self.extrinsic_matrix)
+    
+    # Distortion Model Methods
+    def undistort_points(self, distorted_points):
+        return self.undistortion_function(distorted_points.reshape(1, -1, 2).astype(np.float32), 
                                           self.intrinsic_matrix, 
                                           self.distortion_coefficients,
                                           np.array([]),
                                           self.intrinsic_matrix).reshape(-1,2)
+    
+    def distort_image(self, image_pinhole):
+        return cv2.remap(image_pinhole,
+                         map1=self.map_u_d, 
+                         map2=self.map_v_d, 
+                         interpolation=cv2.INTER_NEAREST) 
+    
+    # Noise Model Methods
+    def noise_image(self, image_noiseless):
+        return add_noise(image_noiseless=image_noiseless, 
+                         snr=self.snr)

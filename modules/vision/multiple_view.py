@@ -66,6 +66,7 @@ class MultipleView:
 
         # Dicts for storing the final data
         relative_poses = {} 
+        extrinsic_matrices = {}
         triangulated_markers = {}
 
         # Order collinear blobs
@@ -158,13 +159,14 @@ class MultipleView:
             # Saving scaled matrices
             extrinsic_matrix_auxiliary = np.vstack((np.hstack((R, t * scale)),
                                                     np.array([0, 0, 0, 1])))
+            extrinsic_matrices[pair] = extrinsic_matrix_auxiliary
             relative_poses[pair] = np.linalg.inv(extrinsic_matrix_auxiliary)
 
         # Update references
         reference = 0 # The 0th camera will be the reference by default
-        self.camera_models[reference].update_reference(np.eye(4))
+        self.camera_models[reference].update_extrinsic(np.eye(4))
         for ID in camera_ids[camera_ids != reference]: 
-            self.camera_models[ID].update_reference(relative_poses[(reference, ID)])
+            self.camera_models[ID].update_extrinsic(extrinsic_matrices[(reference, ID)])
 
         # Rebuild fundamental matrices with updated references
         self.build_fundamental_matrices()
@@ -224,21 +226,20 @@ class MultipleView:
 
         # Optimizing parameter vector by minimizing cost function using Levenberg–Marquardt algorithm
         result = sp.optimize.least_squares(fun=total_reprojection_error, 
-                                        x0=initial_guess,
-                                        method='lm',
-                                        args=([camera.intrinsic_matrix for camera in self.camera_models],
-                                                all_ordered_blobs))
+                                           x0=initial_guess,
+                                           method='lm',
+                                           args=([camera.intrinsic_matrix for camera in self.camera_models],
+                                                  all_ordered_blobs))
 
         optimized_parameters = np.array(result.x)
 
         # Retrieving data from optimized parameter vector
         rvecs_tvecs_adjusted = optimized_parameters[:self.n_cameras * 6].reshape(self.n_cameras, 2, 3)
-        adjusted_extrinsics = [np.hstack((cv2.Rodrigues(rvec)[0], tvec.reshape(3, -1))) for rvec, tvec in rvecs_tvecs_adjusted]
-        adjusted_poses = [np.linalg.inv(np.vstack((E, [0, 0, 0, 1]))) for E in adjusted_extrinsics]
+        adjusted_extrinsics = [np.vstack((np.hstack((cv2.Rodrigues(rvec)[0], tvec.reshape(3, -1))), [0, 0, 0, 1])) for rvec, tvec in rvecs_tvecs_adjusted]
 
         # Update references
-        for camera, adjusted_pose in zip(self.camera_models, adjusted_poses): 
-            camera.update_reference(adjusted_pose)
+        for camera, adjusted_extrinsic in zip(self.camera_models, adjusted_extrinsics): 
+            camera.update_extrinsic(adjusted_extrinsic)
 
         # Rebuild fundamental matrices with updated references
         self.build_fundamental_matrices()
@@ -273,7 +274,7 @@ class MultipleView:
 
         # Update references
         for camera in self.camera_models:
-            camera.update_reference(transformation @ camera.pose)
+            camera.update_extrinsic(np.linalg.inv(transformation @ camera.pose))
 
         self.build_fundamental_matrices()
 
