@@ -1,4 +1,5 @@
 import copy
+import time
 import sys
 
 from modules.integration.server import *
@@ -36,39 +37,19 @@ class MoCapRasp_Server(Server):
 
         print('[SERVER] All clients registered!')
 
-    def request_capture(self, synchronizer):
+    def request_capture(self, delay_time, synchronizer):
         # Initialize synchronizers and message logs
         for client in self.clients:
             client.synchronizer = copy.deepcopy(synchronizer)
             client.message_log = []
 
-        # Send capture request 
-        request = 'Capture'
-        request_bytes = request.encode()
-        self.udp_socket.sendto(request_bytes, self.controller_address)
-
-        # Send capture time
-        message = str(synchronizer.capture_time)
+        # Generate message
+        message = f'{delay_time + time.time()} {synchronizer.capture_time}'
         message_bytes = message.encode()
-        self.udp_socket.sendto(message_bytes, self.controller_address)
 
-        print('[SERVER] Capture info sent')
-
-        # Wait for controller setup confirmation
-        try:
-            confirmation_bytes, _ = self.udp_socket.recvfrom(self.buffer_size)
-            confirmation = confirmation_bytes.decode()
-
-            if confirmation == 'Success':
-                print('[SERVER] Capture confirmed!')
-
-                return True
+        # Send trigger to each client
+        for client in range(self.clients): 
+            self.udp_socket.sendto(data=message_bytes,
+                                   address=client.address)
             
-            print('[SERVER] Capture start failed!')
-
-            return False # Did not confirm
-            
-        except:
-            print('[SERVER] Parsing failed!')
-
-            return False # Confirmation parsing failed
+        return True
