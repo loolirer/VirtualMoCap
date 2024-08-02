@@ -1,3 +1,5 @@
+import copy
+
 from modules.vision.multiple_view import *
 from modules.vision.synchronizer import *
 from modules.integration.client import *
@@ -18,7 +20,7 @@ class Server:
 
     def update_clients(self, clients):
         # Associated clients
-        self.clients = clients     
+        self.clients = copy.deepcopy(clients)     
         self.n_clients = len(self.clients)
         self.client_addresses = {}
 
