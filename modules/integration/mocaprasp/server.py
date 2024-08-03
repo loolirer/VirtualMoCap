@@ -16,24 +16,40 @@ class MoCapRasp_Server(Server):
                         server_address)
 
         self.buffer_size = 1024 # In bytes
+        self.client_ips = {} # FIX THIS !!
 
     def register_clients(self):
         # Clearing the previous addresses (client addresses may change from capture to capture)
         self.client_addresses.clear()
+        self.client_ips.clear()
 
-        # IP lookup from hostname
-        for ID, client in enumerate(self.clients):
+        # Check client connection to network
+        for ID in range(self.n_clients):
             try:
-                # Get client address
-                address = socket.gethostbyname(f'cam{ID}.local')
-
-                 # Register client address
-                self.client_addresses[address] = ID 
-                client.address = address # Update the client's address
+                IP = socket.gethostbyname(f'cam{ID}.local')
+                self.client_ips[IP] = ID
 
             except:
-                print('[SERVER] Client {ID} not found!')
+                print(f'[SERVER] Client {ID} not connected!')
                 sys.exit()
+
+        print('[SERVER] Waiting for clients...')
+
+        # Address registration
+        while len(self.client_addresses.keys()) < self.n_clients: # Until all clients are identified
+            try:
+                _, address = self.udp_socket.recvfrom(self.buffer_size)
+                IP, _ = address
+                ID = self.client_ips[IP]
+
+            except: # Invalid message for decoding
+                continue # Look for another message
+            
+            # Register client address
+            self.client_addresses[address] = ID 
+            self.clients[ID].address = address # Update the client's address
+
+            print(f'\tClient {ID} registered')
 
         print('[SERVER] All clients registered!')
 
@@ -43,13 +59,12 @@ class MoCapRasp_Server(Server):
             client.synchronizer = copy.deepcopy(synchronizer)
             client.message_log = []
 
-        # Generate message
-        message = f'{delay_time + time.time()} {synchronizer.capture_time}'
+        # Generate message 
+        message = f'{delay_time + time.time()} {int(synchronizer.capture_time)}' # FIX THIS !!
         message_bytes = message.encode()
 
         # Send trigger to each client
-        for client in range(self.clients): 
-            self.udp_socket.sendto(data=message_bytes,
-                                   address=client.address)
+        for client in self.clients: 
+            self.udp_socket.sendto(message_bytes, client.address)
             
         return True
