@@ -24,16 +24,8 @@ def build_fundamental_matrix(intrinsic_matrix_reference, intrinsic_matrix_auxili
 
     return fundamental_matrix
 
-def point_to_line_distance(point, line):
-    a, b, c = line
-    x, y = point
-
-    distance = np.abs(a * x + b * y + c) / np.sqrt(a**2 + b**2)
-
-    return distance
-
 def epiline_order(blobs_auxiliary, epilines_auxiliary):
-    distance_matrix = np.array([[point_to_line_distance(blob_auxiliary, epiline_auxiliary)
+    distance_matrix = np.array([[np.append(blob_auxiliary, 1) @ epiline_auxiliary # Point to line distance
                                 for blob_auxiliary in blobs_auxiliary] 
                                 for epiline_auxiliary in epilines_auxiliary])
 
