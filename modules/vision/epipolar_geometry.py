@@ -25,9 +25,10 @@ def build_fundamental_matrix(intrinsic_matrix_reference, intrinsic_matrix_auxili
     return fundamental_matrix
 
 def epiline_order(blobs_auxiliary, epilines_auxiliary):
-    distance_matrix = np.array([[np.append(blob_auxiliary, 1) @ epiline_auxiliary # Point to line distance
-                                for blob_auxiliary in blobs_auxiliary] 
-                                for epiline_auxiliary in epilines_auxiliary])
+    # Point to line distance matrix
+    distance_matrix = np.abs([[np.append(blob_auxiliary, 1) @ epiline_auxiliary 
+                               for blob_auxiliary in blobs_auxiliary] 
+                               for epiline_auxiliary in epilines_auxiliary])
 
     # Using the hungarian (Munkres) assignment algorithm to find unique correspondences between blobs and epilines
     _, new_indices = linear_sum_assignment(distance_matrix)
