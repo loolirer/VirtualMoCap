@@ -26,7 +26,7 @@ class MoCapRasp_Server(Server):
         # Check client connection to network
         for ID in range(self.n_clients):
             try:
-                IP = socket.gethostbyname(f'cam{ID}.local')
+                IP = socket.gethostbyname(f'pi{ID}.local')
                 self.client_ips[IP] = ID
 
             except:
