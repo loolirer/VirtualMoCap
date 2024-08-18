@@ -42,7 +42,12 @@ def kabsch(align, fixed):
     H = align_0 @ np.transpose(fixed_0)
 
     # Find rotation using Singular Value Decomposition
-    U, _, Vt = np.linalg.svd(H)
+    try:
+        U, _, Vt = np.linalg.svd(H)
+
+    except:
+        return np.full((4, 4), np.nan) # SVD did not converge
+
     R = Vt.T @ U.T
 
     # Special reflection case
