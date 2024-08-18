@@ -30,20 +30,22 @@ class MultipleView:
 
                 self.fundamental_matrix[reference][auxiliary] = F
 
-    def triangulate_by_pair(self, pair, blobs_pair):
+    def triangulate_by_pair(self, pair, blobs_pair, order=True):
         reference, auxiliary = (0, 1) # Naming for the sake of code readability
 
         # Gathering pair info
         camera_pair = [self.camera_models[pair[reference]], self.camera_models[pair[auxiliary]]]
         pair_fundamental_matrix = self.fundamental_matrix[pair[reference]][pair[auxiliary]]
-    
-        # Compute epipolar lines
-        epilines_auxiliary = cv2.computeCorrespondEpilines(points=blobs_pair[reference], 
-                                                           whichImage=1, 
-                                                           F=pair_fundamental_matrix).reshape(-1,3)
         
-        # Order blobs
-        blobs_pair[auxiliary] = epiline_order(blobs_pair[auxiliary], epilines_auxiliary)
+        # Order blobs if needed
+        if order:
+            blobs_pair[auxiliary] = epiline_order(blobs_pair[reference],
+                                                  blobs_pair[auxiliary],
+                                                  pair_fundamental_matrix)
+        
+        # Ambiguous epiline ordering, discard data
+        if np.isnan(blobs_pair[auxiliary]).any():
+            return np.full((3, blobs_pair[auxiliary].shape[0]), np.nan)
 
         # Triangulate markers
         triangulated_points_4D = cv2.triangulatePoints(camera_pair[reference].projection_matrix.astype(np.float32), 
@@ -74,8 +76,8 @@ class MultipleView:
         for same_frame_blobs in zip(*wand_blobs):
             ordered_blobs = [collinear_order(same_camera_blobs, wand_ratio) for same_camera_blobs in same_frame_blobs]
 
-            # Get only ordered blobs that are simultaneously viewed by all cameras
-            if any(O is None for O in ordered_blobs):
+            # Only accept blobs valid in all views
+            if np.isnan(ordered_blobs).any():
                 continue
 
             all_ordered_blobs_per_frame.append(ordered_blobs)
@@ -182,8 +184,8 @@ class MultipleView:
         for same_frame_blobs in zip(*wand_blobs):
             ordered_blobs = [collinear_order(same_camera_blobs, wand_ratio) for same_camera_blobs in same_frame_blobs]
 
-            # Get only ordered blobs that are simultaneously viewed by all cameras
-            if any(O is None for O in ordered_blobs):
+            # Only accept blobs valid in all views
+            if np.isnan(ordered_blobs).any():
                 continue
 
             all_ordered_blobs_per_frame.append(ordered_blobs)
@@ -200,8 +202,10 @@ class MultipleView:
 
             triangulated_points = []
             for blobs_in_frame in all_ordered_blobs_per_frame:
-                triangulated_points.append(self.triangulate_by_pair(pair, [blobs_in_frame[reference],
-                                                                           blobs_in_frame[auxiliary]]))
+                triangulated_points.append(self.triangulate_by_pair(pair, 
+                                                                    [blobs_in_frame[reference],
+                                                                     blobs_in_frame[auxiliary]],
+                                                                    order=False))
 
             triangulated_points = np.hstack(np.array(triangulated_points))
             all_triangulated_points.append(triangulated_points)
@@ -301,38 +305,37 @@ def total_reprojection_error(optimize, intrinsic_matrices, all_ordered_blobs):
     
     return residuals
 
-def collinear_order(blobs, ratio):
+def collinear_order(blobs, wand_ratio):
     # Distances between blobs
     distances = np.array([np.linalg.norm(blobs[0] - blobs[1]), 
                           np.linalg.norm(blobs[1] - blobs[2]), 
                           np.linalg.norm(blobs[2] - blobs[0])])
     
-    # Shortest distance
-    shortest = np.min(distances)
-
-    # If x is invalid
-    if shortest == 0.0 or shortest is np.nan:
-        return None
-
     # Normalize distances
-    distances /= shortest
+    distances /= np.min(distances)
 
     # Measured unique distance sums
     measured_unique_sums = np.array([distances[0] + distances[2],
                                      distances[0] + distances[1],
                                      distances[1] + distances[2]])
     
-    # Expected unique distance sums
-    expected_unique_sums = np.array([ratio[0] + ratio[0] + ratio[1],
-                                     ratio[0] + ratio[1],
-                                     ratio[0] + ratio[1] + ratio[1]])
+    # Exprected unique distance sums
+    expected_unique_sums = np.array([wand_ratio[0] + wand_ratio[0] + wand_ratio[1],
+                                     wand_ratio[0] + wand_ratio[1],
+                                     wand_ratio[0] + wand_ratio[1] + wand_ratio[1]])
     
     # Error matrix
     difference_matrix = np.array([[np.abs(measured - expected)
                                    for measured in measured_unique_sums] 
                                    for expected in expected_unique_sums])
+    
+    # Check for ambiguities
+    blob_mapping = np.argmin(difference_matrix, axis=1)
+    unique_mapping = np.unique(blob_mapping)
 
-    # Using the hungarian (Munkres) assignment algorithm to find unique correspondences between blobs and epilines
-    _, new_indices = linear_sum_assignment(difference_matrix)
-
-    return blobs[new_indices]
+    # Blobs to epiline correspondences are unique
+    if blob_mapping.shape == unique_mapping.shape:
+        return blobs[blob_mapping]
+    
+    # Blobs too close may lead wrong ordering, discard data for robustness
+    return np.full_like(blobs, np.nan)

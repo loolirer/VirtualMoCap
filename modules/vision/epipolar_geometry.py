@@ -24,17 +24,30 @@ def build_fundamental_matrix(intrinsic_matrix_reference, intrinsic_matrix_auxili
 
     return fundamental_matrix
 
-def epiline_order(blobs_auxiliary, epilines_auxiliary):
+def epiline_order(blobs_reference, blobs_auxiliary, fundamental_matrix):
+    # Computing epilines
+    epilines_auxiliary = cv2.computeCorrespondEpilines(points=blobs_reference, 
+                                                       whichImage=1, 
+                                                       F=fundamental_matrix).reshape(-1,3)
+
+    blobs_auxiliary_h = np.hstack((blobs_auxiliary, np.ones(blobs_auxiliary.shape[0]).reshape(-1, 1)))
+
     # Point to line distance matrix
-    distance_matrix = np.abs([[np.append(blob_auxiliary, 1) @ epiline_auxiliary 
-                               for blob_auxiliary in blobs_auxiliary] 
+    distance_matrix = np.abs([[blob_auxiliary @ epiline_auxiliary 
+                               for blob_auxiliary in blobs_auxiliary_h] 
                                for epiline_auxiliary in epilines_auxiliary])
 
-    # Using the hungarian (Munkres) assignment algorithm to find unique correspondences between blobs and epilines
-    _, new_indices = linear_sum_assignment(distance_matrix)
+    # Check for ambiguities
+    line_mapping = np.argmin(distance_matrix, axis=1)
+    unique_mapping = np.unique(line_mapping)
 
-    return blobs_auxiliary[new_indices]
+    # Blobs to epiline correspondences are unique
+    if line_mapping.shape == unique_mapping.shape:
+        return blobs_auxiliary[line_mapping]
 
+    # Blobs to epiline correspondences are ambiguous
+    return np.full_like(blobs_auxiliary, np.nan)
+    
 def decompose_essential_matrix(E, 
                                blobs_reference, 
                                blobs_auxiliary, 
@@ -43,8 +56,9 @@ def decompose_essential_matrix(E,
     
     # Decompose the essential matrix
     R1, R2, t = cv2.decomposeEssentialMat(E)
+    R_nan, t_nan = np.full_like(np.eye(3), np.nan), np.full_like(t, np.nan)
     
-    # Possible nase changes from the reference frame to
+    # Possible transformations from the reference frame to the auxiliary frame
     R_t_options = [[R1,  t],
                    [R1, -t],
                    [R2,  t],
@@ -75,13 +89,13 @@ def decompose_essential_matrix(E,
         if frontal_points == triangulated_points_3D.shape[1]:
             # Ambiguous decompostions found
             if best_option is not None:
-                return None, None 
+                return R_nan, t_nan
             
             best_option = option # Where all points are frontal points
 
     # No valid decomposition found
     if best_option is None:
-        return None, None 
+        return R_nan, t_nan
     
     # Valid decomposition
     return R_t_options[best_option]
