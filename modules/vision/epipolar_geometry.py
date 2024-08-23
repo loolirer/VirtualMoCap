@@ -24,7 +24,7 @@ def build_fundamental_matrix(intrinsic_matrix_reference, intrinsic_matrix_auxili
 
     return fundamental_matrix
 
-def epiline_order(blobs_reference, blobs_auxiliary, fundamental_matrix):
+def epiline_order(blobs_reference, blobs_auxiliary, fundamental_matrix, tolerance=2):
     # Computing epilines
     epilines_auxiliary = cv2.computeCorrespondEpilines(points=blobs_reference, 
                                                        whichImage=1, 
@@ -37,12 +37,17 @@ def epiline_order(blobs_reference, blobs_auxiliary, fundamental_matrix):
                                for blob_auxiliary in blobs_auxiliary_h] 
                                for epiline_auxiliary in epilines_auxiliary])
 
-    # Check for ambiguities
+    # Indication if blob is collinear to an epiline 
+    collinear_blobs_matrix = distance_matrix < tolerance # If distance is less than tolerance px, blob is contained
+    blobs_per_line = np.count_nonzero(collinear_blobs_matrix, axis=1) # Blobs contained in each epiline
+    ambiguous = np.any(blobs_per_line > 1) # Ambiguous if there are more than one blob in an epiline
+
+    # Check for non-unique correspondences
     line_mapping = np.argmin(distance_matrix, axis=1)
     unique_mapping = np.unique(line_mapping)
 
-    # Blobs to epiline correspondences are unique
-    if line_mapping.shape == unique_mapping.shape:
+    # Blobs to epiline correspondences are unique and there aren't collinear blobs
+    if line_mapping.shape == unique_mapping.shape and not ambiguous:
         return blobs_auxiliary[line_mapping]
 
     # Blobs to epiline correspondences are ambiguous
