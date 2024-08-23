@@ -120,7 +120,7 @@ class MultipleView:
                                               self.camera_models[auxiliary].intrinsic_matrix)
 
             # Check if decomposition worked
-            if R is None and t is None:
+            if np.isnan(R).any() and np.isnan(t).any() :
                 print('> Could not find reliable decomposition!')
                 return False # Calibration failed!
 
@@ -311,6 +311,12 @@ def collinear_order(blobs, wand_ratio):
                           np.linalg.norm(blobs[1] - blobs[2]), 
                           np.linalg.norm(blobs[2] - blobs[0])])
     
+    min_distance = np.min(distances)
+
+    if min_distance == 0 or np.isnan(min_distance):
+        # Blobs too close may lead wrong ordering, discard data for robustness
+        return np.full_like(blobs, np.nan)
+
     # Normalize distances
     distances /= np.min(distances)
 
