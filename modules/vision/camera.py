@@ -52,10 +52,13 @@ class Camera:
             self.undistortion_map = cv2.fisheye.initUndistortRectifyMap
             self.undistortion_function = cv2.fisheye.undistortPoints 
 
-        self.map_u_d, self.map_v_d = build_distortion_map(self.distortion_coefficients, 
-                                                          self.undistortion_map, 
-                                                          self.intrinsic_matrix, 
-                                                          self.resolution)
+        self.map_u_d, self.map_v_d = None, None
+
+        if self.distortion_model is not None:
+            self.map_u_d, self.map_v_d = build_distortion_map(self.distortion_coefficients, 
+                                                            self.undistortion_map, 
+                                                            self.intrinsic_matrix, 
+                                                            self.resolution)
  
         # Image Noise Model
         self.snr_dB = snr_dB
@@ -86,6 +89,9 @@ class Camera:
                                           self.intrinsic_matrix).reshape(-1,2)
     
     def distort_image(self, image_pinhole):
+        if self.map_u_d is None or self.map_v_d is None:
+            return image_pinhole
+        
         return cv2.remap(image_pinhole,
                          map1=self.map_u_d, 
                          map2=self.map_v_d, 
