@@ -7,7 +7,7 @@ intrinsic_matrix_0 = [
     [0,       0,       1]
 ]
 
-distortion_coeffients_0 = [0.395621, 0.633705, -2.41723, 2.11079]
+distortion_coefficients_0 = [0.395621, 0.633705, -2.41723, 2.11079]
 
 intrinsic_matrix_1 = [
     [768.113, 0, 472.596],
@@ -42,7 +42,7 @@ all_intrinsic_matrices = np.array([
 ])
 
 all_distortion_coefficients = np.array([
-    distortion_coeffients_0, 
+    distortion_coefficients_0, 
     distortion_coefficients_1, 
     distortion_coefficients_2, 
     distortion_coefficients_3
