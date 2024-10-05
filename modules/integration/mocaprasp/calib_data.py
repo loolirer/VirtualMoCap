@@ -34,14 +34,14 @@ intrinsic_matrix_3 =[
 distortion_coefficients_3 = [0.400774, 1.15995, -7.10257, 11.4150]
 
 # Join data
-intrinsic_matrices = np.array([
+all_intrinsic_matrices = np.array([
     intrinsic_matrix_0, 
     intrinsic_matrix_1, 
     intrinsic_matrix_2, 
     intrinsic_matrix_3
 ])
 
-distortion_coefficients = np.array([
+all_distortion_coefficients = np.array([
     distortion_coeffients_0, 
     distortion_coefficients_1, 
     distortion_coefficients_2, 
