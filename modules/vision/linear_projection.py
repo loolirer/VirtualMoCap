@@ -25,13 +25,15 @@ def build_intrinsic_matrix(fov_degrees, resolution):
 
     return intrinsic_matrix
 
-def break_intrinsic_matrix(intrinsic_matrix):
-    f = (intrinsic_matrix[0][0] + intrinsic_matrix[1][1]) / 2 # Get mean focal distance in pixels
-    resolution = (round(intrinsic_matrix[0][2] * 2), round(intrinsic_matrix[1][2] * 2)) # Extract resolution in pixels
-    fov_radians = 2 * np.arctan(max(resolution) / (2 * f)) # Get FOV from focal distance and resolution
-    fov_degrees = np.degrees(fov_radians) # Convert to degrees
+def get_projection_fov(intrinsic_matrix, resolution):
+    # Get FOV from focal distance and resolution
+    f_x = intrinsic_matrix[0][0]
+    fov_degrees_x = np.degrees(2 * np.arctan(resolution[0] / (2 * f_x)))
 
-    return resolution, fov_degrees
+    f_y = intrinsic_matrix[1][1]
+    fov_degrees_y = np.degrees(2 * np.arctan(resolution[1] / (2 * f_y)))
+
+    return fov_degrees_x, fov_degrees_y
 
 def build_projection_matrix(intrinsic_matrix, extrinsic_matrix):
     projection_matrix = np.hstack((intrinsic_matrix, np.zeros((3, 1)))) @ extrinsic_matrix 
