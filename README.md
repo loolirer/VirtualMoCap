@@ -4,6 +4,8 @@
 
 This repository contains the software developed for a **Digital Twin for Optical Tracking Systems Design**. The tool was designed to simulate, evaluate, and optimize marker-based motion capture systems within a virtual environment, built using *Python* and robotics simulation. The DT is currently integrated to *CoppeliaSim* but multi-platform integrations can be explored.  
 
+This tool is heavily inspired in the [MoCap Rasp Optical Tracking Arena](https://github.com/debOliveira/MoCapRasp) and was developed by the same team. 
+
 ## 🔖 Features
 
 - **Configurable Camera Setup**: Easily adjust camera poses, resolutions, focal lengths, lens distortion parameters, and other intrinsic values;
