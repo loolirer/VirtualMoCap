@@ -16,8 +16,7 @@ This repository contains the software developed for a **Digital Twin for Optical
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/loolirer/VirtualMoCap.git
-    cd VirtualMoCap
+    git clone https://github.com/loolirer/VirtualMoCap
     ```
 2. Install required dependencies:
     ```bash
