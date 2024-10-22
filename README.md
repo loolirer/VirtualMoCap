@@ -27,19 +27,11 @@ This repository contains the software developed for a **Digital Twin for Optical
 
 ## 📂 Organization
 
-├── debug/   # Isolated environments to test models and features separately 
+├── `debug/`   # Isolated environments to test models and features separately 
 |
-└── modules/ # Reusable modules developed by using the debug environments as base 
+└── `modules/` # Reusable modules developed by using the debug environments as base 
 
-Check above directories for more information.
-
-## ⚔️ Usage
-
-1. Access `debug/` and select which scope 
-2. Start CoppeliaSim and load the appropriate scene;
-3. Customize camera configurations and parameters in the jupyter notebooks or the CoppeliaSim scenes to match your desired setup;
-4. Run the Python scripts provided to control the simulation and capture data;
-5. Analyse the data to your liking.
+Check above directories for more detailed information.
 
 ## 📖 Academia
 
