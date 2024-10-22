@@ -8,11 +8,11 @@ This directory contains the modules reused for debug environments and deployment
 
 The following structure contains importable libraries for Python scripts.
 
-    ├── `vision/`      # Mathematics and models for motion capture computer vision
+    ├── vision/      # Mathematics and models for motion capture computer vision
     |    
-    ├── `plot/`        # 3D and 2D plotting using Plotly
+    ├── plot/        # 3D and 2D plotting using Plotly
     |
-    └── `integration/` # Integration directory for cross-platoform usage 
+    └── integration/ # Integration directory for cross-platoform usage 
 
 There are currently integrations for the following platoforms:
 - [CoppeliaSim Edu](https://www.coppeliarobotics.com) - Robotics Simulator;
