@@ -18,21 +18,30 @@ This repository contains the software developed for a **Digital Twin for Optical
     ```bash
     git clone https://github.com/loolirer/VirtualMoCap
     ```
-2. Install required dependencies:
+2. Create a Python Virtual Enviroment (highly recommended);
+3. Install required dependencies:
     ```bash
     pip install -r requirements.txt
     ```
+4. Ensure **CoppeliaSim 4.6.0 (rev. 16)** is installed and linked to the Python Virtual Enviroment.
 
-3. Ensure **CoppeliaSim 4.6.0 (rev. 16)** is installed to interact with the Python client.
+## 📂 Organization
+
+├── debug/   # Isolated environments to test models and features separately 
+|
+└── modules/ # Reusable modules developed by using the debug environments as base 
+
+Check above directories for more information.
 
 ## ⚔️ Usage
 
-1. Start CoppeliaSim and load the appropriate scene;
-2. Customize camera configurations and parameters in the jupyter notebooks or the CoppeliaSim scenes to match your desired setup;
-3. Run the Python scripts provided to control the simulation and capture data;
-4. Analyse the data to your liking.
+1. Access `debug/` and select which scope 
+2. Start CoppeliaSim and load the appropriate scene;
+3. Customize camera configurations and parameters in the jupyter notebooks or the CoppeliaSim scenes to match your desired setup;
+4. Run the Python scripts provided to control the simulation and capture data;
+5. Analyse the data to your liking.
 
-## 🧪 Experiments 
+## 📖 Academia
 
 This software replicates the experiments outlined in **["Optical tracking system based on COTS components"](https://ieeexplore.ieee.org/document/10053039)**, adapting the system to a virtual environment. Please refer to the paper for a deeper understanding of the experimental setup and results.
 
