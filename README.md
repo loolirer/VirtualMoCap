@@ -27,9 +27,9 @@ This repository contains the software developed for a **Digital Twin for Optical
 
 ## 📂 Organization
 
-├── `debug/`   # Isolated environments to test models and features separately 
-|
-└── `modules/` # Reusable modules developed by using the debug environments as base 
+    ├── `debug/`   # Isolated environments to test models and features separately 
+    |
+    └── `modules/` # Reusable modules developed by using the debug environments as base 
 
 Check above directories for more detailed information.
 

@@ -8,27 +8,27 @@ This directory contains debug environments for singular aspects of a motion capt
 
 The following structure outlines in sequence a intuitive way for studying the system.
 
-├── `blob_detection/`        # Marker segmentation and pixel coordinate extration from images
-|    
-├── `linear_projection/`     # Pinhole camera model study for vision sensors
-|
-├── `epipolar_geometry/`     # Epipolar geometry fundamentals and point triangulation using stereo vision
-|
-├── `lens_distortion/`       # Lens distortion modeling (radial, tangential and fisheye distortion models)
-|
-├── `image_noise/`           # Imaging noise modeling for stochastic simulation
-|
-├── `multiple_view/`         # Multiple view geometry with lens distortion and noise models
-|
-├── `socket_network/`        # Asynchronous UDP messaging 
-|
-├── `synchronization/`       # Blob position interpolation for async capture systems
-|
-├── `extrinsic_calibration/` # Extrinsic calibration and bundle adjustment techniques
-|
-├── `reference_update/`      # Update coordinate system reference frame
-|
-└── `virtual_arena/`         # Virtual motion capture system with every aspect above integrated
+    ├── `blob_detection/`        # Marker segmentation and pixel coordinate extration from images
+    |    
+    ├── `linear_projection/`     # Pinhole camera model study for vision sensors
+    |
+    ├── `epipolar_geometry/`     # Epipolar geometry fundamentals and point triangulation using stereo vision
+    |
+    ├── `lens_distortion/`       # Lens distortion modeling (radial, tangential and fisheye distortion models)
+    |
+    ├── `image_noise/`           # Imaging noise modeling for stochastic simulation
+    |
+    ├── `multiple_view/`         # Multiple view geometry with lens distortion and noise models
+    |
+    ├── `socket_network/`        # Asynchronous UDP messaging 
+    |
+    ├── `synchronization/`       # Blob position interpolation for async capture systems
+    |
+    ├── `extrinsic_calibration/` # Extrinsic calibration and bundle adjustment techniques
+    |
+    ├── `reference_update/`      # Update coordinate system reference frame
+    |
+    └── `virtual_arena/`         # Virtual motion capture system with every aspect above integrated
 
 Each Jupyter Notebook contained in the directories provide a more in-depth explanation of the math behind the modules.
 
