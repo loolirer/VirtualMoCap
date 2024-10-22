@@ -1,8 +1,8 @@
-# Virtual MoCap: Optical Tracking Systems Design
+# 📷 Virtual MoCap: Optical Tracking Systems Design
 
 ## 🔍 Overview
 
-This repository contains the software developed for a **Digital Twin for Optical Tracking Systems Design**. The tool was designed to simulate, evaluate, and optimize motion capture systems within a virtual environment, built using *Python* and robotics simulation. The DT is currently integrated to *CoppeliaSim* but multi-platform integrations can be explored.  
+This repository contains the software developed for a **Digital Twin for Optical Tracking Systems Design**. The tool was designed to simulate, evaluate, and optimize marker-based motion capture systems within a virtual environment, built using *Python* and robotics simulation. The DT is currently integrated to *CoppeliaSim* but multi-platform integrations can be explored.  
 
 ## 🔖 Features
 
