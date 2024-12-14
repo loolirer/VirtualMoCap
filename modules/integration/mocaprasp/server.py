@@ -7,8 +7,8 @@ from modules.vision.synchronizer import *
 
 class MoCapRasp_Server(Server): 
     def __init__(self, 
-                 clients,
-                 server_address
+                 clients = [],
+                 server_address = ('127.0.0.1', 8888)
                  ):
         
         Server.__init__(self, 

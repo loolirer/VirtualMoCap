@@ -5,9 +5,9 @@ from modules.vision.synchronizer import *
 
 class CoppeliaSim_Server(Server): 
     def __init__(self, 
-                 clients,
-                 server_address,
-                 controller_address
+                 clients = [],
+                 server_address = ('127.0.0.1', 8888),
+                 controller_address = ('127.0.0.1', 7777),
                  ):
         
         Server.__init__(self, 
