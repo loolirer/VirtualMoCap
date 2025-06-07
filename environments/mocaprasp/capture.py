@@ -7,7 +7,7 @@ picam2 = Picamera2()
 # Highest FPS mode (usually 640x480 @ 90fps)
 config = picam2.create_video_configuration(
     main={"size": (640, 480), "format": "RGB888"},
-    controls={"FrameDurationLimits": (11111, 11111)},  # ~90 fps
+    controls={"FrameDurationLimits": (12500, 12500)},  # ~80 fps
 )
 picam2.configure(config)
 picam2.start()
