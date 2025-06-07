@@ -7,8 +7,7 @@ import numpy as np
 picam2 = Picamera2()
 # Highest FPS mode (usually 640x480 @ 90fps)
 config = picam2.create_video_configuration(
-    main={"size": (640, 480), "format": "RGB888"},
-    controls={"FrameDurationLimits": (16666, 16666)},  # ~60 fps
+    main={"size": (640, 480), "format": "RGB888"} 
 )
 picam2.configure(config)
 picam2.start()
