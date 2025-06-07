@@ -87,7 +87,7 @@ picam2.configure(config)
 picam2.start()
 
 # Allow camera to warm up
-time.sleep(5)
+time.sleep(1)
 
 try:
     while True:
@@ -108,6 +108,7 @@ try:
                     thickness=-1,
                 )
 
+        cv2.waitKey(1)
         #cv2.imshow("Detection", frame)
         #if cv2.waitKey(1) == ord("q"):
         #    break
