@@ -4,8 +4,8 @@ import time
 import numpy as np
 
 import sys
-sys.path.append('../..') # Go back to base directory
 
+sys.path.append("../..")  # Go back to base directory
 from modules.vision.blob_detection import detect_blobs
 
 # Initialize camera
