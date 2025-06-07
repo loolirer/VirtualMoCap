@@ -108,7 +108,7 @@ try:
                     thickness=-1,
                 )
 
-        # cv2.imshow("Detection", frame)
+        cv2.imshow("Detection", frame)
         if cv2.waitKey(1) == ord("q"):
             break
 
