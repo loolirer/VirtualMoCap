@@ -97,7 +97,7 @@ try:
         for b in blobs:
             cv2.circle(
                 frame,
-                center=detect_blobs(gray),
+                center=b,
                 radius=6,
                 color=(0, 0, 255),
                 thickness=-1
