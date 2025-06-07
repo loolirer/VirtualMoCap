@@ -7,29 +7,32 @@ import numpy as np
 params = cv2.SimpleBlobDetector_Params()
 
 # Check if blob is stable in the three filters
-params.minRepeatability    = 3
+params.minRepeatability = 3
 
 # Three threshold filters
-params.minThreshold        = 50
-params.thresholdStep       = 50
-params.maxThreshold        = params.minThreshold + params.thresholdStep * params.minRepeatability
+params.minThreshold = 50
+params.thresholdStep = 50
+params.maxThreshold = (
+    params.minThreshold + params.thresholdStep * params.minRepeatability
+)
 
 # Minimum distance between blobs in pixels
 params.minDistBetweenBlobs = 1
 
 # Filter only dark blobs
-params.filterByColor       = True
-params.blobColor           = 0
+params.filterByColor = True
+params.blobColor = 0
 
 # Filter only blobs with over 2 pixels
-params.filterByArea        = True
-params.minArea             = 3
+params.filterByArea = True
+params.minArea = 3
 
 # Do not filter by convexity to allow distorted blobs to be detected
-params.filterByConvexity   = False
+params.filterByConvexity = False
 
 # Instanciate marker detector object
 marker_detector = cv2.SimpleBlobDetector_create(params)
+
 
 def detect_blobs(image, area=False, detector=marker_detector):
     # Apply threshold to image
@@ -44,7 +47,7 @@ def detect_blobs(image, area=False, detector=marker_detector):
         return np.array([])
 
     # Sub-image new corners
-    margin = 5 # Arbitrary margin for sub-image  
+    margin = 5  # Arbitrary margin for sub-image
     u_min, u_max = min(zero_pixels[1]) - margin, max(zero_pixels[1]) + margin
     v_min, v_max = min(zero_pixels[0]) - margin, max(zero_pixels[0]) + margin
 
@@ -52,11 +55,13 @@ def detect_blobs(image, area=False, detector=marker_detector):
     u_min, u_max = np.clip([u_min, u_max], 0, image_thresh.shape[1] - 1)
     v_min, v_max = np.clip([v_min, v_max], 0, image_thresh.shape[0] - 1)
 
-    # Sub-image reference 
+    # Sub-image reference
     sub_image_origin = np.array([u_min, v_min])
 
     # Detect keypoints in sub-image
-    keypoints = detector.detect(image_thresh[v_min:v_max+1, u_min:u_max+1]) # End of slice is exclusive!
+    keypoints = detector.detect(
+        image_thresh[v_min : v_max + 1, u_min : u_max + 1]
+    )  # End of slice is exclusive!
 
     # No valid blob found!
     if not keypoints:
@@ -71,6 +76,7 @@ def detect_blobs(image, area=False, detector=marker_detector):
         detected_blobs = np.hstack((detected_blobs, blob_areas.reshape(-1, 1)))
 
     return detected_blobs
+
 
 # Initialize camera
 picam2 = Picamera2()
@@ -90,7 +96,7 @@ try:
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         finish = time.time()
 
-        print(1/(finish-start)) 
+        print(1 / (finish - start))
 
         blobs = detect_blobs(gray)
 
@@ -101,15 +107,15 @@ try:
             for b in blobs:
                 cv2.circle(
                     frame,
-                    center=b,
+                    center=b.astype(int),
                     radius=6,
                     color=(0, 0, 255),
-                    thickness=-1
+                    thickness=-1,
                 )
 
         cv2.imshow("Detection", frame)
-    
-        if cv2.waitKey(1) == ord('q'):
+
+        if cv2.waitKey(1) == ord("q"):
             break
 
 except KeyboardInterrupt:
