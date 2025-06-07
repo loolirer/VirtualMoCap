@@ -7,15 +7,13 @@ import numpy as np
 picam2 = Picamera2()
 # Highest FPS mode (usually 640x480 @ 90fps)
 config = picam2.create_video_configuration(
-    main={"size": (640, 480), "format": "RGB888"} 
+    main={"size": (960, 720), "format": "RGB888"}
 )
 picam2.configure(config)
 picam2.start()
 
 # Allow camera to warm up
 time.sleep(1)
-
-times = []
 
 try:
     while True:
@@ -26,8 +24,7 @@ try:
 
         finish = time.time()
 
-        times.append(finish - start)
-        #print(f"{(finish - start):.3e}")
+        print(f"{1/(finish - start)}")
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
@@ -36,4 +33,3 @@ except KeyboardInterrupt:
     pass
 
 cv2.destroyAllWindows()
-print(np.std(times))
