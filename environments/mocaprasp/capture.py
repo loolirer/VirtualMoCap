@@ -91,14 +91,17 @@ try:
         finish = time.time()
 
         print(1/(finish-start)) 
-        
-        cv2.circle(
-            frame,
-            center=detect_blobs(gray),
-            radius=6,
-            color=(0, 0, 255),
-            thickness=-1
-        )
+
+        blobs = detect_blobs(gray)
+
+        for b in blobs:
+            cv2.circle(
+                frame,
+                center=detect_blobs(gray),
+                radius=6,
+                color=(0, 0, 255),
+                thickness=-1
+            )
 
         cv2.imshow("Detection", frame)
     
