@@ -94,16 +94,12 @@ try:
         start = time.time()
         frame = picam2.capture_array()  # Direct NumPy array
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        finish = time.time()
-
-        print(1 / (finish - start))
-
         blobs = detect_blobs(gray)
 
+        finish = time.time()
+        print(1 / (finish - start))
+
         if len(blobs):
-
-            print(blobs)
-
             for b in blobs:
                 cv2.circle(
                     frame,
