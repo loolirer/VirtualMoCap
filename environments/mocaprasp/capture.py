@@ -94,21 +94,24 @@ try:
         start = time.time()
         frame = picam2.capture_array()  # Direct NumPy array
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        #blobs = detect_blobs(gray)
+        blobs = detect_blobs(gray)
         finish = time.time()
         print(1 / (finish - start))
 
-        #if len(blobs):
-        #    for b in blobs:
-        #        cv2.circle(
-        #            frame,
-        #            center=b.astype(int),
-        #            radius=6,
-        #            color=(0, 0, 255),
-        #            thickness=-1,
-        #        )
+        if len(blobs):
+            for b in blobs:
+                cv2.circle(
+                    frame,
+                    center=b.astype(int),
+                    radius=6,
+                    color=(0, 0, 255),
+                    thickness=-1,
+                )
 
         cv2.imshow("Detection", frame)
+
+        if cv2.waitKey(1) == ord("q"):
+            break
 
 except KeyboardInterrupt:
     pass
