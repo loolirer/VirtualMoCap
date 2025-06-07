@@ -23,7 +23,7 @@ while True:
 
     finish = time.time()
 
-    print(f"(finish - start):.3e")
+    print(f"{(finish - start):.3e}")
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
