@@ -87,7 +87,7 @@ picam2.configure(config)
 picam2.start()
 
 # Allow camera to warm up
-time.sleep(1)
+time.sleep(5)
 
 try:
     while True:
