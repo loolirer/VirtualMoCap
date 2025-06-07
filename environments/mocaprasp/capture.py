@@ -5,7 +5,7 @@ import time
 # Initialize camera
 picam2 = Picamera2()
 picam2.configure(
-    picam2.create_video_configuration(main={"format": "RGB888", "size": (640, 480)})
+    picam2.create_video_configuration(main={"format": "RGB888", "size": (960, 720)})
 )
 picam2.start()
 
