@@ -17,20 +17,24 @@ picam2.start()
 time.sleep(1)
 
 times = []
-while True:
-    start = time.time()
 
-    frame = picam2.capture_array()  # Direct NumPy array
-    gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+try:
+    while True:
+        start = time.time()
 
-    finish = time.time()
+        frame = picam2.capture_array()  # Direct NumPy array
+        gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
-    times.append(finish - start)
-    #print(f"{(finish - start):.3e}")
+        finish = time.time()
 
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+        times.append(finish - start)
+        #print(f"{(finish - start):.3e}")
+
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+except KeyboardInterrupt:
+    pass
 
 cv2.destroyAllWindows()
-
 print(np.std(times))
