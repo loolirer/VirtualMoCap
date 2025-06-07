@@ -96,6 +96,8 @@ try:
 
         if len(blobs):
 
+            print(blobs)
+
             for b in blobs:
                 cv2.circle(
                     frame,
