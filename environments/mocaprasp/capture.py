@@ -94,14 +94,16 @@ try:
 
         blobs = detect_blobs(gray)
 
-        for b in blobs:
-            cv2.circle(
-                frame,
-                center=b,
-                radius=6,
-                color=(0, 0, 255),
-                thickness=-1
-            )
+        if len(blobs):
+
+            for b in blobs:
+                cv2.circle(
+                    frame,
+                    center=b,
+                    radius=6,
+                    color=(0, 0, 255),
+                    thickness=-1
+                )
 
         cv2.imshow("Detection", frame)
     
