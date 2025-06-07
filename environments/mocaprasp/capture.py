@@ -1,6 +1,7 @@
 from picamera2 import Picamera2
 import cv2
 import time
+import numpy as np
 
 # Initialize camera
 picam2 = Picamera2()
@@ -15,6 +16,7 @@ picam2.start()
 # Allow camera to warm up
 time.sleep(1)
 
+times = []
 while True:
     start = time.time()
 
@@ -23,9 +25,12 @@ while True:
 
     finish = time.time()
 
-    print(f"{(finish - start):.3e}")
+    times.append(finish - start)
+    #print(f"{(finish - start):.3e}")
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 cv2.destroyAllWindows()
+
+print(np.std(times))
