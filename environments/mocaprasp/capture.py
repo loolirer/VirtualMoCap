@@ -12,15 +12,15 @@ sys.path.append("../..")  # Go back to base directory
 from modules.vision.blob_detection import detect_blobs
 
 # GPIO Pins
-TRIGGER_PIN = 18  # Input: simulates external trigger
+TRIGGER_PIN = 17  # Input: simulates external trigger
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIGGER_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Parameters
-CLOCK_PIN = 27  # Output pin for the trigger signal
+CLOCK_PIN = 18         # Output pin for the trigger signal
 FREQUENCY_HZ = 30  # Desired frequency (e.g., 10 kHz)
-DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
+DUTY_CYCLE = 500000   # 50% duty (range: 0–1,000,000)
 
 # Start pigpio daemon and connect
 pi = pigpio.pi()
