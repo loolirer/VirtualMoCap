@@ -59,10 +59,9 @@ def capture_and_send(channel):
     blobs = detect_blobs(image_gray, area=True)
     capture_time = time.time()
     message = np.append(np.ravel(blobs), capture_time).astype(np.float32)
+    print(message[-1])
     message_bytes = message.tobytes()
     client_socket.sendto(message_bytes, server_address)
-
-    print(capture_time)
 
     # Optional display
     # for b in blobs:
