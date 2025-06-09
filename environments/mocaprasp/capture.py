@@ -12,7 +12,7 @@ sys.path.append("../..")  # Go back to base directory
 from modules.vision.blob_detection import detect_blobs
 
 # GPIO Pins
-TRIGGER_PIN = 17  # Input: simulates external trigger
+TRIGGER_PIN = 18  # Input: simulates external trigger
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIGGER_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
