@@ -12,7 +12,7 @@ from modules.vision.blob_detection import detect_blobs
 
 # GPIO Pins
 TRIGGER_PIN = 17  # Input: simulates external trigger
-CLOCK_PIN = 27    # Output: simulates external clock
+CLOCK_PIN = 27  # Output: simulates external clock
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIGGER_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -39,6 +39,7 @@ picam2.configure(config)
 picam2.start()
 time.sleep(1)  # Warm-up
 
+
 # --- Triggered Capture Handler ---
 def capture_and_send(channel):
     start = time.time()
@@ -59,8 +60,12 @@ def capture_and_send(channel):
     # cv2.imshow("Blob Detection", frame)
     # cv2.waitKey(1)
 
+
 # Attach interrupt to GPIO trigger pin
-GPIO.add_event_detect(TRIGGER_PIN, GPIO.FALLING, callback=capture_and_send, bouncetime=10)
+GPIO.add_event_detect(
+    TRIGGER_PIN, GPIO.FALLING, callback=capture_and_send, bouncetime=10
+)
+
 
 # Clock Simulator Thread
 def gpio_clock_simulator(freq_hz=30.0):
@@ -72,8 +77,9 @@ def gpio_clock_simulator(freq_hz=30.0):
         GPIO.output(CLOCK_PIN, GPIO.LOW)
         time.sleep(half_period)
 
+
 # Start GPIO clock simulation in a thread
-clock_thread = threading.Thread(target=gpio_clock_simulator, args=(5,), daemon=True)
+clock_thread = threading.Thread(target=gpio_clock_simulator, args=(30.0,), daemon=True)
 clock_thread.start()
 
 # Wire Output to Input
