@@ -1,5 +1,6 @@
 import socket
 import numpy as np
+import time
 
 # Try to create client socket
 try: 
@@ -19,7 +20,15 @@ server_socket.bind(server_address)
 print(f"[INFO] Receiving messages...")
 try:
     while True:
+        start = time.time()
         message_bytes, address = server_socket.recvfrom(1024)
+        finish = time.time()
+
+        try:
+            print(f"FPS: {1 / (finish - start):.2f}")
+
+        except:
+            continue
 
         message = np.frombuffer(message_bytes, dtype=np.float32)
 
