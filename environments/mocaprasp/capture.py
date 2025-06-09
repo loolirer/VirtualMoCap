@@ -1,31 +1,55 @@
 from picamera2 import Picamera2
-import RPi.GPIO as GPIO
 import pigpio
 import cv2
 import time
 import socket
-import threading
 import numpy as np
 import sys
 
 sys.path.append("../..")  # Go back to base directory
 from modules.vision.blob_detection import detect_blobs
 
-# GPIO Pins
-TRIGGER_PIN = 17  # Input: simulates external trigger
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(TRIGGER_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+def capture_and_send(gpio, level, tick):
+    frame = picam2.capture_array()
+    image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+    blobs = detect_blobs(image_gray, area=True)
 
-# Parameters
-CLOCK_PIN = 18  # Output pin for the trigger signal
-FREQUENCY_HZ = 40  # Desired frequency (e.g., 10 kHz)
-DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
+    # Optional: Use tick or time.time()
+    timestamp = time.time()
+    message = np.append(np.ravel(blobs), timestamp).astype(np.float64)
+    message_bytes = message.tobytes()
+    client_socket.sendto(message_bytes, server_address)
+
+    # Optional display
+    # for b in blobs:
+    #     cv2.circle(frame, center=b.astype(int), radius=6, color=(0, 0, 255), thickness=-1)
+    # cv2.imshow("Blob Detection", frame)
+    # cv2.waitKey(1)
+
 
 # Start pigpio daemon and connect
 pi = pigpio.pi()
 if not pi.connected:
     raise Exception("Could not connect to pigpio daemon. Did you run 'sudo pigpiod'?")
+
+# GPIO Pins
+TRIGGER_PIN = 17  # Input: simulates external trigger
+CLOCK_PIN = 18  # Output: produces trigger signal
+
+# Set pin as input with pull-up/down if needed
+pi.set_mode(TRIGGER_PIN, pigpio.INPUT)
+pi.set_pull_up_down(TRIGGER_PIN, pigpio.PUD_UP)  # or PUD_DOWN
+
+# Optional: glitch filter to debounce (e.g. 10000 µs = 10 ms)
+pi.set_glitch_filter(TRIGGER_PIN, 10000)
+
+# Register callback on falling edge (level=0)
+cb = pi.callback(TRIGGER_PIN, pigpio.FALLING_EDGE, capture_and_send)
+
+# Parameters
+FREQUENCY_HZ = 30  # Desired frequency
+DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 
 # Set pin mode and generate PWM signal
 pi.set_mode(CLOCK_PIN, pigpio.OUTPUT)
@@ -51,29 +75,6 @@ picam2.configure(config)
 picam2.start()
 time.sleep(1)  # Warm-up
 
-
-# Triggered Capture Handler
-def capture_and_send(channel):
-    frame = picam2.capture_array()
-    image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-    blobs = detect_blobs(image_gray, area=True)
-    capture_time = time.time()
-    message = np.append(np.ravel(blobs), capture_time).astype(np.float64)
-    message_bytes = message.tobytes()
-    client_socket.sendto(message_bytes, server_address)
-
-    # Optional display
-    # for b in blobs:
-    #     cv2.circle(frame, center=b.astype(int), radius=6, color=(0, 0, 255), thickness=-1)
-    # cv2.imshow("Blob Detection", frame)
-    # cv2.waitKey(1)
-
-
-# Attach interrupt to GPIO trigger pin
-GPIO.add_event_detect(
-    TRIGGER_PIN, GPIO.FALLING, callback=capture_and_send, bouncetime=10
-)
-
 # Wire Output to Input
 print("[INFO] Clock simulation running on GPIO27 → Trigger input on GPIO17")
 print("[INFO] Press Ctrl+C to stop.")
@@ -85,9 +86,7 @@ except KeyboardInterrupt:
     print("\n[INFO] Exiting...")
 
 finally:
-    # Stop PWM
     pi.hardware_PWM(CLOCK_PIN, 0, 0)
     pi.stop()
-    GPIO.cleanup()
     picam2.stop()
     cv2.destroyAllWindows()
