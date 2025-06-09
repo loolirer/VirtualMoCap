@@ -9,6 +9,15 @@ import sys
 sys.path.append("../..")  # Go back to base directory
 from modules.vision.blob_detection import detect_blobs
 
+# Camera setup
+picam2 = Picamera2()
+config = picam2.create_video_configuration(
+    main={"size": (960, 720), "format": "RGB888"}
+)
+picam2.configure(config)
+picam2.start()
+time.sleep(1)  # Warm-up
+
 
 def capture_and_send(gpio, level, tick):
     frame = picam2.capture_array()
@@ -65,15 +74,6 @@ except socket.error as err:
 server_ip = socket.gethostbyname("loolirer.local")
 server_port = 8888
 server_address = (server_ip, server_port)
-
-# Camera setup
-picam2 = Picamera2()
-config = picam2.create_video_configuration(
-    main={"size": (960, 720), "format": "RGB888"}
-)
-picam2.configure(config)
-picam2.start()
-time.sleep(1)  # Warm-up
 
 # Wire Output to Input
 print("[INFO] Clock simulation running on GPIO27 → Trigger input on GPIO17")
