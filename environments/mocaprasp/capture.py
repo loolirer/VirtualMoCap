@@ -11,21 +11,28 @@ import numpy as np
 sys.path.append("../..")  # Go back to base directory
 from modules.vision.blob_detection import detect_blobs
 
+
 # Camera setup
 picam2 = Picamera2()
 resolution = (960, 720)
 config = picam2.create_video_configuration(
-    main={"size": resolution, "format": "YUV420"} # Already captures in grayscale
+    main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
 )
 picam2.configure(config)
 picam2.start()
 time.sleep(1)  # Warm-up
 
 
-# Socket setup
+# Try to create client socket
 try:
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
+    client_ip = "0.0.0.0"
+    client_port = 25565
+    client_address = (client_ip, client_port)
+    client_socket.bind(client_address)
+
     print(f"[INFO] Socket created successfully")
+
 except socket.error as err:
     print(f"[ERROR] Socket creation failed with error: {err}")
 
@@ -48,7 +55,7 @@ def capture_callback(gpio, level, tick):
         shot_counter += 1
 
     timestamp = time.time()
-    frame = picam2.capture_array()[:resolution[1], :resolution[0]]
+    frame = picam2.capture_array()[: resolution[1], : resolution[0]]
 
     # Push to processing queue
     frame_queue.put((shot_number, timestamp, frame))
@@ -102,16 +109,26 @@ DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 
 # Set pin mode and generate PWM signal
 pi.set_mode(CLOCK_PIN, pigpio.OUTPUT)
-pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)
 
-# Showcase info
-print("[INFO] Clock simulation running on GPIO18 → Trigger input on GPIO17")
-print("[INFO] Press Ctrl+C to stop.")
-
-# Stall loop
+# Service loop
 try:
-    while True:
-        time.sleep(0.1)
+    # Send dummy message for register
+    client_socket.sendto(("").encode(), server_address)
+    print("[INFO] Register message sent. Waiting for capture request...")
+
+    # Receive message and get capture time and delay
+    message_bytes, address = client_socket.recvfrom(1024)
+    message = np.frombuffer(message_bytes, dtype=np.float64)
+    delay, capture_time = message
+    print(f"[INFO] Capture request received. Waiting {delay}s...")
+
+    time.sleep(delay)  # Wait for delay
+
+    print(f"[INFO] Running Capture for {capture_time}s...")
+    pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)  # Start Trigger
+
+    time.sleep(capture_time)  # Wait for capture time
+
 
 except KeyboardInterrupt:
     print("\n[INFO] Exiting...")
