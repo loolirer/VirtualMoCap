@@ -1,10 +1,12 @@
 from picamera2 import Picamera2
 import pigpio
+import sys
 import cv2
 import time
+import queue
 import socket
+import threading
 import numpy as np
-import sys
 
 sys.path.append("../..")  # Go back to base directory
 from modules.vision.blob_detection import detect_blobs
@@ -19,7 +21,7 @@ picam2.start()
 time.sleep(1)  # Warm-up
 
 
-# Socket Setup
+# Socket setup
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
     print(f"[INFO] Socket created successfully")
@@ -31,22 +33,45 @@ server_port = 8888
 server_address = (server_ip, server_port)
 
 
-def capture_and_send(gpio, level, tick):
-    frame = picam2.capture_array()
-    image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-    blobs = detect_blobs(image_gray, area=True)
+# Parallel processes setup
+frame_queue = queue.Queue()
+shot_counter = 0
+lock = threading.Lock()
 
-    # Optional: Use tick or time.time()
+
+# ===== GPIO Callback: Capture Only =====
+def capture_callback(gpio, level, tick):
+    global shot_counter
+    with lock:
+        shot_number = shot_counter
+        shot_counter += 1
+
     timestamp = time.time()
-    message = np.append(np.ravel(blobs), timestamp).astype(np.float64)
-    message_bytes = message.tobytes()
-    client_socket.sendto(message_bytes, server_address)
+    frame = picam2.capture_array()
 
-    # Optional display
-    # for b in blobs:
-    #     cv2.circle(frame, center=b.astype(int), radius=6, color=(0, 0, 255), thickness=-1)
-    # cv2.imshow("Blob Detection", frame)
-    # cv2.waitKey(1)
+    # Push to processing queue
+    frame_queue.put((shot_number, timestamp, frame))
+
+
+# Background image processing and communication
+def process_and_send():
+    while True:
+        try:
+            shot_number, timestamp, frame = frame_queue.get(timeout=1)
+        except queue.Empty:
+            continue
+
+        image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        blobs = detect_blobs(image_gray, area=True)
+
+        message = np.append([shot_number, timestamp], np.ravel(blobs)).astype(np.float64)
+        message_bytes = message.tobytes()
+        client_socket.sendto(message_bytes, server_address)
+
+        frame_queue.task_done()
+
+# Start the background thread
+threading.Thread(target=process_and_send, daemon=True).start()
 
 
 # Start pigpio daemon and connect
@@ -66,7 +91,7 @@ pi.set_pull_up_down(TRIGGER_PIN, pigpio.PUD_UP)  # or PUD_DOWN
 pi.set_glitch_filter(TRIGGER_PIN, 10000)
 
 # Register callback on falling edge (level=0)
-cb = pi.callback(TRIGGER_PIN, pigpio.FALLING_EDGE, capture_and_send)
+cb = pi.callback(TRIGGER_PIN, pigpio.FALLING_EDGE, capture_callback)
 
 # Parameters
 FREQUENCY_HZ = 30  # Desired frequency
@@ -76,14 +101,14 @@ DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 pi.set_mode(CLOCK_PIN, pigpio.OUTPUT)
 pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)
 
-
-# Wire Output to Input
-print("[INFO] Clock simulation running on GPIO27 → Trigger input on GPIO17")
+# Showcase info
+print("[INFO] Clock simulation running on GPIO18 → Trigger input on GPIO17")
 print("[INFO] Press Ctrl+C to stop.")
 
 try:
     while True:
         time.sleep(0.1)
+
 except KeyboardInterrupt:
     print("\n[INFO] Exiting...")
 
