@@ -1,10 +1,11 @@
 from picamera2 import Picamera2
+import RPi.GPIO as GPIO
+import pigpio
 import cv2
 import time
 import socket
-import numpy as np
-import RPi.GPIO as GPIO
 import threading
+import numpy as np
 import sys
 
 sys.path.append("../..")  # Go back to base directory
@@ -12,12 +13,23 @@ from modules.vision.blob_detection import detect_blobs
 
 # GPIO Pins
 TRIGGER_PIN = 17  # Input: simulates external trigger
-CLOCK_PIN = 27  # Output: simulates external clock
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIGGER_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(CLOCK_PIN, GPIO.OUT)
-GPIO.output(CLOCK_PIN, GPIO.LOW)
+
+# Parameters
+CLOCK_PIN = 27         # Output pin for the trigger signal
+FREQUENCY_HZ = 30.0  # Desired frequency (e.g., 10 kHz)
+DUTY_CYCLE = 500000   # 50% duty (range: 0–1,000,000)
+
+# Start pigpio daemon and connect
+pi = pigpio.pi()
+if not pi.connected:
+    raise Exception("Could not connect to pigpio daemon. Did you run 'sudo pigpiod'?")
+
+# Set pin mode and generate PWM signal
+pi.set_mode(CLOCK_PIN, pigpio.OUTPUT)
+pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)
 
 # Socket Setup
 try:
@@ -40,15 +52,10 @@ picam2.start()
 time.sleep(1)  # Warm-up
 
 
-# --- Triggered Capture Handler ---
+# Triggered Capture Handler
 def capture_and_send(channel):
-    start = time.time()
     frame = picam2.capture_array()
     image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-    blobs = detect_blobs(image_gray)
-    finish = time.time()
-    print(f"FPS: {1 / (finish - start):.2f}")
-
     blobs = detect_blobs(image_gray, area=True)
     message = np.append(np.ravel(blobs), time.time()).astype(np.float32)
     message_bytes = message.tobytes()
@@ -66,22 +73,6 @@ GPIO.add_event_detect(
     TRIGGER_PIN, GPIO.FALLING, callback=capture_and_send, bouncetime=10
 )
 
-
-# Clock Simulator Thread
-def gpio_clock_simulator(freq_hz=30.0):
-    period = 1.0 / freq_hz
-    half_period = period / 2
-    while True:
-        GPIO.output(CLOCK_PIN, GPIO.HIGH)
-        time.sleep(half_period)
-        GPIO.output(CLOCK_PIN, GPIO.LOW)
-        time.sleep(half_period)
-
-
-# Start GPIO clock simulation in a thread
-clock_thread = threading.Thread(target=gpio_clock_simulator, args=(30.0,), daemon=True)
-clock_thread.start()
-
 # Wire Output to Input
 print("[INFO] Clock simulation running on GPIO27 → Trigger input on GPIO17")
 print("[INFO] Press Ctrl+C to stop.")
@@ -93,6 +84,9 @@ except KeyboardInterrupt:
     print("\n[INFO] Exiting...")
 
 finally:
-    picam2.stop()
+    # Stop PWM
+    pi.hardware_PWM(CLOCK_PIN, 0, 0)
+    pi.stop()
     GPIO.cleanup()
+    picam2.stop()
     cv2.destroyAllWindows()
