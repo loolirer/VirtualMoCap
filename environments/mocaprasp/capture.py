@@ -19,6 +19,18 @@ picam2.start()
 time.sleep(1)  # Warm-up
 
 
+# Socket Setup
+try:
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    print(f"[INFO] Socket created successfully")
+except socket.error as err:
+    print(f"[ERROR] Socket creation failed with error: {err}")
+
+server_ip = socket.gethostbyname("loolirer.local")
+server_port = 8888
+server_address = (server_ip, server_port)
+
+
 def capture_and_send(gpio, level, tick):
     frame = picam2.capture_array()
     image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
@@ -64,16 +76,6 @@ DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 pi.set_mode(CLOCK_PIN, pigpio.OUTPUT)
 pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)
 
-# Socket Setup
-try:
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-    print(f"[INFO] Socket created successfully")
-except socket.error as err:
-    print(f"[ERROR] Socket creation failed with error: {err}")
-
-server_ip = socket.gethostbyname("loolirer.local")
-server_port = 8888
-server_address = (server_ip, server_port)
 
 # Wire Output to Input
 print("[INFO] Clock simulation running on GPIO27 → Trigger input on GPIO17")
