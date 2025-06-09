@@ -13,8 +13,9 @@ from modules.vision.blob_detection import detect_blobs
 
 # Camera setup
 picam2 = Picamera2()
+resolution = (960, 720)
 config = picam2.create_video_configuration(
-    main={"size": (960, 720), "format": "Y8"} # Already captures in grayscale
+    main={"size": resolution, "format": "YUV420"} # Already captures in grayscale
 )
 picam2.configure(config)
 picam2.start()
@@ -47,7 +48,7 @@ def capture_callback(gpio, level, tick):
         shot_counter += 1
 
     timestamp = time.time()
-    frame = picam2.capture_array()
+    frame = picam2.capture_array()[:resolution[1], :resolution[0]]
 
     # Push to processing queue
     frame_queue.put((shot_number, timestamp, frame))
