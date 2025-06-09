@@ -18,9 +18,9 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIGGER_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Parameters
-CLOCK_PIN = 18         # Output pin for the trigger signal
+CLOCK_PIN = 18  # Output pin for the trigger signal
 FREQUENCY_HZ = 30  # Desired frequency (e.g., 10 kHz)
-DUTY_CYCLE = 500000   # 50% duty (range: 0–1,000,000)
+DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 
 # Start pigpio daemon and connect
 pi = pigpio.pi()
@@ -57,9 +57,12 @@ def capture_and_send(channel):
     frame = picam2.capture_array()
     image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     blobs = detect_blobs(image_gray, area=True)
-    message = np.append(np.ravel(blobs), time.time()).astype(np.float32)
+    capture_time = time.time()
+    message = np.append(np.ravel(blobs), capture_time).astype(np.float32)
     message_bytes = message.tobytes()
     client_socket.sendto(message_bytes, server_address)
+
+    print(capture_time)
 
     # Optional display
     # for b in blobs:
