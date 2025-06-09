@@ -18,9 +18,9 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIGGER_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Parameters
-CLOCK_PIN = 27         # Output pin for the trigger signal
-FREQUENCY_HZ = 30.0  # Desired frequency (e.g., 10 kHz)
-DUTY_CYCLE = 500000   # 50% duty (range: 0–1,000,000)
+CLOCK_PIN = 27  # Output pin for the trigger signal
+FREQUENCY_HZ = 30  # Desired frequency (e.g., 10 kHz)
+DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 
 # Start pigpio daemon and connect
 pi = pigpio.pi()
