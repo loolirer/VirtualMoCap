@@ -13,9 +13,8 @@ from modules.vision.blob_detection import detect_blobs
 
 # Camera setup
 picam2 = Picamera2()
-resolution = (960, 720)
 config = picam2.create_video_configuration(
-    main={"size": resolution, "format": "YUV420"} # Already captures in grayscale
+    main={"size": (960, 720), "format": "RGB888"}
 )
 picam2.configure(config)
 picam2.start()
@@ -48,7 +47,7 @@ def capture_callback(gpio, level, tick):
         shot_counter += 1
 
     timestamp = time.time()
-    frame = picam2.capture_array()[:resolution[1], :resolution[0]]
+    frame = picam2.capture_array()
 
     # Push to processing queue
     frame_queue.put((shot_number, timestamp, frame))
@@ -62,7 +61,8 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        blobs = detect_blobs(frame, area=True)
+        image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        blobs = detect_blobs(image_gray, area=True)
 
         message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
             np.float64
@@ -96,7 +96,7 @@ pi.set_glitch_filter(TRIGGER_PIN, 10000)
 # Register callback on falling edge (level=0)
 cb = pi.callback(TRIGGER_PIN, pigpio.FALLING_EDGE, capture_callback)
 
-# Clock parameters
+# Parameters
 FREQUENCY_HZ = 30  # Desired frequency
 DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 
@@ -108,7 +108,6 @@ pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)
 print("[INFO] Clock simulation running on GPIO18 → Trigger input on GPIO17")
 print("[INFO] Press Ctrl+C to stop.")
 
-# Stall loop
 try:
     while True:
         time.sleep(0.1)
