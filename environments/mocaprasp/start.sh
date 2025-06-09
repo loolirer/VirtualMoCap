@@ -14,6 +14,3 @@ source $HOME/.venv/bin/activate > /dev/null 2>&1 || echo "[ERROR] Venv Activatio
 
 # Change for development directory for convenience
 cd $HOME/VirtualMoCap/environments/mocaprasp/ > /dev/null 2>&1 || echo "[ERROR] Test Directory Not Found"
-
-# Start PTP
-sudo ptpd -s -i eth0 -E 
