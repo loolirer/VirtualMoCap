@@ -64,11 +64,14 @@ def process_and_send():
         image_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         blobs = detect_blobs(image_gray, area=True)
 
-        message = np.append([shot_number, timestamp], np.ravel(blobs)).astype(np.float64)
+        message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
+            np.float64
+        )
         message_bytes = message.tobytes()
         client_socket.sendto(message_bytes, server_address)
 
         frame_queue.task_done()
+
 
 # Start the background thread
 threading.Thread(target=process_and_send, daemon=True).start()
