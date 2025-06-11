@@ -70,6 +70,7 @@ class MultipleView:
         relative_poses = {} 
         extrinsic_matrices = {}
         triangulated_markers = {}
+        possible_references = [True for _ in camera_ids]
 
         # Order collinear blobs
         all_ordered_blobs_per_frame = []
@@ -86,6 +87,9 @@ class MultipleView:
         for pair in pairs:
             # Getting data from pair
             reference, auxiliary = pair
+
+            if not possible_references[reference]:
+                continue
             
             # Synchronized blobs for each camera in pair
             ordered_blobs_reference_per_frame = all_ordered_blobs_per_frame[:, reference, :, :]
@@ -120,9 +124,8 @@ class MultipleView:
                                               self.camera_models[auxiliary].intrinsic_matrix)
 
             # Check if decomposition worked
-            if np.isnan(R).any() and np.isnan(t).any() :
-                print('> Could not find reliable decomposition!')
-                return False # Calibration failed!
+            if np.isnan(R).any() and np.isnan(t).any():                
+                possible_references[reference] = False
 
             # Calculating projection matrices
             # The reference camera will be the reference frame, thus the identity matrix
@@ -165,7 +168,12 @@ class MultipleView:
             relative_poses[pair] = np.linalg.inv(extrinsic_matrix_auxiliary)
 
         # Update references
-        reference = 0 # The 0th camera will be the reference by default
+        available_references = np.where(possible_references)[0].tolist()
+
+        if not available_references:
+            return False # Calibration failed!
+
+        reference = available_references[0] # Get the first available reference
         self.camera_models[reference].update_extrinsic(np.eye(4))
         for ID in camera_ids[camera_ids != reference]: 
             self.camera_models[ID].update_extrinsic(extrinsic_matrices[(reference, ID)])
