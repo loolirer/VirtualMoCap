@@ -2,8 +2,8 @@ import copy
 import time
 import sys
 
-from modules.integration.server import *
-from modules.vision.synchronizer import *
+from virtualmocapy.integration.server import *
+from virtualmocapy.vision.synchronizer import *
 
 
 class MoCapRasp_Server(Server):

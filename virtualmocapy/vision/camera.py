@@ -2,9 +2,9 @@
 import numpy as np
 import cv2
 
-from modules.vision.linear_projection import *
-from modules.vision.lens_distortion import *
-from modules.vision.image_noise import *
+from virtualmocapy.vision.linear_projection import *
+from virtualmocapy.vision.lens_distortion import *
+from virtualmocapy.vision.image_noise import *
 
 
 class Camera:

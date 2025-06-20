@@ -3,10 +3,10 @@ import copy
 import pickle
 from datetime import datetime
 
-from modules.vision.multiple_view import *
-from modules.vision.synchronizer import *
-from modules.integration.client import *
-from modules.integration.UDP import *
+from virtualmocapy.vision.multiple_view import *
+from virtualmocapy.vision.synchronizer import *
+from virtualmocapy.integration.client import *
+from virtualmocapy.integration.UDP import *
 
 
 class Server:

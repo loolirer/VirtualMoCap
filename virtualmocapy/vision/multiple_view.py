@@ -2,9 +2,9 @@
 import numpy as np
 import scipy as sp
 
-from modules.vision.camera import *
-from modules.vision.epipolar_geometry import *
-from modules.vision.rigid_transformations import *
+from virtualmocapy.vision.camera import *
+from virtualmocapy.vision.epipolar_geometry import *
+from virtualmocapy.vision.rigid_transformations import *
 
 
 class MultipleView:

@@ -1,8 +1,8 @@
 import copy
 
-from modules.integration.server import *
-from modules.vision.synchronizer import *
-from modules.vision.triangulator import *
+from virtualmocapy.integration.server import *
+from virtualmocapy.vision.synchronizer import *
+from virtualmocapy.vision.triangulator import *
 
 
 class CoppeliaSim_Server(Server):

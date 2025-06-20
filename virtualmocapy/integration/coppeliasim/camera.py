@@ -1,4 +1,4 @@
-from modules.vision.camera import *
+from virtualmocapy.vision.camera import *
 
 
 class CoppeliaSim_Camera(Camera):

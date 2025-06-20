@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 from scipy.optimize import linear_sum_assignment
 
-from modules.vision.linear_projection import *
+from virtualmocapy.vision.linear_projection import *
 
 
 def build_essential_matrix(extrinsic_matrix_reference, extrinsic_matrix_auxiliary):
