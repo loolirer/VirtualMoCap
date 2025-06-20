@@ -9,7 +9,7 @@ import threading
 import numpy as np
 
 sys.path.append("../..")  # Go back to base directory
-from modules.vision.blob_detection import detect_blobs
+from virtualmocap.vision.blob_detection import detect_blobs
 
 
 # Camera setup
