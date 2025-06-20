@@ -13,9 +13,15 @@ class Triangulator:
         # Setup configuration
         self.reset()
 
-    def reset(self):
+    def reset(self, multiple_view=None):
+        # Reset multiple view
+        if multiple_view is not None:
+            self.multiple_view = multiple_view
+
         self.blobs_lists = [[] for _ in range(self.multiple_view.n_cameras)]
         self.blobs_queues = [[] for _ in range(self.multiple_view.n_cameras)]
+
+        self.tri_idx = -1
 
     def save(self, id, frame_idx, blobs):
         # Log data
