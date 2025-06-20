@@ -2,6 +2,7 @@ import copy
 
 from modules.integration.server import *
 from modules.vision.synchronizer import *
+from modules.vision.triangulator import *
 
 
 class CoppeliaSim_Server(Server):
@@ -234,6 +235,9 @@ class CoppeliaSim_Server(Server):
         for client in self.clients:
             client.message_log = []
 
+        # Build triangulator
+        self.triangulator = Triangulator(self.multiple_view)
+
         # Send extrinsic calibration request
         request = "Calibration"
         request_bytes = request.encode()
@@ -270,6 +274,9 @@ class CoppeliaSim_Server(Server):
         for client in self.clients:
             client.message_log = []
 
+        # Build triangulator
+        self.triangulator = Triangulator(self.multiple_view)
+
         # Send reference update request
         request = "Reference"
         request_bytes = request.encode()
@@ -305,6 +312,9 @@ class CoppeliaSim_Server(Server):
         # Initialize message logs
         for client in self.clients:
             client.message_log = []
+
+        # Build triangulator
+        self.triangulator = Triangulator(self.multiple_view)
 
         # Send capture request
         request = "Capture"
