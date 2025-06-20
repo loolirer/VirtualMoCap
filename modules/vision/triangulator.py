@@ -1,13 +1,14 @@
 import numpy as np
 
+
 # Data structure for marker triangulation
 class Triangulator:
     def __init__(self, multiple_view):
 
         # Initializing parameters
         self.multiple_view = multiple_view
-        self.blobs_lists = [] # Stores every blob sent
-        self.blobs_queues = [] # Stores blobs in queues for triangulation
+        self.blobs_lists = []  # Stores every blob sent
+        self.blobs_queues = []  # Stores blobs in queues for triangulation
         self.tri_idx = -1
 
         # Setup configuration
@@ -25,9 +26,7 @@ class Triangulator:
 
     def save(self, id, frame_idx, blobs):
         # Log data
-        self.blobs_lists[id].append(
-            (blobs, frame_idx)
-        )  # Add blobs to list
+        self.blobs_lists[id].append((blobs, frame_idx))  # Add blobs to list
 
     def full_vision(self):
         frame_idxs = [list(zip(*blobs_list))[1] for blobs_list in self.blobs_lists]
@@ -36,7 +35,13 @@ class Triangulator:
 
         sync_blobs = []
         for blobs_list in self.blobs_lists:
-            sync_blobs.append([frame_data[0] for frame_data in blobs_list if frame_data[1] in sync_frame_idxs])
+            sync_blobs.append(
+                [
+                    frame_data[0]
+                    for frame_data in blobs_list
+                    if frame_data[1] in sync_frame_idxs
+                ]
+            )
 
         return sync_blobs
 
@@ -96,7 +101,7 @@ class Triangulator:
 
             # Triangulation is not reliable
             if np.isnan(triangulated_markers).any():
-                continue # Try next triangulation candidate
+                continue  # Try next triangulation candidate
 
             # If triangulation was possible, clear queue
             for queue_id, blob_queue in enumerate(self.blobs_queues):
@@ -111,5 +116,5 @@ class Triangulator:
 
             # Return successfully triangulated markers
             return triangulated_markers
-        
-        return None # No triangulation was possible with available data
+
+        return None  # No triangulation was possible with available data

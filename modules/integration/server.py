@@ -8,12 +8,10 @@ from modules.vision.synchronizer import *
 from modules.integration.client import *
 from modules.integration.UDP import *
 
-class Server: 
-    def __init__(self, 
-                 clients = [],
-                 address = ('127.0.0.1', 8888)
-                 ):
-        
+
+class Server:
+    def __init__(self, clients=[], address=("127.0.0.1", 8888)):
+
         # Associating clients
         self.update_clients(clients)
 
@@ -23,7 +21,7 @@ class Server:
 
     def update_clients(self, clients):
         # Associated clients
-        self.clients = copy.deepcopy(clients)     
+        self.clients = copy.deepcopy(clients)
         self.n_clients = len(self.clients)
         self.client_addresses = {}
 
@@ -36,9 +34,9 @@ class Server:
 
     def save_calibration(self):
         now = datetime.now()
-        ymd, HMS = now.strftime('%y-%m-%d'), now.strftime('%H-%M-%S')
+        ymd, HMS = now.strftime("%y-%m-%d"), now.strftime("%H-%M-%S")
 
-        directory = os.path.join(os.getcwd(), 'calibration', ymd, HMS)
+        directory = os.path.join(os.getcwd(), "calibration", ymd, HMS)
 
         # Check whether directory already exists
         if not os.path.exists(directory):
@@ -48,7 +46,7 @@ class Server:
         for C, camera_model in enumerate(self.multiple_view.camera_models):
             # Save the object to a file (Pickling)
             try:
-                with open(os.path.join(directory, f'{C}.pkl'), 'wb') as file:
+                with open(os.path.join(directory, f"{C}.pkl"), "wb") as file:
                     pickle.dump(camera_model, file)
             except:
                 continue
@@ -58,15 +56,11 @@ class Server:
         for C in range(len(os.listdir(path))):
             # Load the object from the file (Unpickling)
             try:
-                with open(os.path.join(path, f'{C}.pkl'), 'rb') as file:
+                with open(os.path.join(path, f"{C}.pkl"), "rb") as file:
                     camera = pickle.load(file)
                     clients.append(Client(camera=camera))
-            
+
             except:
                 continue
 
         self.update_clients(clients)
-
-
-
-

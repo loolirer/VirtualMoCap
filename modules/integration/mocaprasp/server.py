@@ -66,7 +66,7 @@ class MoCapRasp_Server(Server):
             self.udp_socket.sendto(message_bytes, client.address)
 
         return True
-    
+
     def request_sync_capture(self, delay_time):
         # Initialize synchronizers and message logs
         for client in self.clients:
@@ -81,4 +81,3 @@ class MoCapRasp_Server(Server):
             self.udp_socket.sendto(message_bytes, client.address)
 
         return True
-
