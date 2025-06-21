@@ -4,6 +4,7 @@ import sys
 
 from virtualmocap.integration.server import *
 from virtualmocap.vision.synchronizer import *
+from virtualmocap.vision.triangulator import *
 
 
 class MoCapRasp_Server(Server):
@@ -67,14 +68,17 @@ class MoCapRasp_Server(Server):
 
         return True
 
-    def request_sync_capture(self, delay_time):
-        # Initialize synchronizers and message logs
+    def request_sync_capture(self, delay_time, capture_time):
+        # Initialize message logs
         for client in self.clients:
             client.message_log = []
 
+        # Build triangulator
+        self.triangulator = Triangulator(self.multiple_view)
+
         # Generate message
-        message = f"{delay_time}"
-        message_bytes = message.encode()
+        message = np.array([delay_time, capture_time]).astype(np.float64)
+        message_bytes = message.tobytes()
 
         # Send trigger to each client
         for client in self.clients:
