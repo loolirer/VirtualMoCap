@@ -25,6 +25,7 @@ packages = [
     { include = "virtualmocap" }
 ]
 
+[tool.poetry.dependencies]
 python = "^3.10"
 numpy = ">=1.26.2"
 cbor = ">=1.0.0"
