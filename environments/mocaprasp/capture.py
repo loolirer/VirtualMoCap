@@ -1,6 +1,6 @@
+# Importing modules...
 from picamera2 import Picamera2
 import pigpio
-import sys
 import cv2
 import time
 import queue
@@ -8,11 +8,10 @@ import socket
 import threading
 import numpy as np
 
-sys.path.append("../..")  # Go back to base directory
 from virtualmocap.vision.blob_detection import detect_blobs
 
 
-# Camera setup
+# Camera Setup
 picam2 = Picamera2()
 resolution = (960, 720)
 config = picam2.create_video_configuration(
@@ -23,7 +22,7 @@ picam2.start()
 time.sleep(1)  # Warm-up
 
 
-# Try to create client socket
+# Socket Setup
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
     client_ip = "0.0.0.0"
@@ -36,12 +35,21 @@ try:
 except socket.error as err:
     print(f"[ERROR] Socket creation failed with error: {err}")
 
-server_ip = socket.gethostbyname("loolirer.local")
-server_port = 8888
-server_address = (server_ip, server_port)
+# Try searching for the server address until it is found
+while True:
+    try:
+        server_ip = socket.gethostbyname("mocaprasp.server.local")
+        server_port = 25565
+        server_address = (server_ip, server_port)
+        break
+
+    except:
+        print(f"[ERROR] Server not found! Retrying in 5s...")
+        time.sleep(5)  # Wait for 5 seconds...
+        continue
 
 
-# Parallel processes setup
+# Parallel Processes Setup
 frame_queue = queue.Queue()
 shot_counter = 0
 lock = threading.Lock()
@@ -84,13 +92,13 @@ def process_and_send():
 threading.Thread(target=process_and_send, daemon=True).start()
 
 
-# Start pigpio daemon and connect
+# GPIO Setup
 pi = pigpio.pi()
 if not pi.connected:
     raise Exception("Could not connect to pigpio daemon. Did you run 'sudo pigpiod'?")
 
 # GPIO Pins
-TRIGGER_PIN = 17  # Input: simulates external trigger
+TRIGGER_PIN = 17  # Input: receives external trigger
 CLOCK_PIN = 18  # Output: produces trigger signal
 
 # Set pin as input with pull-up/down if needed
@@ -107,31 +115,30 @@ cb = pi.callback(TRIGGER_PIN, pigpio.FALLING_EDGE, capture_callback)
 FREQUENCY_HZ = 30  # Desired frequency
 DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 
-# Set pin mode and generate PWM signal
+# Set pin mode to generate PWM signal
 pi.set_mode(CLOCK_PIN, pigpio.OUTPUT)
+
 
 # Service loop
 try:
-    # Send dummy message for register
-    client_socket.sendto(("").encode(), server_address)
-    print("[INFO] Register message sent. Waiting for capture request...")
+    while True:
+        # Wait for server start trigger
+        message_bytes, address = client_socket.recvfrom(1024)
 
-    # Receive message and get capture time and delay
-    message_bytes, address = client_socket.recvfrom(1024)
-    message = np.frombuffer(message_bytes, dtype=np.float64)
-    delay, capture_time = message
-    print(f"[INFO] Capture request received. Waiting {delay}s...")
+        # Decode message and wait for delay
+        message = np.frombuffer(message_bytes, dtype=np.float64)
+        delay, capture_time = message
+        print(f"[INFO] Capture request received. Waiting {delay}s...")
+        time.sleep(delay)  # Wait for delay
 
-    time.sleep(delay)  # Wait for delay
-
-    print(f"[INFO] Running Capture for {capture_time}s...")
-    pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)  # Start Trigger
-
-    time.sleep(capture_time)  # Wait for capture time
-
+        print(f"[INFO] Running Capture for {capture_time}s...")
+        pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)  # Turn on capture trigger
+        time.sleep(capture_time)  # Wait for capture time
+        pi.hardware_PWM(CLOCK_PIN, 0, 0)  # Turn off capture trigger
+        shot_counter = 0  # Reset shot counter for next capture
 
 except KeyboardInterrupt:
-    print("\n[INFO] Exiting...")
+    print("\n[INFO] Exiting by external trigger...")
 
 finally:
     pi.hardware_PWM(CLOCK_PIN, 0, 0)
