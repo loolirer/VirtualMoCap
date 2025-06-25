@@ -41,6 +41,7 @@ while True:
         server_ip = socket.gethostbyname("mocaprasp-server.local")
         server_port = 25565
         server_address = (server_ip, server_port)
+        print(f"[INFO] Server found at: {server_ip}...")
         break
 
     except:
@@ -123,6 +124,7 @@ pi.set_mode(CLOCK_PIN, pigpio.OUTPUT)
 try:
     while True:
         # Wait for server start trigger
+        print("[INFO] Waiting for server trigger...")
         message_bytes, address = client_socket.recvfrom(1024)
 
         # Decode message and wait for delay
