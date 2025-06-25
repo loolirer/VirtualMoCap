@@ -20,7 +20,7 @@ class MoCapRasp_Server(Server):
         # Check client connection to network
         for ID in range(self.n_clients):
             try:
-                IP = socket.gethostbyname(f"mocaprasp.client.{ID}.local")
+                IP = socket.gethostbyname(f"mocaprasp-client-{ID}.local")
                 address = (IP, 25565)  # Pre-established standard client port
                 self.client_addresses[address] = ID
                 self.clients[ID].address = address  # Update the client address

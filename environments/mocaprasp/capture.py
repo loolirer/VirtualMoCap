@@ -38,7 +38,7 @@ except socket.error as err:
 # Try searching for the server address until it is found
 while True:
     try:
-        server_ip = socket.gethostbyname("mocaprasp.server.local")
+        server_ip = socket.gethostbyname("mocaprasp-server.local")
         server_port = 25565
         server_address = (server_ip, server_port)
         break
