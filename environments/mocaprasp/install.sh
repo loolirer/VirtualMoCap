@@ -35,5 +35,16 @@ else
     echo "[INFO] start.sh already configured in .bashrc"
 fi
 
+# Add Avahi restart to root crontab if not already present
+CRON_ENTRY='@reboot sleep 10 && systemctl restart avahi-daemon'
+
+# Check if it's already there to avoid duplicates
+if ! sudo crontab -l | grep -Fxq "$CRON_ENTRY"; then
+    (sudo crontab -l 2>/dev/null; echo "$CRON_ENTRY") | sudo crontab -
+    echo "[INFO] Avahi reboot line added to crontab."
+else
+    echo "[INFO] Crontab entry already exists."
+fi
+
 echo "[INFO] Installation Finished"
 echo "[INFO] Reboot for changes to take effect"
