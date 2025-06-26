@@ -18,5 +18,8 @@ cd $HOME/VirtualMoCap/environments/mocaprasp/ > /dev/null 2>&1 || echo "[ERROR] 
 # Kill all processes using the camera
 sudo fuser -k /dev/video0 > /dev/null 2>&1 || echo "[ERROR] Could Not Kill Camera Processes"
 
+# Restart avahi daemon
+sudo systemctl status avahi-daemon
+
 # Run capture script
 python -m capture
