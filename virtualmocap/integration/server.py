@@ -36,7 +36,7 @@ class Server:
         now = datetime.now()
         ymd, HMS = now.strftime("%y-%m-%d"), now.strftime("%H-%M-%S")
 
-        directory = os.path.join(os.getcwd(), "calibration", ymd, HMS)
+        directory = os.path.join(os.getcwd(), "calibration", "-".join(ymd, HMS))
 
         # Check whether directory already exists
         if not os.path.exists(directory):
