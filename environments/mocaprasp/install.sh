@@ -23,7 +23,7 @@ source $HOME/.venv/bin/activate
 echo "[INFO] Upgrading pip, setuptools and wheel..."
 pip install --upgrade pip setuptools wheel > /dev/null
 echo "[INFO] Installing dependencies..."
-pip install pip install $HOME/VirtualMoCap
+pip install $HOME/VirtualMoCap
 pip install -r $HOME/VirtualMoCap/environments/mocaprasp/requirements.txt 
 
 echo "[INFO] Adding start script to .bashrc if not already present..."
