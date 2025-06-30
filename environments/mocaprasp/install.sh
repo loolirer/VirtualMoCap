@@ -35,6 +35,24 @@ else
     echo "[INFO] start.sh already configured in .bashrc"
 fi
 
+# Get current system hostname
+CURRENT_HOSTNAME=$(hostname)
+
+# Target config file
+AVAHI_CONF="/etc/avahi/avahi-daemon.conf"
+
+# Ensure the [server] section exists
+sudo grep -q "^\[server\]" "$AVAHI_CONF" || echo "[server]" | sudo tee -a "$AVAHI_CONF" > /dev/null
+
+# Insert or update host-name=... under [server] section
+sudo sed -i "/^\[server\]/,/^\[.*\]/ { 
+    s/^host-name=.*/host-name=${CURRENT_HOSTNAME}/; 
+    t; 
+    /host-name=/! a host-name=${CURRENT_HOSTNAME}
+}" "$AVAHI_CONF"
+
+echo "[INFO] Set static hostname to ${CURRENT_HOSTNAME}"
+
 # Add Avahi restart to root crontab if not already present
 CRON_ENTRY='@reboot sleep 10 && systemctl restart avahi-daemon'
 
