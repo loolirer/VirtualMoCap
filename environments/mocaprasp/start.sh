@@ -15,8 +15,5 @@ source $HOME/.venv/bin/activate > /dev/null 2>&1 || echo "[ERROR] Venv activatio
 # Change for development directory for convenience
 cd $HOME/VirtualMoCap/environments/mocaprasp/ > /dev/null 2>&1 || echo "[ERROR] Test directory not found"
 
-# Kill all processes using the camera
-sudo fuser -k /dev/video0 > /dev/null 2>&1 || echo "[INFO] Could not kill camera process"
-
 # Run capture script
 python -m capture

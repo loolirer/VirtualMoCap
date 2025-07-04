@@ -1,6 +1,7 @@
 # Importing modules...
 from picamera2 import Picamera2
 from libcamera import controls
+import subprocess
 import pigpio
 import cv2
 import time
@@ -13,13 +14,23 @@ from virtualmocap.vision.blob_detection import detect_blobs
 
 
 # Camera Setup
-picam2 = Picamera2()
+try:
+    picam2 = Picamera2()  # Try creating Picamera2 object
+
+except Exception as RuntimeError:
+    # If this fails, probably some other process already claimed the camera
+    subprocess.run(
+        ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
 resolution = (960, 720)
 config = picam2.create_video_configuration(
     main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
 )
 picam2.configure(config)
-picam2.start() # Begin camera connection
+picam2.start()  # Begin camera connection
 picam2.set_controls(
     {  # Set camera controls
         "AnalogueGain": 1.0,
