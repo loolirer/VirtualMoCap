@@ -26,15 +26,6 @@ echo "[INFO] Installing dependencies..."
 pip install $HOME/VirtualMoCap
 pip install -r $HOME/VirtualMoCap/environments/mocaprasp/requirements.txt 
 
-echo "[INFO] Adding start script to .bashrc if not already present..."
-START_LINE="source $HOME/VirtualMoCap/environments/mocaprasp/start.sh"
-if ! grep -Fxq "$START_LINE" $HOME/.bashrc; then
-    echo "$START_LINE" >> $HOME/.bashrc
-    echo "[INFO] Added start.sh to .bashrc"
-else
-    echo "[INFO] start.sh already configured in .bashrc"
-fi
-
 # Get current system hostname
 CURRENT_HOSTNAME=$(hostname)
 
@@ -62,6 +53,15 @@ if ! sudo crontab -l | grep -Fxq "$CRON_ENTRY"; then
     echo "[INFO] Avahi reboot line added to crontab."
 else
     echo "[INFO] Crontab entry already exists."
+fi
+
+echo "[INFO] Adding start script to .bashrc if not already present..."
+START_LINE="source $HOME/VirtualMoCap/environments/mocaprasp/start.sh"
+if ! grep -Fxq "$START_LINE" $HOME/.bashrc; then
+    echo "$START_LINE" >> $HOME/.bashrc
+    echo "[INFO] Added start.sh to .bashrc"
+else
+    echo "[INFO] start.sh already configured in .bashrc"
 fi
 
 echo "[INFO] Installation Finished"
