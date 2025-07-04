@@ -18,6 +18,27 @@ while True:
     try:
         picam2 = Picamera2()  # Try creating Picamera2 object
         print("[INFO] Camera access claimed!")
+
+        resolution = (960, 720)
+        config = picam2.create_video_configuration(
+        main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
+        )
+        print("AAAAAAAAAAAA")
+        picam2.configure(config)
+        print("BBBBBBBBBBBB")
+        picam2.start()  # Begin camera connection
+        print("CCCCCCCCCCCC")
+        picam2.set_controls(
+        {  # Set camera controls
+            "AnalogueGain": 1.0,
+            "AwbEnable": False,
+            "Brightness": -1.0,
+            "Contrast": 32.0,
+        }
+        )
+        print("DDDDDDDDDDDD")
+        time.sleep(1)  # Warm-up
+
         break  # Stop trying
 
     except:
@@ -25,30 +46,12 @@ while True:
         subprocess.run(
             ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
         print("[INFO] Killed video processes. Trying again...")
-resolution = (960, 720)
-config = picam2.create_video_configuration(
-    main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
-)
-print("AAAAAAAAAAAA")
-picam2.configure(config)
-print("BBBBBBBBBBBB")
-picam2.start()  # Begin camera connection
-print("CCCCCCCCCCCC")
-picam2.set_controls(
-    {  # Set camera controls
-        "AnalogueGain": 1.0,
-        "AwbEnable": False,
-        "Brightness": -1.0,
-        "Contrast": 32.0,
-    }
-)
-print("DDDDDDDDDDDD")
-time.sleep(1)  # Warm-up
 
+print("EEEEEEEEEEEEE")
 # Socket Setup
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
@@ -64,7 +67,7 @@ try:
 except socket.error as err:
     print(f"[ERROR] Socket creation failed with error: {err}")
 
-print("EEEEEEEEEEEEE")
+print("FFFFFFFFFFFFFFF")
 
 # Try searching for the server address until it is found
 while True:
@@ -80,13 +83,10 @@ while True:
         time.sleep(5)  # Wait for 5 seconds...
         continue
 
-print("FFFFFFFFFFFFFFF")
-
 # Parallel Processes Setup
 frame_queue = queue.Queue()
 shot_counter = 0
 lock = threading.Lock()
-
 
 # GPIO controlled capture callback
 def capture_callback(gpio, level, tick):
