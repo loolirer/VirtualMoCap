@@ -1,5 +1,6 @@
 # Importing modules...
 from picamera2 import Picamera2
+from libcamera import controls
 import pigpio
 import cv2
 import time
@@ -14,6 +15,7 @@ from virtualmocap.vision.blob_detection import detect_blobs
 # Camera Setup
 picam2 = Picamera2()
 resolution = (960, 720)
+picam2.set_controls({"AnalogGain": 2.0, "AwbEnable": False})
 config = picam2.create_video_configuration(
     main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
 )
@@ -79,6 +81,11 @@ def process_and_send():
             continue
 
         blobs = detect_blobs(frame, area=True)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        cv2.circle(frame_rgb, center=blobs, radius=5, color=(255, 0, 0), thickness=-1)
+
+        cv2.imshow("", frame_rgb)
+        cv2.waitKey(1)
 
         message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
             np.float32
