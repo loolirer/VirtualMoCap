@@ -138,11 +138,11 @@ try:
         message = np.frombuffer(message_bytes, dtype=np.float32)
         delay, capture_time = message
         print(f"[INFO] Capture request received. Waiting {delay} s...")
-        time.sleep(delay)  # Wait for delay
+        time.sleep(float(delay))  # Wait for delay
 
         print(f"[INFO] Running Capture for {capture_time} s...")
         pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)  # Turn on capture trigger
-        time.sleep(capture_time)  # Wait for capture time
+        time.sleep(float(capture_time))  # Wait for capture time
         pi.hardware_PWM(CLOCK_PIN, 0, 0)  # Turn off capture trigger
         shot_counter = 0  # Reset shot counter for next capture
 
