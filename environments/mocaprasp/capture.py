@@ -15,7 +15,7 @@ from virtualmocap.vision.blob_detection import detect_blobs
 # Camera Setup
 picam2 = Picamera2()
 resolution = (960, 720)
-picam2.set_controls({"AnalogueGain": 2.0, "AwbEnable": False})
+picam2.set_controls({"AnalogueGain": 1.0, "AwbEnable": False, "Brightness": -0.5})
 config = picam2.create_video_configuration(
     main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
 )
@@ -81,10 +81,16 @@ def process_and_send():
             continue
 
         blobs = detect_blobs(frame, area=True)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
         for b in blobs:
-            cv2.circle(frame_rgb, center=b[:2].astype(int), radius=5, color=(255, 0, 0), thickness=-1)
+            cv2.circle(
+                frame_rgb,
+                center=b[:2].astype(int),
+                radius=5,
+                color=(255, 0, 0),
+                thickness=-1,
+            )
 
         cv2.imshow("Camera Feed", frame_rgb)
         cv2.waitKey(1)
@@ -147,6 +153,11 @@ try:
         time.sleep(float(capture_time))  # Wait for capture time
         pi.hardware_PWM(CLOCK_PIN, 0, 0)  # Turn off capture trigger
         shot_counter = 0  # Reset shot counter for next capture
+
+        # Clear processing queue
+        with frame_queue.mutex:  # Ensure thread safety
+            frame_queue.queue.clear()
+
         cv2.destroyAllWindows()
 
 except KeyboardInterrupt:
