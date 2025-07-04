@@ -20,7 +20,7 @@ while True:
         print("[INFO] Camera access claimed!")
         break  # Stop trying
 
-    except Exception as RuntimeError:
+    except:
         # If this fails, probably some other process already claimed the camera
         subprocess.run(
             ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
