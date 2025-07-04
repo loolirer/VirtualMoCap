@@ -29,7 +29,6 @@ while True:
         )
 
         print("[INFO] Killed video processes. Trying again...")
-
 resolution = (960, 720)
 config = picam2.create_video_configuration(
     main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
