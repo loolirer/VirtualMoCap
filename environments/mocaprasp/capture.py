@@ -14,18 +14,21 @@ from virtualmocap.vision.blob_detection import detect_blobs
 
 
 # Camera Setup
-try:
-    picam2 = Picamera2()  # Try creating Picamera2 object
+while True:
+    try:
+        picam2 = Picamera2()  # Try creating Picamera2 object
+        print("[INFO] Camera access claimed!")
+        break  # Stop trying
 
-except Exception as RuntimeError:
-    # If this fails, probably some other process already claimed the camera
-    subprocess.run(
-        ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    except Exception as RuntimeError:
+        # If this fails, probably some other process already claimed the camera
+        subprocess.run(
+            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
-    picam2 = Picamera2()  # Create object anyway
+        print("[INFO] Killed video processes. Trying again...")
 
 resolution = (960, 720)
 config = picam2.create_video_configuration(
