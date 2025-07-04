@@ -52,12 +52,14 @@ time.sleep(1)  # Warm-up
 # Socket Setup
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
+    print(f"[INFO] Socket created successfully")
+
     client_ip = "0.0.0.0"
     client_port = 25565
     client_address = (client_ip, client_port)
     client_socket.bind(client_address)
 
-    print(f"[INFO] Socket created successfully")
+    print(f"[INFO] Socket bound successfully")
 
 except socket.error as err:
     print(f"[ERROR] Socket creation failed with error: {err}")
