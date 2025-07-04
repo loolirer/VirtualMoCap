@@ -147,6 +147,7 @@ try:
         time.sleep(float(capture_time))  # Wait for capture time
         pi.hardware_PWM(CLOCK_PIN, 0, 0)  # Turn off capture trigger
         shot_counter = 0  # Reset shot counter for next capture
+        cv2.destroyAllWindows()
 
 except KeyboardInterrupt:
     print("\n[INFO] Exiting by external trigger...")
