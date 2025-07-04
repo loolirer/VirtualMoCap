@@ -62,6 +62,8 @@ try:
 except socket.error as err:
     print(f"[ERROR] Socket creation failed with error: {err}")
 
+print("EEEEEEEEEEEEE")
+
 # Try searching for the server address until it is found
 while True:
     try:
@@ -76,6 +78,7 @@ while True:
         time.sleep(5)  # Wait for 5 seconds...
         continue
 
+print("FFFFFFFFFFFFFFF")
 
 # Parallel Processes Setup
 frame_queue = queue.Queue()
