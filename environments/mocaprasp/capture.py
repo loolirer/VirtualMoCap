@@ -81,7 +81,7 @@ def process_and_send():
         blobs = detect_blobs(frame, area=True)
 
         message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
-            np.float64
+            np.float32
         )
         message_bytes = message.tobytes()
         client_socket.sendto(message_bytes, server_address)
@@ -128,7 +128,7 @@ try:
         message_bytes, address = client_socket.recvfrom(1024)
 
         # Decode message and wait for delay
-        message = np.frombuffer(message_bytes, dtype=np.float64)
+        message = np.frombuffer(message_bytes, dtype=np.float32)
         delay, capture_time = message
         print(f"[INFO] Capture request received. Waiting {delay}s...")
         time.sleep(delay)  # Wait for delay

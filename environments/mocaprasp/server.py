@@ -24,7 +24,7 @@ _, client_address = server_socket.recvfrom(1024)
 print("[INFO] Sending capture request...")
 delay = 10
 capture_time = 15
-message = np.array([delay, capture_time]).astype(np.float64)
+message = np.array([delay, capture_time]).astype(np.float32)
 message_bytes = message.tobytes()
 server_socket.sendto(message_bytes, client_address)
 
@@ -33,7 +33,7 @@ try:
     while True:
         message_bytes, address = server_socket.recvfrom(1024)
 
-        message = np.frombuffer(message_bytes, dtype=np.float64)
+        message = np.frombuffer(message_bytes, dtype=np.float32)
 
         curr_time = message[-1]
         shot = message[-2]
