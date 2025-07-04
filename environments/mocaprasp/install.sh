@@ -64,20 +64,5 @@ else
     echo "[INFO] start.sh already configured in .bashrc"
 fi
 
-echo "[INFO] Adding autostart script on desktop login..."
-AUTOSTART_DIR="$HOME/.config/lxsession/LXDE-pi"
-AUTOSTART_FILE="$AUTOSTART_DIR/autostart"
-AUTOSTART_CMD="lxterminal -e \"$HOME/VirtualMoCap/environments/mocaprasp/start.sh\""
-
-# Create directory if it doesn't exist and add autostart command
-mkdir -p "$AUTOSTART_DIR"
-
-if ! grep -Fxq "$AUTOSTART_CMD" "$AUTOSTART_FILE" 2>/dev/null; then 
-    echo "$AUTOSTART_CMD" >> "$AUTOSTART_FILE"
-    echo "[INFO] Added script to desktop autostart."
-else    
-    echo "[INFO] Desktop autostart already exists."
-fi
-
 echo "[INFO] Installation Finished"
 echo "[INFO] Reboot for changes to take effect"
