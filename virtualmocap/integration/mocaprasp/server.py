@@ -29,7 +29,9 @@ class MoCapRasp_Server(Server):
 
             except:
                 print(f"[SERVER] Client {ID} not connected!")
-                sys.exit()
+                return False
+            
+        return True
 
     def request_async_capture(self, delay_time, synchronizer):
         # Initialize synchronizers and message logs
