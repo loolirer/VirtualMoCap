@@ -57,7 +57,7 @@ class MoCapRasp_Server(Server):
         self.triangulator = Triangulator(self.multiple_view)
 
         # Generate message
-        message = np.array([delay_time, capture_time]).astype(np.float64)
+        message = np.array([delay_time, capture_time]).astype(np.float32)
         message_bytes = message.tobytes()
 
         # Send trigger to each client
