@@ -23,8 +23,8 @@ source $HOME/.venv/bin/activate
 echo "[INFO] Upgrading pip, setuptools and wheel..."
 pip install --upgrade pip setuptools wheel > /dev/null
 echo "[INFO] Installing dependencies..."
-pip install $HOME/VirtualMoCap
-pip install -r $HOME/VirtualMoCap/environments/mocaprasp/requirements.txt 
+$HOME/.venv/bin/pip install $HOME/VirtualMoCap
+$HOME/.venv/bin/pip install -r $HOME/VirtualMoCap/environments/mocaprasp/requirements.txt 
 
 # Get current system hostname
 CURRENT_HOSTNAME=$(hostname)
