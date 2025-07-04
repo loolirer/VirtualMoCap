@@ -45,7 +45,7 @@ picam2.set_controls(
 )
 time.sleep(1)  # Warm-up
 
-
+print("AAAAAAAAAAAA")
 # Socket Setup
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
