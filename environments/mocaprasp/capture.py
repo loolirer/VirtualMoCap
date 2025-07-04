@@ -15,14 +15,19 @@ from virtualmocap.vision.blob_detection import detect_blobs
 # Camera Setup
 picam2 = Picamera2()
 resolution = (960, 720)
-picam2.set_controls(
-    {"AnalogueGain": 1.0, "AwbEnable": False, "Brightness": 0.0, "Contrast": 0.0}
-)
 config = picam2.create_video_configuration(
     main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
 )
 picam2.configure(config)
-picam2.start()
+picam2.start() # Begin camera connection
+picam2.set_controls(
+    {  # Set camera controls
+        "AnalogueGain": 1.0,
+        "AwbEnable": False,
+        "Brightness": -1.0,
+        "Contrast": 32.0,
+    }
+)
 time.sleep(1)  # Warm-up
 
 
