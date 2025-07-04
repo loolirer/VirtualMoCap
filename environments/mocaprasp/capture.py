@@ -158,6 +158,10 @@ try:
         with frame_queue.mutex:  # Ensure thread safety
             frame_queue.queue.clear()
 
+        # Wait for queue to clear
+        while not frame_queue.empty():
+            continue
+
         cv2.destroyAllWindows()
 
 except KeyboardInterrupt:
