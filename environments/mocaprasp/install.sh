@@ -33,7 +33,7 @@ AVAHI_CONF="/etc/avahi/avahi-daemon.conf"
 sudo grep -q "^\[server\]" "$AVAHI_CONF" || echo -e "\n[server]" | sudo tee -a "$AVAHI_CONF" > /dev/null
 
 # Remove any existing host-name= lines under [server]
-sudo sed -i "/^\[server\]/,/^\[.*\]/ s/^host-name=.*//" "$AVAHI_CONF"
+sudo sed -i "/^\[server\]/,/^\[.*\]/ {/^\s*host-name=.*/d}" "$AVAHI_CONF"
 
 # Add host-name under [server] (only if it's not already there)
 sudo sed -i "/^\[server\]/a host-name=${CURRENT_HOSTNAME}" "$AVAHI_CONF"
