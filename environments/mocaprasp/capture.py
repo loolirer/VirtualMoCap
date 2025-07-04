@@ -33,8 +33,11 @@ resolution = (960, 720)
 config = picam2.create_video_configuration(
     main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
 )
+print("AAAAAAAAAAAA")
 picam2.configure(config)
+print("BBBBBBBBBBBB")
 picam2.start()  # Begin camera connection
+print("CCCCCCCCCCCC")
 picam2.set_controls(
     {  # Set camera controls
         "AnalogueGain": 1.0,
@@ -43,9 +46,9 @@ picam2.set_controls(
         "Contrast": 32.0,
     }
 )
+print("DDDDDDDDDDDD")
 time.sleep(1)  # Warm-up
 
-print("AAAAAAAAAAAA")
 # Socket Setup
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
