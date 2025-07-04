@@ -82,7 +82,9 @@ def process_and_send():
 
         blobs = detect_blobs(frame, area=True)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
-        cv2.circle(frame_rgb, center=blobs, radius=5, color=(255, 0, 0), thickness=-1)
+
+        for b in blobs:
+            cv2.circle(frame_rgb, center=b, radius=5, color=(255, 0, 0), thickness=-1)
 
         cv2.imshow("", frame_rgb)
         cv2.waitKey(1)
