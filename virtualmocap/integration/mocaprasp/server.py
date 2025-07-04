@@ -1,6 +1,5 @@
 import copy
 import time
-import sys
 
 from virtualmocap.integration.server import *
 from virtualmocap.vision.synchronizer import *
