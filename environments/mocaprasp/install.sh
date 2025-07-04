@@ -64,5 +64,17 @@ else
     echo "[INFO] start.sh already configured in .bashrc"
 fi
 
+# Create autostart directory if it doesn't exist
+mkdir -p ~/.config/autostart
+
+# Create autostart desktop entry for lxterminal
+cat <<EOF > ~/.config/autostart/open-terminal.desktop
+[Desktop Entry]
+Type=Application
+Name=Open Terminal
+Exec=lxterminal
+X-GNOME-Autostart-enabled=true
+EOF
+
 echo "[INFO] Installation Finished"
 echo "[INFO] Reboot for changes to take effect"
