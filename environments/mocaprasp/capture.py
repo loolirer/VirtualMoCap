@@ -84,7 +84,7 @@ def process_and_send():
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
         for b in blobs:
-            cv2.circle(frame_rgb, center=b[:2], radius=5, color=(255, 0, 0), thickness=-1)
+            cv2.circle(frame_rgb, center=b[:2].astype(int), radius=5, color=(255, 0, 0), thickness=-1)
 
         cv2.imshow("", frame_rgb)
         cv2.waitKey(1)
