@@ -1,5 +1,10 @@
 #! /bin/bash
 
+# Wait for rasp to connect to the internet
+echo "[INFO] Waiting for internet connection..."
+while ! ping -q -c 1 -W 1 192.168.0.1 >/dev/null; do sleep 1; done
+echo "[INFO] Connected to local network"
+
 # Checkout to test branch
 git -C $HOME/VirtualMoCap checkout test > /dev/null 2>&1 || echo "[ERROR] Checkout failed"
 
