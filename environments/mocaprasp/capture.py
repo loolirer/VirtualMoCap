@@ -25,6 +25,8 @@ except Exception as RuntimeError:
         stderr=subprocess.DEVNULL,
     )
 
+    picam2 = Picamera2()  # Create object anyway
+
 resolution = (960, 720)
 config = picam2.create_video_configuration(
     main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
