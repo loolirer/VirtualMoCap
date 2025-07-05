@@ -11,15 +11,7 @@ import numpy as np
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
-print("[INFO] Killing all video processes")
-subprocess.run(
-    ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL,
-)
-
 picam2 = Picamera2()  # Try creating Picamera2 object
-print("[INFO] Camera access claimed!")
 
 resolution = (960, 720)
 config = picam2.create_video_configuration(
