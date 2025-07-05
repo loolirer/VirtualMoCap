@@ -16,6 +16,14 @@ from virtualmocap.vision.blob_detection import detect_blobs
 # Camera Setup
 while True:
     try:
+        print("[INFO] Killed video processes")
+
+        subprocess.run(
+            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+
         picam2 = Picamera2()  # Try creating Picamera2 object
         print("[INFO] Camera access claimed!")
 
@@ -23,11 +31,8 @@ while True:
         config = picam2.create_video_configuration(
         main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
         )
-        print("AAAAAAAAAAAA")
         picam2.configure(config)
-        print("BBBBBBBBBBBB")
         picam2.start()  # Begin camera connection
-        print("CCCCCCCCCCCC")
         picam2.set_controls(
         {  # Set camera controls
             "AnalogueGain": 1.0,
@@ -36,22 +41,14 @@ while True:
             "Contrast": 32.0,
         }
         )
-        print("DDDDDDDDDDDD")
         time.sleep(1)  # Warm-up
 
         break  # Stop trying
 
     except:
-        # If this fails, probably some other process already claimed the camera
-        subprocess.run(
-            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
+        print("[ERROR] Could not intialize camera. Trying again..")
+        continue
 
-        print("[INFO] Killed video processes. Trying again...")
-
-print("EEEEEEEEEEEEE")
 # Socket Setup
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
@@ -66,8 +63,6 @@ try:
 
 except socket.error as err:
     print(f"[ERROR] Socket creation failed with error: {err}")
-
-print("FFFFFFFFFFFFFFF")
 
 # Try searching for the server address until it is found
 while True:
