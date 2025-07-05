@@ -1,6 +1,7 @@
 # Importing modules...
 from picamera2 import Picamera2
 import subprocess
+import traceback
 import pigpio
 import cv2
 import time
@@ -12,11 +13,7 @@ import numpy as np
 from virtualmocap.vision.blob_detection import detect_blobs
 
 # Camera Setup
-subprocess.run(
-    ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL,
-)
+subprocess.run(["sudo", "fuser", "-k", "/dev/video0"])  # Kills all video processes
 
 while True:
     try:
@@ -44,14 +41,11 @@ while True:
 
         break  # Stop trying
 
-    except:
-        print(
-            "[ERROR] Could not intialize camera. Killing all video processes and trying again..."
-        )
+    except Exception as e:
+        print("[ERROR] Could not initialize camera:", e)
+        traceback.print_exc()
         subprocess.run(
-            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            ["sudo", "fuser", "-k", "/dev/video0"]  # Kills all video processes
         )
 
         continue
