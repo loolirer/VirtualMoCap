@@ -48,7 +48,6 @@ while True:
         print(
             "[ERROR] Could not intialize camera. Killing all video processes and trying again..."
         )
-        picam2.stop()
         subprocess.run(
             ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
             stdout=subprocess.DEVNULL,
