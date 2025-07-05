@@ -9,7 +9,8 @@ echo "[INFO] Connected to local network"
 git -C $HOME/VirtualMoCap checkout test > /dev/null 2>&1 || echo "[ERROR] Checkout failed"
 
 # Discard local changes and get updates, if any, from the remote to local repo
-git -C $HOME/VirtualMoCap fetch --all && git $HOME/VirtualMoCap reset --hard @{u} > /dev/null 2>&1 || echo "[ERROR] Update failed"
+git -C $HOME/VirtualMoCap reset --hard > /dev/null 2>&1 || echo "[ERROR] Hard reset failed"
+git -C $HOME/VirtualMoCap pull > /dev/null 2>&1 || echo "[ERROR] Update failed"
 
 # Start pigpiod daemon for advanced GPIO control
 sudo pigpiod > /dev/null 2>&1 || echo "[ERROR] Pigpio daemon failed"
