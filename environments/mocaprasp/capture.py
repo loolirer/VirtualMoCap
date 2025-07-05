@@ -18,12 +18,6 @@ subprocess.run(
     stderr=subprocess.DEVNULL,
 )
 
-subprocess.run(
-    ["sudo", "fuser", "-k", "/dev/media*"],  # Kills all media
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL,
-)
-
 time.sleep(5)  # Wait for a little bit
 
 while True:
@@ -57,12 +51,6 @@ while True:
         print("[INFO] Killing all video processes and trying again...")
         subprocess.run(
             ["sudo", "fuser", "-k", "/dev/video*"],  # Kills all video processes
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-
-        subprocess.run(
-            ["sudo", "fuser", "-k", "/dev/media*"],  # Kills all media
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
