@@ -13,7 +13,7 @@ from virtualmocap.vision.blob_detection import detect_blobs
 
 
 # Camera setup
-picam2 = Picamera2()  # Try creating Picamera2 object
+picam2 = Picamera2()  # Create Picamera2 object
 
 resolution = (960, 720)
 config = picam2.create_video_configuration(
