@@ -21,7 +21,7 @@ source $HOME/.venv/bin/activate > /dev/null 2>&1 || echo "[ERROR] Venv activatio
 cd $HOME/VirtualMoCap/environments/mocaprasp/ > /dev/null 2>&1 || echo "[ERROR] Test directory not found"
 
 # Kill all video processes
-sudo fuser -k /dev/video0 > /dev/null 2>&1
+sudo fuser -k /dev/video0
 
 # Run capture script
 python -m capture
