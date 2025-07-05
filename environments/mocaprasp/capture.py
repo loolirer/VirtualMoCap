@@ -12,9 +12,6 @@ import numpy as np
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
-# Camera Setup
-subprocess.run(["sudo", "fuser", "-k", "/dev/video0"])  # Kills all video processes
-
 while True:
     try:
         picam2 = Picamera2()  # Try creating Picamera2 object
@@ -29,26 +26,26 @@ while True:
         )
         picam2.configure(config)
         picam2.start()  # Begin camera connection
-        #picam2.set_controls(
+        # picam2.set_controls(
         #    {  # Set camera controls
         #        "AnalogueGain": 1.0,
         #        "AwbEnable": False,
         #        "Brightness": -1.0,
         #        "Contrast": 32.0,
         #    }
-        #)
+        # )
         time.sleep(1)  # Warm-up
 
         break  # Stop trying
 
     except Exception as e:
-        print("[ERROR] Could not initialize camera:", e)
-        traceback.print_exc()
+        print("[ERROR] Could not initialize camera")
+        print("[INFO] Killing all video processes and trying again...")
         subprocess.run(
-            ["sudo", "fuser", "-k", "/dev/video0"]  # Kills all video processes
+            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
-
-        continue
 
 print("Camera did it")
 
