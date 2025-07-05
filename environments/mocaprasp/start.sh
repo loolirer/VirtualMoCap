@@ -9,7 +9,7 @@ echo "[INFO] Connected to local network"
 git -C $HOME/VirtualMoCap checkout test > /dev/null 2>&1 || echo "[ERROR] Checkout failed"
 
 # Get updates, if any, from the remote to local repo
-git -C $HOME/VirtualMoCap pull > /dev/null 2>&1 || echo -e "\n[ERROR] Git pull failed"
+git -C $HOME/VirtualMoCap pull
 
 # Start pigpiod daemon for advanced GPIO control
 sudo pigpiod > /dev/null 2>&1 || echo "[ERROR] Pigpio daemon failed"
@@ -21,7 +21,7 @@ source $HOME/.venv/bin/activate > /dev/null 2>&1 || echo "[ERROR] Venv activatio
 cd $HOME/VirtualMoCap/environments/mocaprasp/ > /dev/null 2>&1 || echo "[ERROR] Test directory not found"
 
 # Kill all video processes
-sudo fuser -k /dev/video0
+sudo fuser -k /dev/video0 > /dev/null 2>&1
 
 # Run capture script
 python -m capture
