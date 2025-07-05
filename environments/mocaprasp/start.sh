@@ -1,9 +1,5 @@
 #! /bin/bash
 
-# System warmup
-echo "[INFO] Warming up for 10 seconds..."
-sleep 10
-
 # Wait for rasp to connect to the internet
 echo "[INFO] Waiting for internet connection..."
 while ! ping -q -c 1 -W 1 192.168.0.1 >/dev/null; do sleep 1; done
@@ -23,6 +19,9 @@ source $HOME/.venv/bin/activate > /dev/null 2>&1 || echo "[ERROR] Venv activatio
 
 # Change for development directory for convenience
 cd $HOME/VirtualMoCap/environments/mocaprasp/ > /dev/null 2>&1 || echo "[ERROR] Test directory not found"
+
+# Hello before running
+libcamera-hello
 
 # Run capture script
 python -m capture
