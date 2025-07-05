@@ -22,6 +22,3 @@ cd $HOME/VirtualMoCap/environments/mocaprasp/ > /dev/null 2>&1 || echo "[ERROR] 
 
 # Run capture script
 python -m capture
-
-# Rerun capture script
-python -m capture
