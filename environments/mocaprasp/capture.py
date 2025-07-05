@@ -13,7 +13,13 @@ from virtualmocap.vision.blob_detection import detect_blobs
 
 # Camera setup
 subprocess.run(
-    ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+    ["sudo", "fuser", "-k", "/dev/video*"],  # Kills all video processes
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+
+subprocess.run(
+    ["sudo", "fuser", "-k", "/dev/media*"],  # Kills all media
     stdout=subprocess.DEVNULL,
     stderr=subprocess.DEVNULL,
 )
@@ -33,12 +39,12 @@ while True:
         picam2.configure(config)
         picam2.start()  # Begin camera connection
         picam2.set_controls(
-           {  # Set camera controls
-               "AnalogueGain": 1.0,
-               "AwbEnable": False,
-               "Brightness": -1.0,
-               "Contrast": 32.0,
-           }
+            {  # Set camera controls
+                "AnalogueGain": 1.0,
+                "AwbEnable": False,
+                "Brightness": -1.0,
+                "Contrast": 32.0,
+            }
         )
         time.sleep(1)  # Warm-up
 
@@ -48,7 +54,13 @@ while True:
         print("[ERROR] Could not initialize camera")
         print("[INFO] Killing all video processes and trying again...")
         subprocess.run(
-            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+            ["sudo", "fuser", "-k", "/dev/video*"],  # Kills all video processes
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+        subprocess.run(
+            ["sudo", "fuser", "-k", "/dev/media*"],  # Kills all media
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
