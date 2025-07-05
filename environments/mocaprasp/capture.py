@@ -1,7 +1,6 @@
 # Importing modules...
 from picamera2 import Picamera2
 import subprocess
-import traceback
 import pigpio
 import cv2
 import time
