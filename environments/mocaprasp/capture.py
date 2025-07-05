@@ -11,6 +11,15 @@ import numpy as np
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
+# Camera setup
+subprocess.run(
+    ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+
+time.sleep(5)  # Wait for a little bit
+
 while True:
     try:
         picam2 = Picamera2()  # Try creating Picamera2 object
@@ -48,7 +57,6 @@ while True:
 
         time.sleep(5)  # Wait for a little bit
 
-print("Camera did it")
 
 # Socket Setup
 try:
@@ -65,8 +73,6 @@ try:
 except socket.error as err:
     print(f"[ERROR] Socket creation failed with error: {err}")
 
-print("Client socket did it")
-
 # Try searching for the server address until it is found
 while True:
     try:
@@ -80,8 +86,6 @@ while True:
         print(f"[ERROR] Server not found! Retrying in 5s...")
         time.sleep(5)  # Wait for 5 seconds...
         continue
-
-print("Server socket did it")
 
 # Parallel Processes Setup
 frame_queue = queue.Queue()
