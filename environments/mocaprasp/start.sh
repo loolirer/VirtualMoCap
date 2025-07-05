@@ -9,6 +9,7 @@ echo "[INFO] Connected to local network"
 git -C $HOME/VirtualMoCap checkout test > /dev/null 2>&1 || echo "[ERROR] Checkout failed"
 
 # Get updates, if any, from the remote to local repo
+git -C $HOME/VirtualMoCap reset --hard
 git -C $HOME/VirtualMoCap pull
 
 # Start pigpiod daemon for advanced GPIO control
