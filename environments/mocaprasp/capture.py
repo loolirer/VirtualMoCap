@@ -11,47 +11,35 @@ import numpy as np
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
-# Camera setup
+print("[INFO] Killing all video processes")
 subprocess.run(
     ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
     stdout=subprocess.DEVNULL,
     stderr=subprocess.DEVNULL,
 )
 
-while True:
-    try:
-        picam2 = Picamera2()  # Try creating Picamera2 object
-        print("[INFO] Camera access claimed!")
+picam2 = Picamera2()  # Try creating Picamera2 object
+print("[INFO] Camera access claimed!")
 
-        resolution = (960, 720)
-        config = picam2.create_video_configuration(
-            main={
-                "size": resolution,
-                "format": "YUV420",
-            }  # Already captures in grayscale
-        )
-        picam2.configure(config)
-        picam2.start()  # Begin camera connection
-        picam2.set_controls(
-            {  # Set camera controls
-                "AnalogueGain": 1.0,
-                "AwbEnable": False,
-                "Brightness": -1.0,
-                "Contrast": 32.0,
-            }
-        )
-        time.sleep(1)  # Warm-up
+resolution = (960, 720)
+config = picam2.create_video_configuration(
+    main={
+        "size": resolution,
+        "format": "YUV420",
+    }  # Already captures in grayscale
+)
+picam2.configure(config)
+picam2.start()  # Begin camera connection
+picam2.set_controls(
+    {  # Set camera controls
+        "AnalogueGain": 1.0,
+        "AwbEnable": False,
+        "Brightness": -1.0,
+        "Contrast": 32.0,
+    }
+)
 
-        break  # Stop trying
-
-    except:
-        print("[ERROR] Could not initialize camera")
-        print("[INFO] Killing all video processes and trying again...")
-        subprocess.run(
-            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+time.sleep(1)  # Warm-up
 
 
 # Socket Setup
