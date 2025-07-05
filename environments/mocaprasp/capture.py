@@ -24,6 +24,8 @@ subprocess.run(
     stderr=subprocess.DEVNULL,
 )
 
+time.sleep(5)  # Wait for a little bit
+
 while True:
     try:
         picam2 = Picamera2()  # Try creating Picamera2 object
@@ -64,6 +66,8 @@ while True:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+
+        time.sleep(5)  # Wait for a little bit
 
 print("Camera did it")
 
