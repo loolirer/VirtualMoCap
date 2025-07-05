@@ -12,6 +12,13 @@ import numpy as np
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
+# Camera setup
+subprocess.run(
+    ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+
 while True:
     try:
         picam2 = Picamera2()  # Try creating Picamera2 object
