@@ -1,6 +1,5 @@
 # Importing modules...
 from picamera2 import Picamera2
-from libcamera import controls
 import subprocess
 import pigpio
 import cv2
@@ -12,41 +11,50 @@ import numpy as np
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
-
 # Camera Setup
+subprocess.run(
+    ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+
 while True:
     try:
-        print("[INFO] Killed video processes")
-
-        subprocess.run(
-            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-
         picam2 = Picamera2()  # Try creating Picamera2 object
         print("[INFO] Camera access claimed!")
 
         resolution = (960, 720)
         config = picam2.create_video_configuration(
-        main={"size": resolution, "format": "YUV420"}  # Already captures in grayscale
+            main={
+                "size": resolution,
+                "format": "YUV420",
+            }  # Already captures in grayscale
         )
         picam2.configure(config)
         picam2.start()  # Begin camera connection
         picam2.set_controls(
-        {  # Set camera controls
-            "AnalogueGain": 1.0,
-            "AwbEnable": False,
-            "Brightness": -1.0,
-            "Contrast": 32.0,
-        }
+            {  # Set camera controls
+                "AnalogueGain": 1.0,
+                "AwbEnable": False,
+                "Brightness": -1.0,
+                "Contrast": 32.0,
+            }
         )
         time.sleep(1)  # Warm-up
 
         break  # Stop trying
 
     except:
-        print("[ERROR] Could not intialize camera. Trying again..")
+        print(
+            "[ERROR] Could not intialize camera. Killing all video processes and trying again..."
+        )
+        picam2.stop()
+        subprocess.run(
+            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
         continue
 
 # Socket Setup
@@ -82,6 +90,7 @@ while True:
 frame_queue = queue.Queue()
 shot_counter = 0
 lock = threading.Lock()
+
 
 # GPIO controlled capture callback
 def capture_callback(gpio, level, tick):
