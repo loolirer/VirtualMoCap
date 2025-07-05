@@ -13,7 +13,7 @@ from virtualmocap.vision.blob_detection import detect_blobs
 
 # Camera setup
 subprocess.run(
-    ["sudo", "fuser", "-k", "/dev/video*"],  # Kills all video processes
+    ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
     stdout=subprocess.DEVNULL,
     stderr=subprocess.DEVNULL,
 )
@@ -50,7 +50,7 @@ while True:
         print("[ERROR] Could not initialize camera")
         print("[INFO] Killing all video processes and trying again...")
         subprocess.run(
-            ["sudo", "fuser", "-k", "/dev/video*"],  # Kills all video processes
+            ["sudo", "fuser", "-k", "/dev/video0"],  # Kills all video processes
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
