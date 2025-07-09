@@ -95,14 +95,14 @@ def process_and_send():
             continue
 
         blobs = detect_blobs(frame, area=True)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
         for b in blobs:
             cv2.circle(
                 frame_rgb,
                 center=b[:2].astype(int),
                 radius=5,
-                color=(255, 0, 0),
+                color=(0, 0, 255),
                 thickness=-1,
             )
 
