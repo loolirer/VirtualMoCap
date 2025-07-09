@@ -4,6 +4,7 @@ import pigpio
 import cv2
 import time
 import queue
+import atexit
 import socket
 import threading
 import numpy as np
@@ -154,6 +155,16 @@ DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 pi.set_mode(CLOCK_PIN, pigpio.OUTPUT)
 
 
+# Cleanup setup
+def cleanup():
+    pi.hardware_PWM(CLOCK_PIN, 0, 0)  # Turns off clock
+    pi.stop()  # Stop pigipio daemon
+    picam2.stop()  # Kill camera connection
+    cv2.destroyAllWindows()  # Destroy OpenCV windows
+
+atexit.register(cleanup)
+
+
 # Service loop
 try:
     while True:
@@ -188,9 +199,3 @@ except KeyboardInterrupt:
 
 except Exception as e:
     print(f"[ERROR] {e}")
-
-finally:
-    pi.hardware_PWM(CLOCK_PIN, 0, 0)
-    pi.stop()
-    picam2.stop()
-    cv2.destroyAllWindows()
