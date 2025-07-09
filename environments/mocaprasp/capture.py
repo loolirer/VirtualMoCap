@@ -80,14 +80,11 @@ def capture_callback(gpio, level, tick):
         shot_number = shot_counter
         shot_counter += 1
 
-    print("AAA")
-
     timestamp = time.time()
     frame = picam2.capture_array()[: resolution[1], : resolution[0]]
 
     # Push to processing queue
-    with frame_queue.mutex:  # Ensure thread safety
-        frame_queue.put((shot_number, timestamp, frame))
+    frame_queue.put((shot_number, timestamp, frame))
 
 
 # Background image processing and communication
@@ -163,6 +160,7 @@ def cleanup():
     pi.stop()  # Stop pigipio daemon
     picam2.stop()  # Kill camera connection
     cv2.destroyAllWindows()  # Destroy OpenCV windows
+
 
 atexit.register(cleanup)
 
