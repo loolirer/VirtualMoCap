@@ -1,6 +1,5 @@
 # Importing modules...
 from picamera2 import Picamera2
-import subprocess
 import pigpio
 import cv2
 import time
@@ -15,6 +14,8 @@ from virtualmocap.vision.blob_detection import detect_blobs
 # Camera setup
 picam2 = Picamera2()  # Create Picamera2 object
 
+FPS = 30
+TIME_BUDGET = 1.0 / FPS
 resolution = (960, 720)
 config = picam2.create_video_configuration(
     main={
@@ -82,7 +83,8 @@ def capture_callback(gpio, level, tick):
     frame = picam2.capture_array()[: resolution[1], : resolution[0]]
 
     # Push to processing queue
-    frame_queue.put((shot_number, timestamp, frame))
+    with frame_queue.mutex:  # Ensure thread safety
+        frame_queue.put((shot_number, timestamp, frame))
 
 
 # Background image processing and communication
@@ -116,6 +118,11 @@ def process_and_send():
 
         frame_queue.task_done()
 
+        # Clear processing queue if time budget is exceeded
+        if time.time() - timestamp > TIME_BUDGET:
+            with frame_queue.mutex:  # Ensure thread safety
+                frame_queue.queue.clear()
+
 
 # Start the background thread
 threading.Thread(target=process_and_send, daemon=True).start()
@@ -141,7 +148,6 @@ pi.set_glitch_filter(TRIGGER_PIN, 10000)
 cb = pi.callback(TRIGGER_PIN, pigpio.FALLING_EDGE, capture_callback)
 
 # Clock parameters
-FREQUENCY_HZ = 30  # Desired frequency
 DUTY_CYCLE = 500000  # 50% duty (range: 0–1,000,000)
 
 # Set pin mode to generate PWM signal
@@ -162,7 +168,7 @@ try:
         time.sleep(float(delay))  # Wait for delay
 
         print(f"[INFO] Running Capture for {capture_time} s...")
-        pi.hardware_PWM(CLOCK_PIN, FREQUENCY_HZ, DUTY_CYCLE)  # Turn on capture trigger
+        pi.hardware_PWM(CLOCK_PIN, FPS, DUTY_CYCLE)  # Turn on capture trigger
         time.sleep(float(capture_time))  # Wait for capture time
         pi.hardware_PWM(CLOCK_PIN, 0, 0)  # Turn off capture trigger
         shot_counter = 0  # Reset shot counter for next capture
