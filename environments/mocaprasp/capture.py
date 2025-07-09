@@ -80,8 +80,6 @@ def capture_callback(gpio, level, tick):
         shot_number = shot_counter
         shot_counter += 1
 
-    print("AAAAa")
-
     timestamp = time.time()
     frame = picam2.capture_array()[: resolution[1], : resolution[0]]
 
@@ -164,7 +162,7 @@ def cleanup():
     picam2.stop()  # Kill camera connection
     cv2.destroyAllWindows()  # Destroy OpenCV windows
 
-atexit.register(cleanup)
+#atexit.register(cleanup)
 
 
 # Service loop
