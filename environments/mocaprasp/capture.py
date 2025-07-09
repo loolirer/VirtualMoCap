@@ -141,7 +141,7 @@ CLOCK_PIN = 18  # Output: produces trigger signal
 pi.set_mode(TRIGGER_PIN, pigpio.INPUT)
 pi.set_pull_up_down(TRIGGER_PIN, pigpio.PUD_UP)  # or PUD_DOWN
 
-# Optional: glitch filter to debounce (e.g. 10000 µs = 10 ms)
+# Glitch filter to debounce (e.g. 10000 µs = 10 ms)
 pi.set_glitch_filter(TRIGGER_PIN, 10000)
 
 # Register callback on falling edge (level=0)
@@ -185,6 +185,9 @@ try:
 
 except KeyboardInterrupt:
     print("\n[INFO] Exiting by external trigger...")
+
+except Exception as e:
+    print(f"[ERROR] {e}")
 
 finally:
     pi.hardware_PWM(CLOCK_PIN, 0, 0)
