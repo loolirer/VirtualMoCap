@@ -30,7 +30,7 @@ picam2.set_controls(
     {  # Set camera controls
         "AnalogueGain": 1.0,
         "AwbEnable": False,
-        "Brightness": -1.0,
+        "Brightness": 0.0,
         "Contrast": 32.0,
     }
 )
