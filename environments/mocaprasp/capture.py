@@ -80,7 +80,7 @@ def capture_callback(gpio, level, tick):
         shot_number = shot_counter
         shot_counter += 1
 
-    print(shot_counter)
+    print("AAAAa")
 
     timestamp = time.time()
     frame = picam2.capture_array()[: resolution[1], : resolution[0]]
