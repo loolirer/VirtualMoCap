@@ -31,7 +31,7 @@ picam2.set_controls(
         "AnalogueGain": 1.0,
         "AwbEnable": False,
         "Brightness": 0.0,
-        "Contrast": 32.0,
+        "Contrast": 1.0,
     }
 )
 
