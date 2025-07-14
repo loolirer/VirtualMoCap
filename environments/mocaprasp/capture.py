@@ -30,7 +30,7 @@ picam2.set_controls(
     {  # Set camera controls
         "AwbEnable": False,
         "Contrast": 32.0,
-        "ExposureValue": -4.0,
+        "ExposureValue": -2.0,
     }
 )
 
