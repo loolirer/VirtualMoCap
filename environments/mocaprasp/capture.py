@@ -100,7 +100,7 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        blobs = detect_blobs(frame[: , : , 2], area=True, thresh=100)
+        blobs = detect_blobs(frame[: , : , 2], area=True, thresh=127)
 
         for b in blobs:
             cv2.circle(
