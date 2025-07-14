@@ -37,7 +37,7 @@ picam2.set_controls(
         "AnalogueGain": 2.0,
         "Brightness": 1.0,
         "Contrast": 32.0,
-        "ExposureValue": 2.0,
+        "ExposureValue": 8.0,
     }
 )
 
