@@ -28,15 +28,15 @@ params.maxArea = 50
 
 # Filter by Circularity
 params.filterByCircularity = True
-params.minCircularity = 0.8
+params.minCircularity = 0.5
 
 # Filter by Convexity
 params.filterByConvexity = True
-params.minConvexity = 0.8
+params.minConvexity = 0.5
 
 # Filter by Inertia
 params.filterByInertia = True
-params.minInertiaRatio = 0.75
+params.minInertiaRatio = 0.5
 
 # Instanciate marker detector object
 marker_detector = cv2.SimpleBlobDetector_create(params)
