@@ -33,8 +33,8 @@ picam2.set_controls(
     {  # Set camera controls
         "AwbEnable": False,
         #"ExposureTime": EXPOSURE_TIME,
-        #"AnalogueGain": 2.0,
-        #"Brightness": 1.0,
+        "AnalogueGain": 2.0,
+        "Brightness": 1.0,
         "Contrast": 32.0,
     }
 )
@@ -99,7 +99,7 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        blobs = detect_blobs(frame, area=True)
+        blobs = detect_blobs(frame, area=True, thresh=100)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
         for b in blobs:
