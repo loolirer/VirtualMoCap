@@ -34,7 +34,7 @@ picam2.set_controls(
         "AwbEnable": False,
         "ExposureTime": EXPOSURE_TIME,
         "Contrast": 32.0,
-        "AnalogueGain": 10.0
+        "AnalogueGain": 20.0
     }
 )
 
