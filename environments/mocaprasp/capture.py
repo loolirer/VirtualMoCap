@@ -11,6 +11,46 @@ import numpy as np
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
+# Blob detector parameters
+params = cv2.SimpleBlobDetector_Params()
+
+# Check if blob is stable in the three filters
+params.minRepeatability = 3
+
+# Three threshold filters
+params.minThreshold = 50
+params.thresholdStep = 50
+params.maxThreshold = (
+    params.minThreshold + params.thresholdStep * params.minRepeatability
+)
+
+# Minimum distance between blobs in pixels
+params.minDistBetweenBlobs = 1
+
+# Filter only dark blobs
+params.filterByColor = True
+params.blobColor = 0
+
+# Filter only blobs with over 4 pixels
+params.filterByArea = True
+params.minArea = 4
+params.maxArea = 50
+
+# Filter by Circularity
+params.filterByCircularity = True
+params.minCircularity = 0.5
+
+# Filter by Convexity
+params.filterByConvexity = True
+params.minConvexity = 0.5
+
+# Filter by Inertia
+params.filterByInertia = True
+params.minInertiaRatio = 0.5
+
+# Instanciate marker detector object
+marker_detector = cv2.SimpleBlobDetector_create(params)
+
 
 # Camera setup
 picam2 = Picamera2()  # Create Picamera2 object
@@ -95,7 +135,7 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        blobs = detect_blobs(frame, area=True, thresh=127)
+        blobs = detect_blobs(frame, area=True, thresh=127, detector=marker_detector)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
         for b in blobs:
@@ -103,7 +143,7 @@ def process_and_send():
                 frame_rgb,
                 center=b[:2].astype(int),
                 radius=5,
-                color=(255, 0, 0),
+                color=(0, 0, 255),
                 thickness=-1,
             )
 
