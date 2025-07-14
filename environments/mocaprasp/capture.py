@@ -16,9 +16,9 @@ from virtualmocap.vision.blob_detection import detect_blobs
 picam2 = Picamera2()  # Create Picamera2 object
 
 # Capture parameters
-FPS = 30 # In hertz
-TIME_BUDGET = 1.0 / FPS # In seconds
-EXPOSURE_TIME = 10000 # In microseconds
+FPS = 30  # In hertz
+TIME_BUDGET = 1.0 / FPS  # In seconds
+EXPOSURE_TIME = 10000  # In microseconds
 
 resolution = (960, 720)
 config = picam2.create_video_configuration(
@@ -37,6 +37,7 @@ picam2.set_controls(
         "AnalogueGain": 2.0,
         "Brightness": 1.0,
         "Contrast": 32.0,
+        "ExposureValue": 1.0,
     }
 )
 
