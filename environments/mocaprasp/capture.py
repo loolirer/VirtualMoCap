@@ -15,16 +15,13 @@ from virtualmocap.vision.blob_detection import detect_blobs
 # Camera setup
 picam2 = Picamera2()  # Create Picamera2 object
 
-# Capture parameters
-FPS = 30  # In hertz
-TIME_BUDGET = 1.0 / FPS  # In seconds
-EXPOSURE_TIME = 10000  # In microseconds
-
+FPS = 30
+TIME_BUDGET = 1.0 / FPS
 resolution = (960, 720)
 config = picam2.create_video_configuration(
     main={
         "size": resolution,
-        "format": "RGB888",
+        "format": "YUV420",
     }  # Already captures in grayscale
 )
 picam2.configure(config)
@@ -33,9 +30,7 @@ picam2.set_controls(
     {  # Set camera controls
         "AeEnable": False,
         "AwbEnable": False,
-        #"ExposureTime": EXPOSURE_TIME,
-        #"AnalogueGain": 2.0,
-        #"Brightness": 1.0,
+        "AnalogueGain": 10.0,
         "Contrast": 32.0,
     }
 )
@@ -100,18 +95,19 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        blobs = detect_blobs(frame[: , : , 2], area=True, thresh=127)
+        blobs = detect_blobs(frame, area=True, thresh=127)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
         for b in blobs:
             cv2.circle(
-                frame,
+                frame_rgb,
                 center=b[:2].astype(int),
                 radius=5,
-                color=(0, 0, 255),
+                color=(255, 0, 0),
                 thickness=-1,
             )
 
-        cv2.imshow("Camera Feed", frame)
+        cv2.imshow("Camera Feed", frame_rgb)
         cv2.waitKey(1)
 
         message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
