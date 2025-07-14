@@ -29,11 +29,11 @@ params.maxArea = 50
 # Filter by Circularity
 params.filterByCircularity = True
 params.minCircularity = 0.8
- 
+
 # Filter by Convexity
 params.filterByConvexity = True
 params.minConvexity = 0.8
- 
+
 # Filter by Inertia
 params.filterByInertia = True
 params.minInertiaRatio = 0.75
@@ -42,9 +42,8 @@ params.minInertiaRatio = 0.75
 marker_detector = cv2.SimpleBlobDetector_create(params)
 
 
-def detect_blobs(image, area=False, detector=marker_detector):
+def detect_blobs(image, area=False, thresh=127, detector=marker_detector):
     # Apply threshold to image
-    thresh = 127
     _, image_thresh = cv2.threshold(image, thresh, 255, cv2.THRESH_BINARY_INV)
 
     # Optimization: finding a smaller sub-image that contains all blobs
