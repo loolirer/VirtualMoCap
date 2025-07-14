@@ -28,9 +28,9 @@ picam2.configure(config)
 picam2.start()  # Begin camera connection
 picam2.set_controls(
     {  # Set camera controls
-        "AnalogueGain": 10.0,
         "AwbEnable": False,
         "Contrast": 32.0,
+        "ExposureValue": -4.0,
     }
 )
 
