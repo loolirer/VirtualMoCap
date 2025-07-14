@@ -18,7 +18,7 @@ picam2 = Picamera2()  # Create Picamera2 object
 # Capture parameters
 FPS = 30  # In hertz
 TIME_BUDGET = 1.0 / FPS  # In seconds
-EXPOSURE_TIME = 10000  # In microseconds
+EXPOSURE_TIME = 20000  # In microseconds
 
 resolution = (960, 720)
 config = picam2.create_video_configuration(
@@ -31,13 +31,11 @@ picam2.configure(config)
 picam2.start()  # Begin camera connection
 picam2.set_controls(
     {  # Set camera controls
-        #"AeEnable": False,
         "AwbEnable": False,
         "ExposureTime": EXPOSURE_TIME,
         "AnalogueGain": 2.0,
         "Brightness": 1.0,
         "Contrast": 32.0,
-        "ExposureValue": 8.0,
     }
 )
 
