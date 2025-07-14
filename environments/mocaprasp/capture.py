@@ -99,7 +99,7 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        blobs = detect_blobs(frame, area=True, thresh=127)
+        blobs = detect_blobs(frame, area=True)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
         for b in blobs:
