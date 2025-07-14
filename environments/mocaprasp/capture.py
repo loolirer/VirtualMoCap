@@ -31,10 +31,12 @@ picam2.configure(config)
 picam2.start()  # Begin camera connection
 picam2.set_controls(
     {  # Set camera controls
+        "AeEnable": False,
         "AwbEnable": False,
         "ExposureTime": EXPOSURE_TIME,
+        "AnalogueGain": 1.5,
+        "Brightness": 1.0,
         "Contrast": 32.0,
-        "AnalogueGain": 30.0
     }
 )
 
