@@ -24,7 +24,7 @@ resolution = (960, 720)
 config = picam2.create_video_configuration(
     main={
         "size": resolution,
-        "format": "YUV420",
+        "format": "RGB888",
     }  # Already captures in grayscale
 )
 picam2.configure(config)
@@ -100,19 +100,18 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        blobs = detect_blobs(frame, area=True, thresh=100)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        blobs = detect_blobs(frame[: , : , 0], area=True, thresh=100)
 
         for b in blobs:
             cv2.circle(
-                frame_rgb,
+                frame,
                 center=b[:2].astype(int),
                 radius=5,
                 color=(0, 0, 255),
                 thickness=-1,
             )
 
-        cv2.imshow("Camera Feed", frame_rgb)
+        cv2.imshow("Camera Feed", frame)
         cv2.waitKey(1)
 
         message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
