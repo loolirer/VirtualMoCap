@@ -34,7 +34,7 @@ picam2.set_controls(
         "AeEnable": False,
         "AwbEnable": False,
         "ExposureTime": EXPOSURE_TIME,
-        "AnalogueGain": 5.0,
+        "AnalogueGain": 2.0,
         "Brightness": 1.0,
         "Contrast": 32.0,
     }
