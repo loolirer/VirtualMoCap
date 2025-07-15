@@ -46,20 +46,6 @@ st.set_page_config(page_title="Motion Capture Arena", layout="centered")
 st.image("mocaprasp.png")
 
 st.subheader("⚙️ Arena Setup")
-if st.button("Register clients"):
-    placeholder = st.empty()
-
-    # Register clients
-    if not st.session_state.server.register_clients():
-        placeholder.error("Client register failed!", icon="🚨")
-        time.sleep(5)  # Wait 5 seconds before disappearing
-        placeholder.empty()
-
-    else:
-        placeholder.success(f"Client register successful!", icon="✅")
-        time.sleep(5)  # Wait 5 seconds before disappearing
-        placeholder.empty()
-
 if st.button("Load intrinsics"):
     placeholder = st.empty()
     placeholder.info("Preparing clients...", icon="ℹ️")
@@ -87,6 +73,20 @@ if st.button("Load intrinsics"):
     placeholder.success("Intrinsic parameters loaded successfully!", icon="✅")
     time.sleep(5)  # Wait 5 seconds before disappearing
     placeholder.empty()
+
+if st.button("Register clients"):
+    placeholder = st.empty()
+
+    # Register clients
+    if not st.session_state.server.register_clients():
+        placeholder.error("Client register failed!", icon="🚨")
+        time.sleep(5)  # Wait 5 seconds before disappearing
+        placeholder.empty()
+
+    else:
+        placeholder.success(f"Client register successful!", icon="✅")
+        time.sleep(5)  # Wait 5 seconds before disappearing
+        placeholder.empty()
 
 st.markdown("---")
 
@@ -139,7 +139,7 @@ if st.button("Extrinsic Calibration"):
 
     # Capture specifications
     blob_count = 3  # Number of expected markers
-    verbose = False
+    verbose = True
 
     # Request capture
     if not st.session_state.server.request_sync_capture(
@@ -219,14 +219,14 @@ if st.button("Extrinsic Calibration"):
                 continue  # Jump to the next message
 
             # Extracting the message's frame index
-            frame_idx = int(message[-1])
+            frame_idx = int(message[-2])
 
             # Valid message is [u, v, A] per blob, PTS and frame index
             if message.size != 3 * blob_count + 2:
 
                 if message.size == 2:  # Only PTS
                     if verbose:
-                        print(f"\tNo blobs were detected - {frame_idx} s")
+                        print(f"\tNo blobs were detected - {frame_idx}")
 
                 else:
                     if verbose:
@@ -246,7 +246,7 @@ if st.button("Extrinsic Calibration"):
 
             # Print blobs
             if verbose:
-                print(f"\tDetected Blobs - {frame_idx} s")
+                print(f"\tDetected Blobs - {frame_idx}")
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
             # Save data
@@ -319,7 +319,7 @@ if st.button("Reference Update"):
 
     # Capture specifications
     blob_count = 3  # Number of expected markers
-    verbose = False
+    verbose = True
 
     # Request capture
     if not st.session_state.server.request_sync_capture(
@@ -398,14 +398,14 @@ if st.button("Reference Update"):
                 continue  # Jump to the next message
 
             # Extracting the message's frame index
-            frame_idx = int(message[-1])
+            frame_idx = int(message[-2])
 
             # Valid message is [u, v, A] per blob, PTS and frame index
             if message.size != 3 * blob_count + 2:
 
                 if message.size == 2:  # Only PTS
                     if verbose:
-                        print(f"\tNo blobs were detected - {frame_idx} s")
+                        print(f"\tNo blobs were detected - {frame_idx}")
 
                 else:
                     if verbose:
@@ -425,7 +425,7 @@ if st.button("Reference Update"):
 
             # Print blobs
             if verbose:
-                print(f"\tDetected Blobs - {frame_idx} s")
+                print(f"\tDetected Blobs - {frame_idx}")
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
             # Save data
@@ -448,6 +448,9 @@ if st.button("Reference Update"):
     # Add camera frames to the scene
     for ID, camera in enumerate(st.session_state.server.multiple_view.camera_models):
         scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
+
+    # Add new reference
+    scene.add_frame(np.eye(4), "Reference", axis_size=0.4)
 
     st.plotly_chart(scene.figure)
 
@@ -486,7 +489,7 @@ if st.button("Start Capture"):
     placeholder = st.empty()
     placeholder.info("Standard capture requested", icon="ℹ️")
 
-    verbose = False
+    verbose = True
     visualizer_address = ("127.0.0.1", 6666)
     all_triangulated_markers = []
 
@@ -558,7 +561,7 @@ if st.button("Start Capture"):
             continue  # Jump to wait for the next message
 
         # Extracting the message's frame index
-        frame_idx = int(message[-1])
+        frame_idx = int(message[-2])
 
         # Valid message is [u, v, A] per blob, PTS and frame index
         if message.size != 3 * blob_count + 2:
@@ -621,7 +624,7 @@ if st.button("Start Capture"):
     for ID, camera in enumerate(st.session_state.server.multiple_view.camera_models):
         scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
 
-    # Add new reference
+    # Add reference
     scene.add_frame(np.eye(4), "Reference", axis_size=0.4)
 
     # Add triangulated markers to the scene
