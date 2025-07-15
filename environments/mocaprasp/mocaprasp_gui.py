@@ -615,7 +615,11 @@ if st.button("Start Capture"):
             pass  # Don't access array if index is out of bounds
 
     # Join collected data
-    all_triangulated_markers = np.hstack(all_triangulated_markers)
+    if all_triangulated_markers:
+        all_triangulated_markers = np.hstack(all_triangulated_markers)
+
+    else:
+        all_triangulated_markers = None
 
     # Create the Scene Viewer
     scene = Viewer3D(title="Capture Profile", size=10)
