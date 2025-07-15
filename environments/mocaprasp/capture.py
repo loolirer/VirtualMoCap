@@ -1,5 +1,6 @@
 # Importing modules...
 from picamera2 import Picamera2
+from libcamera import controls
 import pigpio
 import cv2
 import time
@@ -72,7 +73,7 @@ picam2.set_controls(
     {  # Set camera controls
         "AeEnable": False,
         "AwbEnable": False,
-        #"ExposureTime": EXPOSURE_TIME,
+        "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
         "Brightness": 1.0,
         "Contrast": 32.0,
     }
