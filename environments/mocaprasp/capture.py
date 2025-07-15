@@ -74,6 +74,7 @@ picam2.set_controls(
         "AwbEnable": False,
         "Brightness": 1.0,
         "Contrast": 32.0,
+        "ExposureTime": EXPOSURE_TIME,
     }
 )
 
@@ -137,11 +138,8 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        frame_blur = cv2.GaussianBlur(frame, (9, 9), 0)
-        blobs = detect_blobs(
-            frame_blur, area=True, thresh=127, detector=marker_detector
-        )
-        frame_rgb = cv2.cvtColor(frame_blur, cv2.COLOR_GRAY2RGB)
+        blobs = detect_blobs(frame, area=True, thresh=127, detector=marker_detector)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
         for b in blobs:
             cv2.circle(
