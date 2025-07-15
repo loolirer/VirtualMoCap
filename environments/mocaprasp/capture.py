@@ -137,7 +137,7 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        frame_blur = cv2.GaussianBlur(frame, (5, 5), 0)
+        frame_blur = cv2.GaussianBlur(frame, (9, 9), 0)
         blobs = detect_blobs(
             frame_blur, area=True, thresh=127, detector=marker_detector
         )
