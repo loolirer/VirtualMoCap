@@ -614,13 +614,6 @@ if st.button("Start Capture"):
         except:
             pass  # Don't access array if index is out of bounds
 
-    # Join collected data
-    if all_triangulated_markers:
-        all_triangulated_markers = np.hstack(all_triangulated_markers)
-
-    else:
-        all_triangulated_markers = None
-
     # Create the Scene Viewer
     scene = Viewer3D(title="Capture Profile", size=10)
 
@@ -632,7 +625,10 @@ if st.button("Start Capture"):
     scene.add_frame(np.eye(4), "Reference", axis_size=0.4)
 
     # Add triangulated markers to the scene
-    scene.add_points(all_triangulated_markers, f"Triangulated positions")
+    # Join collected data
+    if all_triangulated_markers:
+        all_triangulated_markers = np.hstack(all_triangulated_markers)
+        scene.add_points(all_triangulated_markers, f"Triangulated positions")
 
     # Plot scene
     st.plotly_chart(scene.figure)
