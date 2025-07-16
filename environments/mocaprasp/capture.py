@@ -83,11 +83,9 @@ def print_calib_values(rows):
     np.set_printoptions(precision=2, suppress=True)
 
     features = ["radius", "area", "circularity", "convexity", "inertia"]
-    dataframe = np.array([r.values() for r in rows]).T
+    dataframe = np.array([list(r.values()) for r in rows]).T
 
     for feature, data in zip(features, dataframe):
-        data = list(data)
-
         Q1 = np.quantile(data, 0.25)
         Q2 = np.median(data)
         Q3 = np.quantile(data, 0.75)
@@ -101,7 +99,10 @@ def print_calib_values(rows):
 
         outliers = data[(data <= lower_bound) | (data >= upper_bound)]
 
-        print(f"{feature.upper()}")
+        total_measures = len(data)
+        valid_measures = total_measures - len(outliers)
+
+        print(f"{feature.upper()}: ({len(valid_measures)}/{len(total_measures)})")
         print(f"\tUpper Whisker: {upper_whisker:.2f}")
         print(f"\tUpper Box: {Q3:.2f}")
         print(f"\tMedian: {Q2:.2f}")
