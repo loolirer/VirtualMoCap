@@ -15,7 +15,7 @@ from virtualmocap.vision.blob_detection import detect_blobs
 
 def detect_blob_features(
     gray_img,
-    min_area=4,
+    min_area=1,
     max_area=1000,
     min_circularity=0.1,
     min_convexity=0.1,
