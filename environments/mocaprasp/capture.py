@@ -8,8 +8,105 @@ import atexit
 import socket
 import threading
 import numpy as np
+import pandas as pd
 
 from virtualmocap.vision.blob_detection import detect_blobs
+
+def detect_blob_features(
+    gray_img,
+    min_area=4,
+    max_area=1000,
+    min_circularity=0.1,
+    min_convexity=0.1,
+    min_inertia=0.1,
+    thresh=120
+):
+
+    _, binary = cv2.threshold(gray_img, thresh, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    blobs = []
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        if not (min_area <= area <= max_area):
+            continue
+
+        perimeter = cv2.arcLength(cnt, True)
+        if perimeter == 0:
+            continue
+
+        # Circularity
+        circularity = 4 * np.pi * area / (perimeter**2)
+        if circularity < min_circularity:
+            continue
+
+        # Convexity
+        hull = cv2.convexHull(cnt)
+        hull_area = cv2.contourArea(hull)
+        if hull_area == 0:
+            continue
+        convexity = area / hull_area
+        if convexity < min_convexity:
+            continue
+
+        # Inertia Ratio
+        M = cv2.moments(cnt)
+        if M["m00"] == 0:
+            continue
+        cx = int(M["m10"] / M["m00"])
+        cy = int(M["m01"] / M["m00"])
+        mu20, mu02 = M["mu20"], M["mu02"]
+        inertia_ratio = min(mu20, mu02) / max(mu20, mu02) if max(mu20, mu02) > 0 else 0
+        if inertia_ratio < min_inertia:
+            continue
+
+        # Enclosing circle
+        (x, y), radius = cv2.minEnclosingCircle(cnt)
+
+        blobs.append(
+            {
+                "contour": cnt,
+                "center": (cx, cy),
+                "radius": radius,
+                "area": area,
+                "circularity": circularity,
+                "convexity": convexity,
+                "inertia": inertia_ratio,
+            }
+        )
+
+    return blobs
+
+
+def print_calib_values(blob_df):
+    # Set print options to display floats with 2 decimal places
+    np.set_printoptions(precision=2, suppress=True) 
+
+    for feature in ["radius", "area", "circularity", "convexity", "inertia"]:
+        data = blob_df[feature]
+
+        data = np.array(data)
+
+        Q1 = np.quantile(data, 0.25)
+        Q2 = np.median(data)
+        Q3 = np.quantile(data, 0.75)
+        IQR = Q3 - Q1
+
+        upper_bound = Q3 + (1.5 * IQR)
+        lower_bound = Q1 - (1.5 * IQR)
+
+        upper_whisker = np.max(np.compress(data <= upper_bound, data))
+        lower_whisker = np.min(np.compress(data >= lower_bound, data))
+
+        outliers = data[(data <= lower_bound) | (data >= upper_bound)]
+
+        print(f"{feature.upper()}")
+        print(f"\tUpper Whisker: {upper_whisker:.2f}")
+        print(f"\tUpper Box: {Q3:.2f}")
+        print(f"\tMedian: {Q2:.2f}")
+        print(f"\tLower Box: {Q1:.2f}")
+        print(f"\tLower Whisker: {lower_whisker:.2f}")
+
 
 # Blob detector parameters
 params = cv2.SimpleBlobDetector_Params()
@@ -167,10 +264,37 @@ def process_and_send():
             with frame_queue.mutex:  # Ensure thread safety
                 frame_queue.queue.clear()
 
+rows = []
+
+def blob_calib():
+    while True:
+        try:
+            shot_number, timestamp, frame = frame_queue.get(timeout=1)
+        except queue.Empty:
+            continue
+
+        blobs = detect_blob_features(frame, min_area=50, max_area=5000, min_circularity=0.75)
+
+        for b in blobs:
+            rows.append(b)
+
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+
+        for blob in blobs:
+            cx, cy = blob["center"]
+            r = int(blob["radius"])
+            cv2.circle(frame_rgb, (cx, cy), r, (0, 255, 0), 2)
+            cv2.circle(frame_rgb, (cx, cy), 2, (0, 0, 255), -1)
+
+        cv2.imshow("Round Blob Detection", frame_rgb)
+        cv2.waitKey(1)
+
+        frame_queue.task_done()
+
 
 # Start the background thread
-threading.Thread(target=process_and_send, daemon=True).start()
-
+#threading.Thread(target=process_and_send, daemon=True).start()
+threading.Thread(target=blob_calib, daemon=True).start()
 
 # GPIO Setup
 pi = pigpio.pi()
@@ -222,6 +346,8 @@ try:
         print(f"[INFO] Capture request received. Waiting {delay} s...")
         time.sleep(float(delay))  # Wait for delay
 
+        rows = [] # Reset rows
+
         print(f"[INFO] Running Capture for {capture_time} s...")
         pi.hardware_PWM(CLOCK_PIN, FPS, DUTY_CYCLE)  # Turn on capture trigger
         time.sleep(float(capture_time))  # Wait for capture time
@@ -237,6 +363,9 @@ try:
             continue
 
         cv2.destroyAllWindows()
+
+        blob_df = pd.DataFrame(rows)
+        print_calib_values(blob_df)
 
 except KeyboardInterrupt:
     print("\n[INFO] Exiting by external trigger...")
