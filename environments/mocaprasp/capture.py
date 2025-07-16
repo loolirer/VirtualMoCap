@@ -86,6 +86,8 @@ def print_calib_values(rows):
     dataframe = np.array([r.values() for r in rows]).T
 
     for feature, data in zip(features, dataframe):
+        data = np.array(data)
+
         Q1 = np.quantile(data, 0.25)
         Q2 = np.median(data)
         Q3 = np.quantile(data, 0.75)
