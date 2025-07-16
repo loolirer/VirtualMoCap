@@ -66,7 +66,8 @@ def detect_blob_features(
 
         blobs.append(
             {
-                "center": (cx, cy),
+                "cx": cx,
+                "cy": cy,
                 "radius": radius,
                 "area": area,
                 "circularity": circularity,
@@ -280,7 +281,8 @@ def blob_calib():
 
         for b in blobs:
             rows.append(b)
-            cx, cy = b["center"]
+            cx = b["cx"]
+            cy = b["cy"]
             r = int(b["radius"])
             cv2.circle(frame_rgb, (cx, cy), r, (0, 255, 0), 2)
             cv2.circle(frame_rgb, (cx, cy), 2, (0, 0, 255), -1)
