@@ -97,7 +97,7 @@ def print_calib_values(rows):
         upper_whisker = np.max(np.compress(data <= upper_bound, data))
         lower_whisker = np.min(np.compress(data >= lower_bound, data))
 
-        outliers = data[(data <= lower_bound) | (data >= upper_bound)]
+        outliers = data[(data < lower_whisker) | (data > upper_whisker)]
 
         total_measures = len(data)
         valid_measures = total_measures - len(outliers)
