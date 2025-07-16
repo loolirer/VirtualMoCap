@@ -12,6 +12,7 @@ import pandas as pd
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
+
 def detect_blob_features(
     gray_img,
     min_area=4,
@@ -19,7 +20,7 @@ def detect_blob_features(
     min_circularity=0.1,
     min_convexity=0.1,
     min_inertia=0.1,
-    thresh=120
+    thresh=120,
 ):
 
     _, binary = cv2.threshold(gray_img, thresh, 255, cv2.THRESH_BINARY)
@@ -80,7 +81,7 @@ def detect_blob_features(
 
 def print_calib_values(blob_df):
     # Set print options to display floats with 2 decimal places
-    np.set_printoptions(precision=2, suppress=True) 
+    np.set_printoptions(precision=2, suppress=True)
 
     for feature in ["radius", "area", "circularity", "convexity", "inertia"]:
         data = blob_df[feature]
@@ -264,7 +265,9 @@ def process_and_send():
             with frame_queue.mutex:  # Ensure thread safety
                 frame_queue.queue.clear()
 
+
 rows = []
+
 
 def blob_calib():
     while True:
@@ -273,16 +276,15 @@ def blob_calib():
         except queue.Empty:
             continue
 
-        blobs = detect_blob_features(frame, min_area=50, max_area=5000, min_circularity=0.75)
+        blobs = detect_blob_features(
+            frame, min_area=4, max_area=1000, min_circularity=0.1
+        )
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
         for b in blobs:
             rows.append(b)
-
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
-
-        for blob in blobs:
-            cx, cy = blob["center"]
-            r = int(blob["radius"])
+            cx, cy = b["center"]
+            r = int(b["radius"])
             cv2.circle(frame_rgb, (cx, cy), r, (0, 255, 0), 2)
             cv2.circle(frame_rgb, (cx, cy), 2, (0, 0, 255), -1)
 
@@ -293,7 +295,7 @@ def blob_calib():
 
 
 # Start the background thread
-#threading.Thread(target=process_and_send, daemon=True).start()
+# threading.Thread(target=process_and_send, daemon=True).start()
 threading.Thread(target=blob_calib, daemon=True).start()
 
 # GPIO Setup
@@ -346,7 +348,7 @@ try:
         print(f"[INFO] Capture request received. Waiting {delay} s...")
         time.sleep(float(delay))  # Wait for delay
 
-        rows = [] # Reset rows
+        rows = []  # Reset rows
 
         print(f"[INFO] Running Capture for {capture_time} s...")
         pi.hardware_PWM(CLOCK_PIN, FPS, DUTY_CYCLE)  # Turn on capture trigger
