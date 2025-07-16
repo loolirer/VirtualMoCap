@@ -8,7 +8,6 @@ import atexit
 import socket
 import threading
 import numpy as np
-import pandas as pd
 
 from virtualmocap.vision.blob_detection import detect_blobs
 
@@ -79,15 +78,14 @@ def detect_blob_features(
     return blobs
 
 
-def print_calib_values(blob_df):
+def print_calib_values(rows):
     # Set print options to display floats with 2 decimal places
     np.set_printoptions(precision=2, suppress=True)
 
-    for feature in ["radius", "area", "circularity", "convexity", "inertia"]:
-        data = blob_df[feature]
+    features = ["radius", "area", "circularity", "convexity", "inertia"]
+    data = np.array([r.values() for r in rows]).T
 
-        data = np.array(data)
-
+    for (feature,) in zip(features, data):
         Q1 = np.quantile(data, 0.25)
         Q2 = np.median(data)
         Q3 = np.quantile(data, 0.75)
@@ -365,27 +363,10 @@ try:
 
         cv2.destroyAllWindows()
 
-        blob_df = pd.DataFrame(rows)
-        print_calib_values(blob_df)
+        print_calib_values(rows)
 
 except KeyboardInterrupt:
     print("\n[INFO] Exiting by external trigger...")
 
 except Exception as e:
-    for idx, r in enumerate(rows):
-        print(f"{idx}: {r.values()}")
-
-        for v in r.values():
-
-            try:
-                iter(v)
-                print("GOTCHA!!")
-                print(f"{idx}: {r.values()}")
-
-            except TypeError:
-                continue
-
-        if len(r) != 7:
-            print(f"{idx}: {r.keys()}")
-
     print(f"[ERROR] {e}")
