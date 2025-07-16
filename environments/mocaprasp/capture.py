@@ -62,7 +62,7 @@ def detect_blob_features(
             continue
 
         # Enclosing circle
-        (x, y), radius = cv2.minEnclosingCircle(cnt)
+        _, radius = cv2.minEnclosingCircle(cnt)
 
         blobs.append(
             {
