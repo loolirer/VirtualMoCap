@@ -373,3 +373,7 @@ except KeyboardInterrupt:
 
 except Exception as e:
     print(f"[ERROR] {e}")
+    
+    for idx, r in enumerate(rows):
+        if len(r) != 7:
+            print(f"{idx}: {r.keys()}")
