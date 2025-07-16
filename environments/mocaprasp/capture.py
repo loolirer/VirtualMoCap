@@ -371,22 +371,21 @@ try:
 except KeyboardInterrupt:
     print("\n[INFO] Exiting by external trigger...")
 
-#except Exception as e:
-#    print(f"[ERROR] {e}")
-#
-#    for idx, r in enumerate(rows):
-#        for v in r.values():
-#            if 
-#
-#            try:
-#                iter(v)
-#                print("GOTCHA!!")
-#                print(f"{idx}: {r.values()}")
-#
-#            except TypeError:
-#                continue
-#
-#        if len(r) != 7:
-#            print(f"{idx}: {r.keys()}")
-#
-#    print("Did not find any...")
+except Exception as e:
+    for idx, r in enumerate(rows):
+        print(f"{idx}: {r.values()}")
+
+        for v in r.values():
+
+            try:
+                iter(v)
+                print("GOTCHA!!")
+                print(f"{idx}: {r.values()}")
+
+            except TypeError:
+                continue
+
+        if len(r) != 7:
+            print(f"{idx}: {r.keys()}")
+
+    print(f"[ERROR] {e}")
