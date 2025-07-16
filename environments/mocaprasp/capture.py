@@ -83,7 +83,7 @@ def print_calib_values(rows):
     np.set_printoptions(precision=2, suppress=True)
 
     features = ["radius", "area", "circularity", "convexity", "inertia"]
-    dataframe = np.array([list(r.values()) for r in rows]).T
+    dataframe = np.array([[r[f] for f in features] for r in rows]).T
 
     for feature, data in zip(features, dataframe):
         Q1 = np.quantile(data, 0.25)
