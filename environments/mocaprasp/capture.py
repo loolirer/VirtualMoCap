@@ -367,6 +367,3 @@ try:
 
 except KeyboardInterrupt:
     print("\n[INFO] Exiting by external trigger...")
-
-except Exception as e:
-    print(f"[ERROR] {e}")
