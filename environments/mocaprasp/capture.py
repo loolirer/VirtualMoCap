@@ -72,10 +72,10 @@ picam2.set_controls(
     {  # Set camera controls
         "AeEnable": False,
         "AwbEnable": False,
-        "Brightness": 1.0,
-        "AnalogueGain": 10.0,
-        "Contrast": 32.0,
-        #"ExposureTime": EXPOSURE_TIME,
+        # "Brightness": 1.0,
+        # "AnalogueGain": 10.0,
+        # "Contrast": 32.0,
+        # "ExposureTime": EXPOSURE_TIME,
     }
 )
 
