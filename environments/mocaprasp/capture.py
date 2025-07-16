@@ -66,8 +66,6 @@ def detect_blob_features(
 
         blobs.append(
             {
-                "contour": cnt,
-                "center": (cx, cy),
                 "radius": radius,
                 "area": area,
                 "circularity": circularity,
