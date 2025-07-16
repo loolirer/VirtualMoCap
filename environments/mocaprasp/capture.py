@@ -75,7 +75,7 @@ picam2.set_controls(
         "Brightness": 1.0,
         "AnalogueGain": 10.0,
         "Contrast": 32.0,
-        "ExposureTime": EXPOSURE_TIME,
+        #"ExposureTime": EXPOSURE_TIME,
     }
 )
 
