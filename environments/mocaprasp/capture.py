@@ -102,7 +102,7 @@ def print_calib_values(rows):
         total_measures = len(data)
         valid_measures = total_measures - len(outliers)
 
-        print(f"{feature.upper()}: ({len(valid_measures)}/{len(total_measures)})")
+        print(f"{feature.upper()}: ({valid_measures}/{total_measures})")
         print(f"\tUpper Whisker: {upper_whisker:.2f}")
         print(f"\tUpper Box: {Q3:.2f}")
         print(f"\tMedian: {Q2:.2f}")
