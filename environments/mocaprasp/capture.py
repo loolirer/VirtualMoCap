@@ -20,7 +20,7 @@ def detect_blob_features(
     min_circularity=0.1,
     min_convexity=0.1,
     min_inertia=0.1,
-    thresh=120,
+    thresh=127,
 ):
 
     _, binary = cv2.threshold(gray_img, thresh, 255, cv2.THRESH_BINARY)
@@ -276,9 +276,7 @@ def blob_calib():
         except queue.Empty:
             continue
 
-        blobs = detect_blob_features(
-            frame, min_area=4, max_area=1000, min_circularity=0.1
-        )
+        blobs = detect_blob_features(frame, max_area=500)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
         for b in blobs:
