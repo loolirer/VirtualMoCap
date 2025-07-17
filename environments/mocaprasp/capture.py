@@ -169,13 +169,7 @@ config = picam2.create_video_configuration(
 )
 picam2.configure(config)
 picam2.start()  # Begin camera connection
-picam2.set_controls(
-    {  # Set camera controls
-        "AeEnable": False,
-        "AwbEnable": False,
-        "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
-    }
-)
+picam2.set_controls({"AeEnable": False, "AwbEnable": False})  # Set camera controls
 
 time.sleep(1)  # Warm-up
 
@@ -246,7 +240,7 @@ def process_and_send():
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
         cv2.GaussianBlur(frame_proc, (5, 5), 0)
-        #frame_proc = cv2.equalizeHist(frame_proc)
+        # frame_proc = cv2.equalizeHist(frame_proc)
 
         blobs = detect_blobs(
             frame_proc, area=True, thresh=threshold, detector=marker_detector
@@ -254,7 +248,7 @@ def process_and_send():
 
         # Print blobs
         frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
-        #for b in blobs:
+        # for b in blobs:
         #    cv2.circle(
         #        frame_display,
         #        center=b[:2].astype(int),
