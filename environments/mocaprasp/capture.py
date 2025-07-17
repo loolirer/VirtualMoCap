@@ -236,7 +236,7 @@ def lumizoom(image, cutoff):
         return image
 
     # Performe luminosity zoom
-    image = (256 / (256 - cutoff)) * (image - cutoff)
+    image = (255 / (255 - cutoff)) * (image - cutoff)
 
     # Make image suitable for OpenCV
     image = np.clip(image, 0, 255).astype(np.uint8)
