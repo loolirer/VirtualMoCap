@@ -238,7 +238,9 @@ def process_and_send():
         frame_proc = cv2.convertScaleAbs(
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
-        frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
+        frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 1.0)
+        frame_proc = cv2.GaussianBlur(frame_proc, (9, 9), 2.0)
+        frame_proc = cv2.addWeighted(frame_proc, 1.5, frame_proc, -0.5, 0)
         frame_proc = cv2.equalizeHist(frame_proc)
         frame_proc = cv2.medianBlur(frame_proc, 5)
 
