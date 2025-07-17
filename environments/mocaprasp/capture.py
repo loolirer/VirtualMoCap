@@ -239,22 +239,25 @@ def process_and_send():
 
         # Process image
         frame_proc = cv2.subtract(frame, cutoff)
-        frame_proc = cv2.convertScaleAbs(frame_proc, alpha=255 / (255 - cutoff), beta=0.0)
+        frame_proc = cv2.convertScaleAbs(
+            frame_proc, alpha=255 / (255 - cutoff), beta=0.0
+        )
+        frame_proc = cv2.GaussianBlur(frame_proc, (5, 5))
 
         blobs = detect_blobs(
             frame_proc, area=True, thresh=127, detector=marker_detector
         )
 
         # Print blobs
-        frame_rgb = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
-        for b in blobs:
-            cv2.circle(
-                frame_rgb,
-                center=b[:2].astype(int),
-                radius=5,
-                color=(0, 0, 255),
-                thickness=-1,
-            )
+        # frame_rgb = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
+        # for b in blobs:
+        #    cv2.circle(
+        #        frame_rgb,
+        #        center=b[:2].astype(int),
+        #        radius=5,
+        #        color=(0, 0, 255),
+        #        thickness=-1,
+        #    )
 
         cv2.imshow("Camera Feed", frame_rgb)
         cv2.waitKey(1)
