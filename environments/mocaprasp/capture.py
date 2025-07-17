@@ -173,7 +173,7 @@ picam2.set_controls(
     {  # Set camera controls
         "AeEnable": False,
         "AwbEnable": False,
-        "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.Fast,
+        "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
     }
 )
 
