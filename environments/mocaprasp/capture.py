@@ -131,21 +131,22 @@ params.filterByColor = True
 params.blobColor = 0
 
 # Filter only blobs with over 4 pixels
-params.filterByArea = False
-params.minArea = 4
-params.maxArea = 50
+params.filterByArea = True
+params.minArea = 1.0
+params.maxArea = 40.0
 
 # Filter by Circularity
-params.filterByCircularity = False
-params.minCircularity = 0.5
+params.filterByCircularity = True
+params.minCircularity = 0.59
+params.maxCircularity = 1.00
 
 # Filter by Convexity
-params.filterByConvexity = False
-params.minConvexity = 0.5
+params.filterByConvexity = True
+params.minConvexity = 0.88
+params.minConvexity = 1.00
 
 # Filter by Inertia
 params.filterByInertia = False
-params.minInertiaRatio = 0.5
 
 # Instanciate marker detector object
 marker_detector = cv2.SimpleBlobDetector_create(params)
@@ -296,7 +297,7 @@ def blob_calib():
 
 # Start the background thread
 # threading.Thread(target=process_and_send, daemon=True).start()
-threading.Thread(target=blob_calib, daemon=True).start()
+threading.Thread(target=process_and_send, daemon=True).start()
 
 # GPIO Setup
 pi = pigpio.pi()
@@ -366,7 +367,8 @@ try:
 
         cv2.destroyAllWindows()
 
-        print_calib_values(rows)
+        if rows:
+            print_calib_values(rows)
 
 except KeyboardInterrupt:
     print("\n[INFO] Exiting by external trigger...")
