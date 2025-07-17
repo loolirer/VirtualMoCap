@@ -227,6 +227,23 @@ def capture_callback(gpio, level, tick):
     frame_queue.put((shot_number, timestamp, frame))
 
 
+def lumizoom(image, cutoff):
+    # Cut luminosity values below cutoff
+    image[image < cutoff] = 0
+
+    # Return black image
+    if cutoff == 256:
+        return image
+
+    # Performe luminosity zoom
+    image = (256 / (256 - cutoff)) * (image - cutoff)
+
+    # Make image suitable for OpenCV
+    image = np.clip(image, 0, 255).astype(np.uint8)
+
+    return image
+
+
 # Background image processing and communication
 def process_and_send():
     while True:
@@ -234,13 +251,14 @@ def process_and_send():
             shot_number, timestamp, frame = frame_queue.get(timeout=1)
         except queue.Empty:
             continue
-        
-        frame[frame < 127] = 0
-        frame = np.clip(2*(frame - 127), 0, 255).astype(np.uint8)
-        blobs = detect_blobs(frame, area=True, thresh=127, detector=marker_detector)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
-        #for b in blobs:
+        frame_lumizoomed = lumizoom(frame, 127)
+        blobs = detect_blobs(
+            frame_lumizoomed, area=True, thresh=127, detector=marker_detector
+        )
+        frame_rgb = cv2.cvtColor(frame_lumizoomed, cv2.COLOR_GRAY2RGB)
+
+        # for b in blobs:
         #    cv2.circle(
         #        frame_rgb,
         #        center=b[:2].astype(int),
