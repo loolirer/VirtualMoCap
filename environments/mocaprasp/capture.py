@@ -163,7 +163,7 @@ resolution = (960, 720)
 config = picam2.create_video_configuration(
     main={
         "size": resolution,
-        "format": "RGB888",
+        "format": "YUV420",
     }  # Already captures in grayscale
 )
 picam2.configure(config)
@@ -225,7 +225,7 @@ def capture_callback(gpio, level, tick):
         shot_counter += 1
 
     timestamp = time.time()
-    frame = picam2.capture_array()
+    frame = picam2.capture_array()[: resolution[1], : resolution[0]]
 
     # Push to processing queue
     frame_queue.put((shot_number, timestamp, frame))
@@ -235,27 +235,24 @@ def capture_callback(gpio, level, tick):
 def process_and_send():
     while True:
         try:
-            shot_number, timestamp, frame_rgb = frame_queue.get(timeout=1)
+            shot_number, timestamp, frame = frame_queue.get(timeout=1)
         except queue.Empty:
             continue
 
-        frame_gray = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2GRAY)
-        frame_contrast = cv2.convertScaleAbs(frame_gray, alpha=4.0, beta=-200.0)
-        blobs = detect_blobs(
-            frame_contrast, area=True, thresh=127, detector=marker_detector
-        )
-        frame_display = cv2.cvtColor(frame_contrast, cv2.COLOR_GRAY2RGB)
+        frame = cv2.convertScaleAbs(frame, alpha=6.0, beta=-127.0)
+        blobs = detect_blobs(frame, area=True, thresh=127, detector=marker_detector)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
         for b in blobs:
             cv2.circle(
-                frame_display,
+                frame_rgb,
                 center=b[:2].astype(int),
                 radius=5,
                 color=(0, 0, 255),
                 thickness=-1,
             )
 
-        cv2.imshow("Camera Feed", frame_display)
+        cv2.imshow("Camera Feed", frame_rgb)
         cv2.waitKey(1)
 
         message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
