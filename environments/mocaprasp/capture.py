@@ -246,7 +246,7 @@ def process_and_send():
         )
 
         # Print blobs
-        frame_display = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
         for b in blobs:
             cv2.circle(
                 frame_display,
