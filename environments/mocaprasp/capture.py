@@ -241,6 +241,11 @@ def process_and_send():
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 1.0)
         frame_proc = cv2.equalizeHist(frame_proc)
 
+        dynamic_thresh = np.quantile(frame_proc, 0.25)
+        _, frame_proc = cv2.threshold(
+            frame_proc, dynamic_thresh, 255, cv2.THRESH_BINARY
+        )
+
         blobs = detect_blobs(
             frame_proc, area=True, thresh=threshold, detector=marker_detector
         )
