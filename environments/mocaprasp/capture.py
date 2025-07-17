@@ -131,17 +131,17 @@ params.filterByColor = True
 params.blobColor = 0
 
 # Filter only blobs with over 4 pixels
-params.filterByArea = True
+params.filterByArea = False
 params.minArea = 1.0
 params.maxArea = 40.0
 
 # Filter by Circularity
-params.filterByCircularity = True
+params.filterByCircularity = False
 params.minCircularity = 0.59
 params.maxCircularity = 1.00
 
 # Filter by Convexity
-params.filterByConvexity = True
+params.filterByConvexity = False
 params.minConvexity = 0.88
 params.minConvexity = 1.00
 
