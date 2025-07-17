@@ -243,7 +243,7 @@ def process_and_send():
         frame_proc = cv2.convertScaleAbs(
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
-        frame_proc = cv2.medianBlur(frame_proc, 5)
+        frame_proc = cv2.medianBlur(frame_proc, 3)
         # frame_proc = cv2.MediBlur(frame_proc, (7, 7), 0)
         frame_proc = cv2.equalizeHist(frame_proc)
 
@@ -253,14 +253,14 @@ def process_and_send():
 
         # Print blobs
         frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
-        for b in blobs:
-            cv2.circle(
-                frame_display,
-                center=b[:2].astype(int),
-                radius=3,
-                color=(0, 0, 255),
-                thickness=-1,
-            )
+        # for b in blobs:
+        #    cv2.circle(
+        #        frame_display,
+        #        center=b[:2].astype(int),
+        #        radius=1,
+        #        color=(0, 0, 255),
+        #        thickness=-1,
+        #    )
 
         cv2.imshow("Camera Feed", frame_display)
         cv2.waitKey(1)
