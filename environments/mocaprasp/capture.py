@@ -238,11 +238,11 @@ def process_and_send():
             continue
 
         # Process image
-        frame_proc = cv2.subtract(frame_proc, cutoff)
+        frame_proc = cv2.subtract(frame, cutoff)
         frame_proc = cv2.convertScaleAbs(
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
-        frame_proc = cv2.GaussianBlur(frame, (5, 5), 0)
+        frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
 
         blobs = detect_blobs(
             frame_proc, area=True, thresh=100, detector=marker_detector
