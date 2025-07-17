@@ -243,10 +243,7 @@ def process_and_send():
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
-        frame_proc = cv2.subtract(frame, cutoff)
-        frame_proc = cv2.convertScaleAbs(
-            frame_proc, alpha=255 / (255 - cutoff), beta=0.0
-        )
+        frame_proc = cv2.threshold(frame_proc, 50, 255, cv2.THRESH_BINARY)
 
         blobs = detect_blobs(frame_proc, area=True, thresh=50, detector=marker_detector)
 
