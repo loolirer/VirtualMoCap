@@ -230,6 +230,7 @@ def capture_callback(gpio, level, tick):
 # Background image processing and communication
 def process_and_send():
     cutoff = 100
+    threshold = 50
 
     while True:
         try:
@@ -243,22 +244,24 @@ def process_and_send():
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
-        frame_proc = cv2.threshold(frame_proc, 50, 255, cv2.THRESH_BINARY)
 
-        blobs = detect_blobs(frame_proc, area=True, thresh=50, detector=marker_detector)
+        blobs = detect_blobs(
+            frame_proc, area=True, thresh=threshold, detector=marker_detector
+        )
 
         # Print blobs
-        frame_rgb = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
+        frame_display = cv2.threshold(frame_proc, threshold, 255, cv2.THRESH_BINARY)
+        frame_display = cv2.cvtColor(frame_display, cv2.COLOR_GRAY2RGB)
         # for b in blobs:
         #    cv2.circle(
-        #        frame_rgb,
+        #        frame_display,
         #        center=b[:2].astype(int),
         #        radius=5,
         #        color=(0, 0, 255),
         #        thickness=-1,
         #    )
 
-        cv2.imshow("Camera Feed", frame_rgb)
+        cv2.imshow("Camera Feed", frame_display)
         cv2.waitKey(1)
 
         message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
