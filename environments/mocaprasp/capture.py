@@ -244,7 +244,7 @@ def process_and_send():
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
         frame_proc = cv2.medianBlur(frame_proc, 3)
-        # frame_proc = cv2.GaussianBlur(frame_proc, (7, 7), 0)
+        # frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
         frame_proc = cv2.equalizeHist(frame_proc)
 
         blobs = detect_blobs(
@@ -252,7 +252,7 @@ def process_and_send():
         )
 
         # Print blobs
-        frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
+        frame_display = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
         for b in blobs:
             cv2.circle(
                 frame_display,
