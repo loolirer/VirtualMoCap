@@ -225,7 +225,7 @@ def capture_callback(gpio, level, tick):
 # Background image processing and communication
 def process_and_send():
     cutoff = 127
-    threshold = 10
+    threshold = 127
 
     while True:
         try:
@@ -233,7 +233,7 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        # Process image
+        # Image processing
         frame_proc = cv2.subtract(frame, cutoff)
         frame_proc = cv2.convertScaleAbs(
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
@@ -241,6 +241,7 @@ def process_and_send():
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 1.0)
         frame_proc = cv2.equalizeHist(frame_proc)
 
+        # Detect blobs
         blobs = detect_blobs(
             frame_proc, area=True, thresh=threshold, detector=marker_detector
         )
