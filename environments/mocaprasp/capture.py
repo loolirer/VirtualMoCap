@@ -172,7 +172,6 @@ picam2.set_controls(
     {  # Set camera controls
         "AeEnable": False,
         "AwbEnable": False,
-        "ExposureTime": EXPOSURE_TIME,
     }
 )
 
@@ -235,19 +234,22 @@ def process_and_send():
             shot_number, timestamp, frame = frame_queue.get(timeout=1)
         except queue.Empty:
             continue
+        
+        frame = frame[frame < 127] = 0
+        frame = np.clip(2*(frame - 127), 0, 255).astype(np.uint8)
 
-        # frame = np.clip(4.0 * (frame - 50.0), 0, 255).astype(np.uint8)
+        frame = np.clip(4.0 * (frame - 50.0), 0, 255).astype(np.uint8)
         blobs = detect_blobs(frame, area=True, thresh=127, detector=marker_detector)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
-        for b in blobs:
-            cv2.circle(
-                frame_rgb,
-                center=b[:2].astype(int),
-                radius=5,
-                color=(0, 0, 255),
-                thickness=-1,
-            )
+        #for b in blobs:
+        #    cv2.circle(
+        #        frame_rgb,
+        #        center=b[:2].astype(int),
+        #        radius=5,
+        #        color=(0, 0, 255),
+        #        thickness=-1,
+        #    )
 
         cv2.imshow("Camera Feed", frame_rgb)
         cv2.waitKey(1)
