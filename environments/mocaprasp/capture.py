@@ -227,45 +227,34 @@ def capture_callback(gpio, level, tick):
     frame_queue.put((shot_number, timestamp, frame))
 
 
-def lumizoom(image, cutoff):
-    image = cv2.subtract(image, cutoff)
-    image = cv2.convertScaleAbs(image, alpha=255 / (255 - cutoff), beta=0.0)
-    return image
-
-    # Cut luminosity values below cutoff
-    # image[image < cutoff] = 0
-
-    # Return black image
-    # if cutoff == 256:
-    #    return image
-
-    # image = np.clip(int(255 / (255 - cutoff)) * (image - cutoff), 0, 255).astype(np.uint8)
-
-    # return image
-
-
 # Background image processing and communication
 def process_and_send():
+    cutoff = 127
+
     while True:
         try:
             shot_number, timestamp, frame = frame_queue.get(timeout=1)
         except queue.Empty:
             continue
 
-        frame_lumizoomed = lumizoom(frame, 127)
-        blobs = detect_blobs(
-            frame_lumizoomed, area=True, thresh=127, detector=marker_detector
-        )
-        frame_rgb = cv2.cvtColor(frame_lumizoomed, cv2.COLOR_GRAY2RGB)
+        # Process image
+        frame_proc = cv2.subtract(frame, cutoff)
+        frame_proc = cv2.convertScaleAbs(frame, alpha=255 / (255 - cutoff), beta=0.0)
 
-        # for b in blobs:
-        #    cv2.circle(
-        #        frame_rgb,
-        #        center=b[:2].astype(int),
-        #        radius=5,
-        #        color=(0, 0, 255),
-        #        thickness=-1,
-        #    )
+        blobs = detect_blobs(
+            frame_proc, area=True, thresh=127, detector=marker_detector
+        )
+
+        # Print blobs
+        frame_rgb = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
+        for b in blobs:
+            cv2.circle(
+                frame_rgb,
+                center=b[:2].astype(int),
+                radius=5,
+                color=(0, 0, 255),
+                thickness=-1,
+            )
 
         cv2.imshow("Camera Feed", frame_rgb)
         cv2.waitKey(1)
