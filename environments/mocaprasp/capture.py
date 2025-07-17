@@ -1,6 +1,5 @@
 # Importing modules...
 from picamera2 import Picamera2
-from libcamera import controls
 import pigpio
 import cv2
 import time
