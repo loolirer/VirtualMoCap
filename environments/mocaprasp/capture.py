@@ -248,7 +248,6 @@ def process_and_send():
         frame_proc = cv2.convertScaleAbs(
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
-        _, frame_proc = cv2.threshold(frame_proc, threshold, 255, cv2.THRESH_BINARY)
 
         blobs = detect_blobs(
             frame_proc, area=True, thresh=threshold, detector=marker_detector
