@@ -249,7 +249,7 @@ def process_and_send():
         )
 
         # Print blobs
-        # frame_rgb = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
+        frame_rgb = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
         # for b in blobs:
         #    cv2.circle(
         #        frame_rgb,
@@ -258,7 +258,7 @@ def process_and_send():
         #        color=(0, 0, 255),
         #        thickness=-1,
         #    )
-
+        #
         cv2.imshow("Camera Feed", frame_rgb)
         cv2.waitKey(1)
 
