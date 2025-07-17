@@ -241,8 +241,6 @@ def process_and_send():
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 1.0)
         frame_proc = cv2.equalizeHist(frame_proc)
 
-        _, frame_proc = cv2.threshold(frame_proc, 0, 255, cv2.THRESH_BINARY)
-
         blobs = detect_blobs(
             frame_proc, area=True, thresh=threshold, detector=marker_detector
         )
@@ -250,13 +248,13 @@ def process_and_send():
         # Print blobs
         frame_display = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
         for b in blobs:
-           cv2.circle(
-               frame_display,
-               center=b[:2].astype(int),
-               radius=1,
-               color=(0, 0, 255),
-               thickness=-1,
-           )
+            cv2.circle(
+                frame_display,
+                center=b[:2].astype(int),
+                radius=1,
+                color=(0, 0, 255),
+                thickness=-1,
+            )
 
         cv2.imshow("Camera Feed", frame_display)
         cv2.waitKey(1)
