@@ -239,7 +239,7 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        frame = np.clip(6.0 * (frame - 100.0), 0, 255).astype(np.uint8)
+        frame = np.clip(4.0 * (frame - 50.0), 0, 255).astype(np.uint8)
         blobs = detect_blobs(frame, area=True, thresh=127, detector=marker_detector)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
