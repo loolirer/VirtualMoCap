@@ -172,7 +172,6 @@ picam2.set_controls(
     {  # Set camera controls
         "AeEnable": False,
         "AwbEnable": False,
-        "ExposureTime": EXPOSURE_TIME,
     }
 )
 
