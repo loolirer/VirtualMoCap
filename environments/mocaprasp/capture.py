@@ -251,15 +251,15 @@ def process_and_send():
         )
 
         # Print blobs
-        frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
-        # for b in blobs:
-        #    cv2.circle(
-        #        frame_display,
-        #        center=b[:2].astype(int),
-        #        radius=5,
-        #        color=(0, 0, 255),
-        #        thickness=-1,
-        #    )
+        frame_display = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        for b in blobs:
+            cv2.circle(
+                frame_display,
+                center=b[:2].astype(int),
+                radius=3,
+                color=(0, 0, 255),
+                thickness=-1,
+            )
 
         cv2.imshow("Camera Feed", frame_display)
         cv2.waitKey(1)
