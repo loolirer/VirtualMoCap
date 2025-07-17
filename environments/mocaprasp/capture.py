@@ -229,7 +229,7 @@ def capture_callback(gpio, level, tick):
 
 # Background image processing and communication
 def process_and_send():
-    cutoff = 100
+    cutoff = 80
 
     while True:
         try:
