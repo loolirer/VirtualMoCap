@@ -238,8 +238,9 @@ def process_and_send():
         frame_proc = cv2.convertScaleAbs(
             frame_proc, alpha=255 / (255 - cutoff), beta=0.0
         )
-        frame_proc = cv2.GaussianBlur(frame_proc, (3, 3), 0)
+        frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
         frame_proc = cv2.equalizeHist(frame_proc)
+        frame_proc = cv2.medianBlur(frame_proc, 3)
 
         blobs = detect_blobs(
             frame_proc, area=True, thresh=threshold, detector=marker_detector
