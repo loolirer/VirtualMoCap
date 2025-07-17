@@ -244,7 +244,7 @@ def process_and_send():
         )
         # frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
 
-        blobs = detect_blobs(frame_proc, area=True, thresh=80, detector=marker_detector)
+        blobs = detect_blobs(frame_proc, area=True, thresh=50, detector=marker_detector)
 
         # Print blobs
         frame_rgb = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
