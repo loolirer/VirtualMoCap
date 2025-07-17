@@ -157,7 +157,7 @@ picam2 = Picamera2()  # Create Picamera2 object
 
 FPS = 30  # In hertz
 TIME_BUDGET = 1.0 / FPS  # In seconds
-EXPOSURE_TIME = 5000  # In microseconds
+EXPOSURE_TIME = 10000  # In microseconds
 
 resolution = (960, 720)
 config = picam2.create_video_configuration(
@@ -172,10 +172,7 @@ picam2.set_controls(
     {  # Set camera controls
         "AeEnable": False,
         "AwbEnable": False,
-        # "Brightness": 1.0,
-        # "AnalogueGain": 10.0,
-        # "Contrast": 32.0,
-        # "ExposureTime": EXPOSURE_TIME,
+        "ExposureTime": EXPOSURE_TIME,
     }
 )
 
@@ -239,7 +236,7 @@ def process_and_send():
         except queue.Empty:
             continue
 
-        frame = np.clip(4.0 * (frame - 50.0), 0, 255).astype(np.uint8)
+        # frame = np.clip(4.0 * (frame - 50.0), 0, 255).astype(np.uint8)
         blobs = detect_blobs(frame, area=True, thresh=127, detector=marker_detector)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
