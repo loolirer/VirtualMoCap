@@ -228,8 +228,9 @@ def capture_callback(gpio, level, tick):
 
 
 def lumizoom(image, cutoff):
+    image -= cutoff
     image[image <= 127] = 0
-    return np.clip(np.round(255 / (255 - cutoff)) * (image - cutoff), 0, 255).astype(np.uint8)
+    return np.clip(image * 255 / (255 - cutoff), 0, 255).astype(np.uint8)
 
     # Cut luminosity values below cutoff
     # image[image < cutoff] = 0
