@@ -238,10 +238,12 @@ def process_and_send():
             shot_number, timestamp, frame_rgb = frame_queue.get(timeout=1)
         except queue.Empty:
             continue
-        
+
         frame_gray = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2GRAY)
-        frame_contrast = cv2.convertScaleAbs(frame_gray, alpha=4.0, beta=-127.0)
-        blobs = detect_blobs(frame_contrast, area=True, thresh=127, detector=marker_detector)
+        frame_contrast = cv2.convertScaleAbs(frame_gray, alpha=4.0, beta=-200.0)
+        blobs = detect_blobs(
+            frame_contrast, area=True, thresh=127, detector=marker_detector
+        )
         frame_display = cv2.cvtColor(frame_contrast, cv2.COLOR_GRAY2RGB)
 
         for b in blobs:
