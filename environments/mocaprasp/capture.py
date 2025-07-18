@@ -1,5 +1,6 @@
 # Importing modules...
 from picamera2 import Picamera2
+from libcamera import controls
 import pigpio
 import cv2
 import time
@@ -168,7 +169,13 @@ config = picam2.create_video_configuration(
 )
 picam2.configure(config)
 picam2.start()  # Begin camera connection
-picam2.set_controls({"AeEnable": False, "AwbEnable": False})  # Set camera controls
+picam2.set_controls(
+    {
+        "AeEnable": False,
+        "AwbEnable": False,
+        "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
+    }
+)  # Set camera controls
 
 time.sleep(1)  # Warm-up
 
