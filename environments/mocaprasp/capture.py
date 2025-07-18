@@ -299,7 +299,7 @@ def process_and_send():
             circles = np.uint16(np.around(circles))
             for x, y, r in circles[0, :]:
                 cv2.circle(frame_display, (x, y), r, (0, 0, 255), 2)  # Circle outline
-                cv2.circle(frame_display, (x, y), 1, (0, 0, 255), 3)  # Circle center
+                cv2.circle(frame_display, (x, y), 1, (255, 0, 0), 3)  # Circle center
 
         cv2.imshow("Camera Feed", frame_display)
         cv2.waitKey(1)
