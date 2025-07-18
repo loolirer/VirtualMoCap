@@ -151,11 +151,11 @@ params.filterByInertia = False
 
 
 def detect_circles(frame):
-    min_radius = 1
+    min_radius = 2
     max_radius = 50
     min_dist = 2 * min_radius
-    param1 = 20
-    param2 = 20
+    param1 = 50
+    param2 = 10
 
     # Detect circles using HoughCircles
     circles = cv2.HoughCircles(
