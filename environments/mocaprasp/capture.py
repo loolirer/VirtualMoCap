@@ -267,7 +267,7 @@ def process_and_send():
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
         frame_proc = cv2.equalizeHist(frame_proc)
         frame_proc = cv2.medianBlur(
-            frame_proc, 5
+            frame_proc, 3
         )  # Removes punctual noise that still passes the filter
 
         # Detect blobs
