@@ -18,25 +18,18 @@ params.maxThreshold = (
 params.minDistBetweenBlobs = 1
 
 # Filter only dark blobs
-params.filterByColor = False
+params.filterByColor = True
 params.blobColor = 0
 
-# Filter only blobs with over 4 pixels
-params.filterByArea = False
-params.minArea = 4
-params.maxArea = 50
+# Filter only blobs with over 2 pixels
+params.filterByArea = True
+params.minArea = 3
 
-# Filter by Circularity
-params.filterByCircularity = False
-params.minCircularity = 0.8
-
-# Filter by Convexity
+# Do not filter by convexity to allow distorted blobs to be detected
 params.filterByConvexity = False
-params.minConvexity = 0.8
 
-# Filter by Inertia
-params.filterByInertia = False
-params.minInertiaRatio = 0.75
+# Instanciate marker detector object
+marker_detector = cv2.SimpleBlobDetector_create(params)
 
 # Instanciate marker detector object
 marker_detector = cv2.SimpleBlobDetector_create(params)
