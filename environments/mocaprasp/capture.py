@@ -154,8 +154,8 @@ def detect_circles(frame):
     min_radius = 1
     max_radius = 50
     min_dist = 2 * min_radius
-    param1 = 30
-    param2 = 30
+    param1 = 10
+    param2 = 10
 
     # Detect circles using HoughCircles
     circles = cv2.HoughCircles(
@@ -288,7 +288,6 @@ def process_and_send():
 
         circles = detect_circles(frame_proc)
         if circles is not None:
-            print("detect!!")
             blobs = np.array(circles[0, :])
 
             message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
