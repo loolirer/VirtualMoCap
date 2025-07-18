@@ -152,7 +152,7 @@ params.filterByInertia = False
 
 def detect_circles(frame):
     min_radius = 2
-    max_radius = 10
+    max_radius = 20
     min_dist = 2 * min_radius
     param1 = 60
     param2 = 10
