@@ -161,7 +161,7 @@ def detect_circles(frame):
     circles = cv2.HoughCircles(
         frame,
         cv2.HOUGH_GRADIENT,
-        dp=1.2,  # Inverse ratio of accumulator resolution to image resolution
+        dp=1,  # Inverse ratio of accumulator resolution to image resolution
         minDist=min_dist,  # Minimum distance between detected centers
         param1=param1,  # Upper threshold for Canny edge detector
         param2=param2,  # Threshold for center detection
