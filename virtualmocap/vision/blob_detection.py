@@ -31,10 +31,6 @@ params.filterByConvexity = False
 # Instanciate marker detector object
 marker_detector = cv2.SimpleBlobDetector_create(params)
 
-# Instanciate marker detector object
-marker_detector = cv2.SimpleBlobDetector_create(params)
-
-
 def detect_blobs(image, area=False, thresh=127, detector=marker_detector):
     # Apply threshold to image
     _, image_thresh = cv2.threshold(image, thresh, 255, cv2.THRESH_BINARY_INV)
