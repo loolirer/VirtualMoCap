@@ -154,8 +154,8 @@ def detect_circles(frame):
     min_radius = 1
     max_radius = 50
     min_dist = 2 * min_radius
-    param1 = 100
-    param2 = 40
+    param1 = 50
+    param2 = 10
 
     # Detect circles using HoughCircles
     circles = cv2.HoughCircles(
