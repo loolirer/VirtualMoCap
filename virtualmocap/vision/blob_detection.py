@@ -18,24 +18,24 @@ params.maxThreshold = (
 params.minDistBetweenBlobs = 1
 
 # Filter only dark blobs
-params.filterByColor = True
+params.filterByColor = False
 params.blobColor = 0
 
 # Filter only blobs with over 4 pixels
-params.filterByArea = True
+params.filterByArea = False
 params.minArea = 4
 params.maxArea = 50
 
 # Filter by Circularity
-params.filterByCircularity = True
+params.filterByCircularity = False
 params.minCircularity = 0.8
 
 # Filter by Convexity
-params.filterByConvexity = True
+params.filterByConvexity = False
 params.minConvexity = 0.8
 
 # Filter by Inertia
-params.filterByInertia = True
+params.filterByInertia = False
 params.minInertiaRatio = 0.75
 
 # Instanciate marker detector object
