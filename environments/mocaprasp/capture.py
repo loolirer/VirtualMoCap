@@ -276,7 +276,7 @@ def process_and_send():
         # )
 
         # Print blobs
-        frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
+        frame_display = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
         # for b in blobs:
         #    cv2.circle(
         #        frame_display,
@@ -298,7 +298,7 @@ def process_and_send():
 
             circles = np.uint16(np.around(circles))
             for x, y, r in circles[0, :]:
-                cv2.circle(frame_display, (x, y), r, (0, 0, 255), 2)  # Circle outline
+                cv2.circle(frame_display, (x, y), r, (0, 0, 255), 1)  # Circle outline
                 cv2.circle(frame_display, (x, y), 1, (255, 0, 0), -1)  # Circle center
 
         cv2.imshow("Camera Feed", frame_display)
