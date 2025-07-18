@@ -1,6 +1,5 @@
 # Importing modules...
 import os
-import sys
 import time
 import numpy as np
 import scipy as sp
@@ -11,6 +10,10 @@ from virtualmocap.plot.viewer3d import Viewer3D
 from virtualmocap.integration.client import Client
 from virtualmocap.integration.coppeliasim.server import CoppeliaSim_Server
 from virtualmocap.integration.coppeliasim.camera import CoppeliaSim_Camera
+
+# How much time to wait before disappearing
+if "message_timeout" not in st.session_state:
+    st.session_state.message_timeout = 3  # In seconds
 
 # Create server
 if "server" not in st.session_state:
@@ -86,12 +89,12 @@ if st.button("Request Scene"):
     # Request scene with the associated server clients
     if not st.session_state.server.request_scene():
         placeholder.error("Scene request failed!", icon="🚨")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
 
     else:
         placeholder.success("Scene request successful!", icon="✅")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
 
 st.markdown("---")
@@ -130,7 +133,7 @@ if st.button("Load Calibration") and selected_folder != "":
     st.plotly_chart(scene.figure)
 
     placeholder.success("Calibration loaded!", icon="✅")
-    time.sleep(5)  # Wait 5 seconds before disappearing
+    time.sleep(st.session_state.message_timeout)  # Wait before disappearing
     placeholder.empty()
 
 
@@ -141,139 +144,137 @@ if st.button("Extrinsic Calibration"):
     # Capture specifications
     blob_count = 3  # Number of expected markers
     capture_duration = 30.0  # In seconds
-    verbose = False
+    verbose = True
 
     # Request capture (start simulation)
     if not st.session_state.server.request_sync_calibration(capture_duration):
         placeholder.error("Calibration request failed!", icon="🚨")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
-        sys.exit()
 
     else:
         placeholder.success("Calibration request successful!", icon="✅")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-    # Wait for client identification
-    st.session_state.server.register_clients()
+        # Wait for client identification
+        st.session_state.server.register_clients()
 
-    placeholder.info("Running extrinsic calibration...", icon="ℹ️")
+        placeholder.info("Running extrinsic calibration...", icon="ℹ️")
 
-    timeout = 5  # In seconds
-    st.session_state.server.udp_socket.settimeout(timeout)  # Set server timeout
-    print(f"[SERVER] Timeout set to {timeout} seconds\n")
+        timeout = 5  # In seconds
+        st.session_state.server.udp_socket.settimeout(timeout)  # Set server timeout
+        print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
-    # Receiving messages
-    while True:
-        # Wait for message - Event guided!
-        try:
-            message_bytes, address = st.session_state.server.udp_socket.recvfrom(
-                st.session_state.server.buffer_size
-            )
-
-        except TimeoutError:
-            print("\n[SERVER] Timed Out!")
-            break  # Close capture loop due to timeout
-
-        except ConnectionResetError:
-            print("\n[SERVER] Connection Reset!")
-            continue  # Jump to wait for the next message
-
-        # Check if client exists
-        try:
-            ID = st.session_state.server.client_addresses[address]  # Client Identifier
-
-        except:
-            if verbose:
-                print("> Client not recognized")
-
-            continue  # Jump to wait for the next message
-
-        # Show sender
-        if verbose:
-            print(f"> Received message from Client {ID} ({address[0]}, {address[1]})")
-
-        # Save message
-        st.session_state.server.clients[ID].message_log.append(message_bytes)
-
-    # Post-processing
-    for ID, client in enumerate(st.session_state.server.clients):
-        # Parse through client's message history
-        for message_bytes in client.message_log:
-            # Decode message
+        # Receiving messages
+        while True:
+            # Wait for message - Event guided!
             try:
-                message = np.frombuffer(message_bytes, dtype=np.float32)
+                message_bytes, address = st.session_state.server.udp_socket.recvfrom(
+                    st.session_state.server.buffer_size
+                )
+
+            except TimeoutError:
+                print("\n[SERVER] Timed Out!")
+                break  # Close capture loop due to timeout
+
+            except ConnectionResetError:
+                print("\n[SERVER] Connection Reset!")
+                continue  # Jump to wait for the next message
+
+            # Check if client exists
+            try:
+                ID = st.session_state.server.client_addresses[address]  # Client Identifier
 
             except:
                 if verbose:
-                    print("> Couldn't decode message")
+                    print("> Client not recognized")
 
-                continue  # Jump to the next message
+                continue  # Jump to wait for the next message
 
-            # Empty message
-            if not message.size:
-                if verbose:
-                    print("\tEmpty message")
-
-                continue  # Jump to the next message
-
-            # Extracting the message's frame index
-            frame_idx = int(message[-1])
-
-            # Valid message is [u, v, A] per blob, PTS and frame index
-            if message.size != 3 * blob_count + 2:
-
-                if message.size == 2:  # Only PTS
-                    if verbose:
-                        print(f"\tNo blobs were detected - {frame_idx} s")
-
-                else:
-                    if verbose:
-                        print(f"\tWrong blob count or corrupted message")
-                        print(f"\tCorrupted Message: {message}")
-
-                continue  # Jump to the next message
-
-            # Extracting blob data (coordinates & area)
-            blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
-
-            # Extracting centroids
-            blob_centroids = blob_data[:, :2]  # Ignoring their area
-
-            # Undistorting blobs centroids
-            undistorted_blobs = client.camera.undistort_points(blob_centroids)
-
-            # Print blobs
+            # Show sender
             if verbose:
-                print(f"\tDetected Blobs - {frame_idx} s")
-                print("\t" + str(blob_data).replace("\n", "\n\t"))
+                print(f"> Received message from Client {ID} ({address[0]}, {address[1]})")
 
-            # Save data
-            st.session_state.server.triangulator.save(ID, frame_idx, undistorted_blobs)
+            # Save message
+            st.session_state.server.clients[ID].message_log.append(message_bytes)
 
-    st.session_state.wand_blobs = st.session_state.server.triangulator.full_vision()
+        # Post-processing
+        for ID, client in enumerate(st.session_state.server.clients):
+            # Parse through client's message history
+            for message_bytes in client.message_log:
+                # Decode message
+                try:
+                    message = np.frombuffer(message_bytes, dtype=np.float32)
 
-    if not st.session_state.server.multiple_view.calibrate(
-        st.session_state.wand_blobs, st.session_state.wand_distances_calibration
-    ):
-        placeholder.error("Calibration failed!", icon="🚨")
-        time.sleep(5)  # Wait 5 seconds before disappearing
-        placeholder.empty()
-        sys.exit()
+                except:
+                    if verbose:
+                        print("> Couldn't decode message")
 
-    else:
-        placeholder.success("Calibration successful!", icon="✅")
-        time.sleep(5)  # Wait 5 seconds before disappearing
-        placeholder.empty()
+                    continue  # Jump to the next message
 
-    # Create the Scene Viewer
-    scene = Viewer3D(title="Calibrated Camera Poses", size=10)
+                # Empty message
+                if not message.size:
+                    if verbose:
+                        print("\tEmpty message")
 
-    # Add camera frames to the scene
-    for ID, camera in enumerate(st.session_state.server.multiple_view.camera_models):
-        scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
+                    continue  # Jump to the next message
 
-    st.plotly_chart(scene.figure)
+                # Extracting the message's frame index
+                frame_idx = int(message[-1])
+
+                # Valid message is [u, v, A] per blob, PTS and frame index
+                if message.size != 3 * blob_count + 2:
+
+                    if message.size == 2:  # Only PTS
+                        if verbose:
+                            print(f"\tNo blobs were detected - {frame_idx} s")
+
+                    else:
+                        if verbose:
+                            print(f"\tWrong blob count or corrupted message")
+                            print(f"\tCorrupted Message: {message}")
+
+                    continue  # Jump to the next message
+
+                # Extracting blob data (coordinates & area)
+                blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
+
+                # Extracting centroids
+                blob_centroids = blob_data[:, :2]  # Ignoring their area
+
+                # Undistorting blobs centroids
+                undistorted_blobs = client.camera.undistort_points(blob_centroids)
+
+                # Print blobs
+                if verbose:
+                    print(f"\tDetected Blobs - {frame_idx} s")
+                    print("\t" + str(blob_data).replace("\n", "\n\t"))
+
+                # Save data
+                st.session_state.server.triangulator.save(ID, frame_idx, undistorted_blobs)
+
+        st.session_state.wand_blobs = st.session_state.server.triangulator.full_vision()
+
+        if not st.session_state.server.multiple_view.calibrate(
+            st.session_state.wand_blobs, st.session_state.wand_distances_calibration
+        ):
+            placeholder.error("Calibration failed!", icon="🚨")
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+            placeholder.empty()
+
+        else:
+            placeholder.success("Calibration successful!", icon="✅")
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+            placeholder.empty()
+
+            # Create the Scene Viewer
+            scene = Viewer3D(title="Calibrated Camera Poses", size=10)
+
+            # Add camera frames to the scene
+            for ID, camera in enumerate(st.session_state.server.multiple_view.camera_models):
+                scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
+
+            st.plotly_chart(scene.figure)
 
 
 if st.button("Bundle Adjustment"):
@@ -302,14 +303,13 @@ if st.button("Bundle Adjustment"):
         st.plotly_chart(scene.figure)
 
         placeholder.success("Bundle adjustment successful!", icon="✅")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
 
     else:
         placeholder.error("Cannot perform bundle adjustment!", icon="🚨")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
-        sys.exit()
 
 
 if st.button("Reference Update"):
@@ -319,141 +319,138 @@ if st.button("Reference Update"):
     # Capture specifications
     blob_count = 3  # Number of expected markers
     capture_duration = 1.0  # In seconds
-    verbose = False
+    verbose = True
 
     # Request capture (start simulation)
     if not st.session_state.server.request_sync_reference(capture_duration):
         placeholder.error("Reference request failed!", icon="🚨")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
-        sys.exit()
 
     else:
         placeholder.success("Reference request successful!", icon="✅")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-    # Wait for client identification
-    st.session_state.server.register_clients()
+        # Wait for client identification
+        st.session_state.server.register_clients()
 
-    placeholder.info("Running reference update...", icon="ℹ️")
+        placeholder.info("Running reference update...", icon="ℹ️")
 
-    timeout = 5  # In seconds
-    st.session_state.server.udp_socket.settimeout(timeout)  # Set server timeout
-    print(f"[SERVER] Timeout set to {timeout} seconds\n")
+        timeout = 5  # In seconds
+        st.session_state.server.udp_socket.settimeout(timeout)  # Set server timeout
+        print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
-    # Receiving messages
-    while True:
-        # Wait for message - Event guided!
-        try:
-            message_bytes, address = st.session_state.server.udp_socket.recvfrom(
-                st.session_state.server.buffer_size
-            )
-
-        except TimeoutError:
-            print("\n[SERVER] Timed Out!")
-            break  # Close capture loop due to timeout
-
-        except ConnectionResetError:
-            print("\n[SERVER] Connection Reset!")
-            continue  # Jump to wait for the next message
-
-        # Check if client exists
-        try:
-            ID = st.session_state.server.client_addresses[address]  # Client Identifier
-
-        except:
-            if verbose:
-                print("> Client not recognized")
-
-            continue  # Jump to wait for the next message
-
-        # Show sender
-        if verbose:
-            print(f"> Received message from Client {ID} ({address[0]}, {address[1]})")
-
-        # Save message
-        st.session_state.server.clients[ID].message_log.append(message_bytes)
-
-    # Post-processing
-    for ID, client in enumerate(st.session_state.server.clients):
-        # Parse through client's message history
-        for message_bytes in client.message_log:
-            # Decode message
+        # Receiving messages
+        while True:
+            # Wait for message - Event guided!
             try:
-                message = np.frombuffer(message_bytes, dtype=np.float32)
+                message_bytes, address = st.session_state.server.udp_socket.recvfrom(
+                    st.session_state.server.buffer_size
+                )
+
+            except TimeoutError:
+                print("\n[SERVER] Timed Out!")
+                break  # Close capture loop due to timeout
+
+            except ConnectionResetError:
+                print("\n[SERVER] Connection Reset!")
+                continue  # Jump to wait for the next message
+
+            # Check if client exists
+            try:
+                ID = st.session_state.server.client_addresses[address]  # Client Identifier
 
             except:
                 if verbose:
-                    print("> Couldn't decode message")
+                    print("> Client not recognized")
 
-                continue  # Jump to the next message
+                continue  # Jump to wait for the next message
 
-            # Empty message
-            if not message.size:
-                if verbose:
-                    print("\tEmpty message")
-
-                continue  # Jump to the next message
-
-            # Extracting the message's frame index
-            frame_idx = int(message[-1])
-
-            # Valid message is [u, v, A] per blob, PTS and frame index
-            if message.size != 3 * blob_count + 2:
-
-                if message.size == 2:  # Only PTS
-                    if verbose:
-                        print(f"\tNo blobs were detected - {frame_idx} s")
-
-                else:
-                    if verbose:
-                        print(f"\tWrong blob count or corrupted message")
-                        print(f"\tCorrupted Message: {message}")
-
-                continue  # Jump to the next message
-
-            # Extracting blob data (coordinates & area)
-            blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
-
-            # Extracting centroids
-            blob_centroids = blob_data[:, :2]  # Ignoring their area
-
-            # Undistorting blobs centroids
-            undistorted_blobs = client.camera.undistort_points(blob_centroids)
-
-            # Print blobs
+            # Show sender
             if verbose:
-                print(f"\tDetected Blobs - {frame_idx} s")
-                print("\t" + str(blob_data).replace("\n", "\n\t"))
+                print(f"> Received message from Client {ID} ({address[0]}, {address[1]})")
 
-            # Save data
-            st.session_state.server.triangulator.save(ID, frame_idx, undistorted_blobs)
+            # Save message
+            st.session_state.server.clients[ID].message_log.append(message_bytes)
 
-    # Triangulation pair
-    pair = (0, 2)  # Diagonal pairs seems to produce more stable results
+        # Post-processing
+        for ID, client in enumerate(st.session_state.server.clients):
+            # Parse through client's message history
+            for message_bytes in client.message_log:
+                # Decode message
+                try:
+                    message = np.frombuffer(message_bytes, dtype=np.float32)
 
-    full_vision = st.session_state.server.triangulator.full_vision()
-    wand_blobs_reference = [full_vision[ID] for ID in pair]
+                except:
+                    if verbose:
+                        print("> Couldn't decode message")
 
-    # Update reference
-    st.session_state.server.multiple_view.update_reference(
-        wand_blobs_reference, st.session_state.wand_distances_reference, pair
-    )
+                    continue  # Jump to the next message
 
-    # Create the Scene Viewer
-    scene = Viewer3D(title="Updated Camera Poses", size=10)
+                # Empty message
+                if not message.size:
+                    if verbose:
+                        print("\tEmpty message")
 
-    # Add camera frames to the scene
-    for ID, camera in enumerate(
-        st.session_state.server.multiple_view.camera_models
-    ):
-        scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
+                    continue  # Jump to the next message
 
-    st.plotly_chart(scene.figure)
+                # Extracting the message's frame index
+                frame_idx = int(message[-1])
 
-    placeholder.success("Reference update successful!", icon="✅")
-    time.sleep(5)  # Wait 5 seconds before disappearing
-    placeholder.empty()
+                # Valid message is [u, v, A] per blob, PTS and frame index
+                if message.size != 3 * blob_count + 2:
+
+                    if message.size == 2:  # Only PTS
+                        if verbose:
+                            print(f"\tNo blobs were detected - {frame_idx} s")
+
+                    else:
+                        if verbose:
+                            print(f"\tWrong blob count or corrupted message")
+                            print(f"\tCorrupted Message: {message}")
+
+                    continue  # Jump to the next message
+
+                # Extracting blob data (coordinates & area)
+                blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
+
+                # Extracting centroids
+                blob_centroids = blob_data[:, :2]  # Ignoring their area
+
+                # Undistorting blobs centroids
+                undistorted_blobs = client.camera.undistort_points(blob_centroids)
+
+                # Print blobs
+                if verbose:
+                    print(f"\tDetected Blobs - {frame_idx} s")
+                    print("\t" + str(blob_data).replace("\n", "\n\t"))
+
+                # Save data
+                st.session_state.server.triangulator.save(ID, frame_idx, undistorted_blobs)
+
+        # Triangulation pair
+        pair = (0, 2)  # Diagonal pairs seems to produce more stable results
+
+        full_vision = st.session_state.server.triangulator.full_vision()
+        wand_blobs_reference = [full_vision[ID] for ID in pair]
+
+        # Update reference
+        st.session_state.server.multiple_view.update_reference(
+            wand_blobs_reference, st.session_state.wand_distances_reference, pair
+        )
+
+        # Create the Scene Viewer
+        scene = Viewer3D(title="Updated Camera Poses", size=10)
+
+        # Add camera frames to the scene
+        for ID, camera in enumerate(st.session_state.server.multiple_view.camera_models):
+            scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
+
+        st.plotly_chart(scene.figure)
+
+        placeholder.success("Reference update successful!", icon="✅")
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+        placeholder.empty()
 
 
 if st.button("Save Calibration"):
@@ -461,16 +458,15 @@ if st.button("Save Calibration"):
 
     if st.session_state.server.multiple_view is None:
         placeholder.error("Cannot save calibration!", icon="🚨")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
-        sys.exit()
 
     else:
         # Save calibration in disk
         st.session_state.server.save_calibration()
 
         placeholder.success("Calibration saved!", icon="✅")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
 
 st.markdown("---")
@@ -485,157 +481,156 @@ if st.button("Start Capture"):
     placeholder = st.empty()
     placeholder.info("Standard capture requested", icon="ℹ️")
 
-    verbose = False
+    verbose = True
 
     # Request capture (start simulation)
     if not st.session_state.server.request_sync_capture(capture_duration):
         placeholder.error("Capture request failed!", icon="🚨")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
-        sys.exit()
 
     else:
         placeholder.success("Capture request successful!", icon="✅")
-        time.sleep(5)  # Wait 5 seconds before disappearing
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-    # Wait for client identification
-    st.session_state.server.register_clients()
+        # Wait for client identification
+        st.session_state.server.register_clients()
 
-    placeholder.info(f"Running standard capture for {capture_duration} s...", icon="ℹ️")
+        placeholder.info(f"Running standard capture for {capture_duration} s...", icon="ℹ️")
 
-    verbose = False
+        verbose = True
 
-    timeout = 5  # In seconds
-    st.session_state.server.udp_socket.settimeout(timeout)  # Set server timeout
-    print(f"[SERVER] Timeout set to {timeout} seconds\n")
+        timeout = 5  # In seconds
+        st.session_state.server.udp_socket.settimeout(timeout)  # Set server timeout
+        print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
-    visualizer_address = ("127.0.0.1", 6666)
+        visualizer_address = ("127.0.0.1", 6666)
 
-    all_triangulated_markers = []
+        all_triangulated_markers = []
 
-    # Breaks in the timeout
-    while True:
-        # Wait for message - Event guided!
-        try:
-            message_bytes, address = st.session_state.server.udp_socket.recvfrom(
-                st.session_state.server.buffer_size
+        # Breaks in the timeout
+        while True:
+            # Wait for message - Event guided!
+            try:
+                message_bytes, address = st.session_state.server.udp_socket.recvfrom(
+                    st.session_state.server.buffer_size
+                )
+
+            except TimeoutError:
+                print("\n[SERVER] Timed Out!")
+                break  # Close capture loop due to timeout
+
+            except ConnectionResetError:
+                print("\n[SERVER] Connection Reset!")
+                continue  # Jump to wait for the next message
+
+            # Check if message comes from any of the clients
+            try:
+                ID = st.session_state.server.client_addresses[address]  # Client Identifier
+
+            except:
+                if verbose:
+                    print("> Address not recognized")
+
+                continue  # Jump to wait for the next message
+
+            # Show sender
+            if verbose:
+                print(f"> Received message from Client {ID} ({address[0]}, {address[1]}):")
+
+            # Decode message
+            try:
+                message = np.frombuffer(message_bytes, dtype=np.float32)
+
+            except:
+                if verbose:
+                    print("> Couldn't decode message")
+
+                continue  # Jump to wait for the next message
+
+            # Empty message
+            if not message.size:
+                if verbose:
+                    print("\tEmpty message")
+
+                continue  # Jump to wait for the next message
+
+            # Extracting the message's frame index
+            frame_idx = int(message[-1])
+
+            # Valid message is [u, v, A] per blob, PTS and frame index
+            if message.size != 3 * blob_count + 2:
+
+                if message.size == 2:
+                    if verbose:
+                        print(f"\tNo blobs were detected - {frame_idx}")
+
+                else:
+                    if verbose:
+                        print(f"\tWrong blob count or corrupted message")
+                        print(f"\tCorrupted Message: {message}")
+
+                continue  # Jump to wait for the next message
+
+            # Extracting blob data (coordinates & area)
+            blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
+
+            # Extracting centroids
+            blob_centroids = blob_data[:, :2]  # Ignoring their area
+
+            # Undistorting blobs centroids
+            undistorted_blobs = st.session_state.server.clients[ID].camera.undistort_points(
+                blob_centroids
             )
 
-        except TimeoutError:
-            print("\n[SERVER] Timed Out!")
-            break  # Close capture loop due to timeout
-
-        except ConnectionResetError:
-            print("\n[SERVER] Connection Reset!")
-            continue  # Jump to wait for the next message
-
-        # Check if message comes from any of the clients
-        try:
-            ID = st.session_state.server.client_addresses[address]  # Client Identifier
-
-        except:
+            # Print blobs
             if verbose:
-                print("> Address not recognized")
+                print(f"\tDetected Blobs - {frame_idx}")
+                print("\t" + str(blob_data).replace("\n", "\n\t"))
 
-            continue  # Jump to wait for the next message
+            triangulated_markers = st.session_state.server.triangulator.triangulate(
+                ID, frame_idx, undistorted_blobs
+            )
 
-        # Show sender
-        if verbose:
-            print(f"> Received message from Client {ID} ({address[0]}, {address[1]}):")
+            if triangulated_markers is None:
+                continue  # Jump to wait for the next message
 
-        # Decode message
-        try:
-            message = np.frombuffer(message_bytes, dtype=np.float32)
-
-        except:
             if verbose:
-                print("> Couldn't decode message")
+                print("Triangulated!")
 
-            continue  # Jump to wait for the next message
+            # Send data to CoppeliaSim
+            buffer = triangulated_markers.astype(np.float32).ravel().tobytes()
+            st.session_state.server.udp_socket.sendto(buffer, visualizer_address)
 
-        # Empty message
-        if not message.size:
-            if verbose:
-                print("\tEmpty message")
+            # Save data for plotting
+            try:
+                all_triangulated_markers.append(triangulated_markers)
 
-            continue  # Jump to wait for the next message
+            except:
+                pass  # Don't access array if index is out of bounds
 
-        # Extracting the message's frame index
-        frame_idx = int(message[-1])
+        # Join collected data
+        all_triangulated_markers = np.hstack(all_triangulated_markers)
 
-        # Valid message is [u, v, A] per blob, PTS and frame index
-        if message.size != 3 * blob_count + 2:
+        # Create the Scene Viewer
+        scene = Viewer3D(title="Capture Profile", size=10)
 
-            if message.size == 2:
-                if verbose:
-                    print(f"\tNo blobs were detected - {frame_idx}")
+        # Add camera frames to the scene
+        for ID, camera in enumerate(st.session_state.server.multiple_view.camera_models):
+            scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
 
-            else:
-                if verbose:
-                    print(f"\tWrong blob count or corrupted message")
-                    print(f"\tCorrupted Message: {message}")
+        # Add new reference
+        scene.add_frame(np.eye(4), "Reference", axis_size=0.4)
 
-            continue  # Jump to wait for the next message
+        # Add triangulated markers to the scene
+        scene.add_points(all_triangulated_markers, f"Triangulated positions")
 
-        # Extracting blob data (coordinates & area)
-        blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
+        # Plot scene
+        st.plotly_chart(scene.figure)
 
-        # Extracting centroids
-        blob_centroids = blob_data[:, :2]  # Ignoring their area
-
-        # Undistorting blobs centroids
-        undistorted_blobs = st.session_state.server.clients[ID].camera.undistort_points(
-            blob_centroids
-        )
-
-        # Print blobs
-        if verbose:
-            print(f"\tDetected Blobs - {frame_idx}")
-            print("\t" + str(blob_data).replace("\n", "\n\t"))
-
-        triangulated_markers = st.session_state.server.triangulator.triangulate(
-            ID, frame_idx, undistorted_blobs
-        )
-
-        if triangulated_markers is None:
-            continue  # Jump to wait for the next message
-
-        if verbose:
-            print("Triangulated!")
-
-        # Send data to CoppeliaSim
-        buffer = triangulated_markers.astype(np.float32).ravel().tobytes()
-        st.session_state.server.udp_socket.sendto(buffer, visualizer_address)
-
-        # Save data for plotting
-        try:
-            all_triangulated_markers.append(triangulated_markers)
-
-        except:
-            pass  # Don't access array if index is out of bounds
-
-    # Join collected data
-    all_triangulated_markers = np.hstack(all_triangulated_markers)
-
-    # Create the Scene Viewer
-    scene = Viewer3D(title="Capture Profile", size=10)
-
-    # Add camera frames to the scene
-    for ID, camera in enumerate(st.session_state.server.multiple_view.camera_models):
-        scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
-
-    # Add new reference
-    scene.add_frame(np.eye(4), "Reference", axis_size=0.4)
-
-    # Add triangulated markers to the scene
-    scene.add_points(all_triangulated_markers, f"Triangulated positions")
-
-    # Plot scene
-    st.plotly_chart(scene.figure)
-
-    placeholder.success("Standard capture successful!", icon="✅")
-    time.sleep(5)  # Wait 5 seconds before disappearing
-    placeholder.empty()
+        placeholder.success("Standard capture successful!", icon="✅")
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+        placeholder.empty()
 
 
 st.markdown("---")
