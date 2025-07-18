@@ -266,9 +266,6 @@ def process_and_send():
         )
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
         frame_proc = cv2.equalizeHist(frame_proc)
-        frame_proc = cv2.medianBlur(
-            frame_proc, 3
-        )  # Removes punctual noise that still passes the filter
 
         _, mask = cv2.threshold(frame_proc, 127, 255, cv2.THRESH_BINARY)
         frame_proc = cv2.bitwise_and(frame_proc, mask)
