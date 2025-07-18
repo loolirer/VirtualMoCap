@@ -166,7 +166,7 @@ def detect_circles(frame):
         param1=param1,  # Upper threshold for Canny edge detector
         param2=param2,  # Threshold for center detection
         minRadius=min_radius,  # Minimum radius to detect
-        maxRadius=max_radius,  # Maximum radius to detect
+        maxRadius=-1,  # Maximum radius to detect
     )
 
     return circles
@@ -286,7 +286,6 @@ def process_and_send():
         #        thickness=-1,
         #    )
 
-        # If some circles are found, draw them
         circles = detect_circles(frame_proc)
         if circles is not None:
             print("detect!!")
