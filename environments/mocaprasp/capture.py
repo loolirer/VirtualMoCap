@@ -169,13 +169,7 @@ config = picam2.create_video_configuration(
 )
 picam2.configure(config)
 picam2.start()  # Begin camera connection
-picam2.set_controls(
-    {
-        "AeEnable": False,
-        "AwbEnable": False,
-        "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
-    }
-)  # Set camera controls
+picam2.set_controls({"AeEnable": False, "AwbEnable": False})  # Set camera controls
 
 time.sleep(1)  # Warm-up
 
@@ -231,7 +225,9 @@ def capture_callback(gpio, level, tick):
 
 # Background image processing and communication
 def process_and_send():
-    cutoff = 100
+    # Lower cutoff -> + capture range / + noise
+    # Higher cutoff -> - capture range / - noise
+    cutoff = 80
     threshold = 127
 
     while True:
@@ -247,6 +243,9 @@ def process_and_send():
         )
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
         frame_proc = cv2.equalizeHist(frame_proc)
+        frame_proc = cv2.medianBlur(
+            frame_proc, 3
+        )  # Removes punctual noise that still passes the filter
 
         # Detect blobs
         blobs = detect_blobs(
