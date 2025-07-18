@@ -152,8 +152,8 @@ params.filterByInertia = False
 
 def detect_circles(frame):
     min_radius = 1
-    max_radius = 5
-    min_dist = 2 * max_radius
+    max_radius = 50
+    min_dist = 2 * min_radius
     param1 = 100
     param2 = 30
 
@@ -271,13 +271,13 @@ def process_and_send():
         )  # Removes punctual noise that still passes the filter
 
         # Detect blobs
-        #blobs = detect_blobs(
+        # blobs = detect_blobs(
         #    frame_proc, area=True, thresh=threshold, detector=marker_detector
-        #)
+        # )
 
         # Print blobs
         frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
-        #for b in blobs:
+        # for b in blobs:
         #    cv2.circle(
         #        frame_display,
         #        center=b[:2].astype(int),
@@ -287,7 +287,7 @@ def process_and_send():
         #    )
 
         # If some circles are found, draw them
-        circles = detect_circles(frame)    
+        circles = detect_circles(frame)
         if circles is not None:
             blobs = np.array(circles[0, :])
 
