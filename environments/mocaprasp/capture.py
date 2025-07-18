@@ -287,7 +287,7 @@ def process_and_send():
         #    )
 
         # If some circles are found, draw them
-        circles = detect_circles(frame)
+        circles = detect_circles(frame_proc)
         if circles is not None:
             print("detect!!")
             blobs = np.array(circles[0, :])
