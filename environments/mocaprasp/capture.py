@@ -152,7 +152,7 @@ params.filterByInertia = False
 
 def detect_circles(frame):
     min_radius = 2
-    max_radius = 50
+    max_radius = 10
     min_dist = 2 * min_radius
     param1 = 60
     param2 = 10
@@ -166,7 +166,7 @@ def detect_circles(frame):
         param1=param1,  # Upper threshold for Canny edge detector
         param2=param2,  # Threshold for center detection
         minRadius=min_radius,  # Minimum radius to detect
-        maxRadius=-1,  # Maximum radius to detect
+        maxRadius=50,  # Maximum radius to detect
     )
 
     return circles
