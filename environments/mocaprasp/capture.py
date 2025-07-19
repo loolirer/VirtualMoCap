@@ -125,7 +125,7 @@ params.maxThreshold = (
 )
 
 # Minimum distance between blobs in pixels
-params.minDistBetweenBlobs = 3
+params.minDistBetweenBlobs = 1
 
 # Filter only dark blobs
 params.filterByColor = True
@@ -250,7 +250,7 @@ def process_and_send():
         )
 
         # Print blobs
-        frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
+        frame_display = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
         for b in blobs:
             cv2.circle(
                 frame_display,
