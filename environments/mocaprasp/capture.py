@@ -227,7 +227,7 @@ def capture_callback(gpio, level, tick):
 def process_and_send():
     # Lower cutoff -> + capture range / + noise
     # Higher cutoff -> - capture range / - noise
-    cutoff = 80
+    cutoff = 127
     threshold = 127
 
     while True:
