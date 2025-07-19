@@ -149,29 +149,6 @@ params.minConvexity = 1.00
 # Filter by Inertia
 params.filterByInertia = False
 
-
-def detect_circles(frame):
-    min_radius = 2
-    max_radius = 10
-    min_dist = 2 * min_radius
-    param1 = 70
-    param2 = 10
-
-    # Detect circles using HoughCircles
-    circles = cv2.HoughCircles(
-        frame,
-        cv2.HOUGH_GRADIENT,
-        dp=1,  # Inverse ratio of accumulator resolution to image resolution
-        minDist=min_dist,  # Minimum distance between detected centers
-        param1=param1,  # Upper threshold for Canny edge detector
-        param2=param2,  # Threshold for center detection
-        minRadius=min_radius,  # Minimum radius to detect
-        maxRadius=max_radius,  # Maximum radius to detect
-    )
-
-    return circles
-
-
 # Instanciate marker detector object
 marker_detector = cv2.SimpleBlobDetector_create(params)
 
@@ -266,43 +243,31 @@ def process_and_send():
         )
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
         frame_proc = cv2.equalizeHist(frame_proc)
-
-        _, mask = cv2.threshold(frame_proc, cutoff, 255, cv2.THRESH_BINARY)
-        frame_proc = cv2.bitwise_and(frame_proc, mask)
-
+        
         # Detect blobs
-        # blobs = detect_blobs(
-        #    frame_proc, area=True, thresh=threshold, detector=marker_detector
-        # )
+        blobs = detect_blobs(
+            frame_proc, area=True, thresh=threshold, detector=marker_detector
+        )
 
         # Print blobs
         frame_display = cv2.cvtColor(frame_proc, cv2.COLOR_GRAY2RGB)
-        # for b in blobs:
-        #    cv2.circle(
-        #        frame_display,
-        #        center=b[:2].astype(int),
-        #        radius=1,
-        #        color=(0, 0, 255),
-        #        thickness=-1,
-        #    )
-
-        circles = detect_circles(frame_proc)
-        if circles is not None:
-            blobs = np.array(circles[0, :])
-
-            message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
-                np.float32
+        for b in blobs:
+            cv2.circle(
+                frame_display,
+                center=b[:2].astype(int),
+                radius=1,
+                color=(0, 0, 255),
+                thickness=-1,
             )
-            message_bytes = message.tobytes()
-            client_socket.sendto(message_bytes, server_address)
-
-            circles = np.uint16(np.around(circles))
-            for x, y, r in circles[0, :]:
-                cv2.circle(frame_display, (x, y), r, (0, 0, 255), 1)  # Circle outline
-                cv2.circle(frame_display, (x, y), 1, (255, 0, 0), -1)  # Circle center
 
         cv2.imshow("Camera Feed", frame_display)
         cv2.waitKey(1)
+
+        message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
+            np.float32
+        )
+        message_bytes = message.tobytes()
+        client_socket.sendto(message_bytes, server_address)
 
         frame_queue.task_done()
 
