@@ -154,8 +154,8 @@ def detect_circles(frame):
     min_radius = 2
     max_radius = 10
     min_dist = 2 * min_radius
-    param1 = 50
-    param2 = 15
+    param1 = 70
+    param2 = 5
 
     # Detect circles using HoughCircles
     circles = cv2.HoughCircles(
@@ -269,7 +269,6 @@ def process_and_send():
 
         _, mask = cv2.threshold(frame_proc, cutoff, 255, cv2.THRESH_BINARY)
         frame_proc = cv2.bitwise_and(frame_proc, mask)
-        frame_proc = cv2.medianBlur(frame_proc, 5)
 
         # Detect blobs
         # blobs = detect_blobs(
