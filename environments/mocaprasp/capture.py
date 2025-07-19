@@ -125,7 +125,7 @@ params.maxThreshold = (
 )
 
 # Minimum distance between blobs in pixels
-params.minDistBetweenBlobs = 1
+params.minDistBetweenBlobs = 3
 
 # Filter only dark blobs
 params.filterByColor = True
@@ -243,7 +243,7 @@ def process_and_send():
         )
         frame_proc = cv2.GaussianBlur(frame_proc, (5, 5), 0)
         frame_proc = cv2.equalizeHist(frame_proc)
-        
+
         # Detect blobs
         blobs = detect_blobs(
             frame_proc, area=True, thresh=threshold, detector=marker_detector
