@@ -67,6 +67,7 @@ class MoCapRasp_Server(Server):
         return True
 
     def offline_capture(self, expected_markers=1, timeout=5, verbose=True):
+        timeout = 5  # In seconds
         self.udp_socket.settimeout(timeout)  # Set server timeout
         print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
@@ -84,7 +85,7 @@ class MoCapRasp_Server(Server):
                 print("\n[SERVER] Connection Reset!")
                 continue  # Jump to wait for the next message
 
-            # Check if client exists
+            # Check if message comes from any of the clients
             try:
                 ID = self.client_addresses[address]  # Client Identifier
 
@@ -125,14 +126,14 @@ class MoCapRasp_Server(Server):
                     continue  # Jump to the next message
 
                 # Extracting the message's frame index
-                frame_idx = int(message[-1])
+                frame_idx = int(message[-2])
 
                 # Valid message is [u, v, A] per blob, PTS and frame index
                 if message.size != 3 * expected_markers + 2:
 
                     if message.size == 2:  # Only PTS
                         if verbose:
-                            print(f"\tNo blobs were detected - {frame_idx} s")
+                            print(f"\tNo blobs were detected - {frame_idx}")
 
                     else:
                         if verbose:
@@ -152,7 +153,7 @@ class MoCapRasp_Server(Server):
 
                 # Print blobs
                 if verbose:
-                    print(f"\tDetected Blobs - {frame_idx} s")
+                    print(f"\tDetected Blobs - {frame_idx}")
                     print("\t" + str(blob_data).replace("\n", "\n\t"))
 
                 # Save data
@@ -171,7 +172,9 @@ class MoCapRasp_Server(Server):
         while True:
             # Wait for message - Event guided!
             try:
-                message_bytes, address = self.udp_socket.recvfrom(self.buffer_size)
+                message_bytes, address = self.server.udp_socket.recvfrom(
+                    self.server.buffer_size
+                )
 
             except TimeoutError:
                 print("\n[SERVER] Timed Out!")
@@ -183,7 +186,7 @@ class MoCapRasp_Server(Server):
 
             # Check if message comes from any of the clients
             try:
-                ID = self.client_addresses[address]  # Client Identifier
+                ID = self.server.client_addresses[address]  # Client Identifier
 
             except:
                 if verbose:
@@ -215,7 +218,7 @@ class MoCapRasp_Server(Server):
                 continue  # Jump to wait for the next message
 
             # Extracting the message's frame index
-            frame_idx = int(message[-1])
+            frame_idx = int(message[-2])
 
             # Valid message is [u, v, A] per blob, PTS and frame index
             if message.size != 3 * expected_markers + 2:
@@ -238,14 +241,16 @@ class MoCapRasp_Server(Server):
             blob_centroids = blob_data[:, :2]  # Ignoring their area
 
             # Undistorting blobs centroids
-            undistorted_blobs = self.clients[ID].camera.undistort_points(blob_centroids)
+            undistorted_blobs = self.server.clients[ID].camera.undistort_points(
+                blob_centroids
+            )
 
             # Print blobs
             if verbose:
                 print(f"\tDetected Blobs - {frame_idx}")
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
-            triangulated_markers = self.triangulator.triangulate(
+            triangulated_markers = self.server.triangulator.triangulate(
                 ID, frame_idx, undistorted_blobs
             )
 
@@ -257,7 +262,7 @@ class MoCapRasp_Server(Server):
 
             # Send data to CoppeliaSim
             buffer = triangulated_markers.astype(np.float32).ravel().tobytes()
-            self.udp_socket.sendto(buffer, visualizer_address)
+            self.server.udp_socket.sendto(buffer, visualizer_address)
 
             # Save data for plotting
             try:
