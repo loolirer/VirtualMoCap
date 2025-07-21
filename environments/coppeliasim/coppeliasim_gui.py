@@ -11,6 +11,7 @@ from virtualmocap.integration.client import Client
 from virtualmocap.integration.coppeliasim.camera import CoppeliaSim_Camera
 from virtualmocap.integration.coppeliasim.server import CoppeliaSim_Server
 
+
 def plot_calibration(server, title):
     # Create the Scene Viewer
     scene = Viewer3D(title=title, size=10)
@@ -23,6 +24,7 @@ def plot_calibration(server, title):
 
     return scene
 
+
 # How much time to wait before disappearing
 if "message_timeout" not in st.session_state:
     st.session_state.message_timeout = 3  # In seconds
@@ -32,17 +34,6 @@ if "server" not in st.session_state:
     st.session_state.server = CoppeliaSim_Server(
         server_address=("127.0.0.1", 8888), controller_address=("127.0.0.1", 7777)
     )
-
-# Calibration wand distances
-if "wand_distances_calibration" not in st.session_state:
-    st.session_state.wand_distances_calibration = np.array(
-        [5e-2, 10e-2, 15e-2]
-    )  # In meters
-
-# Measured distances between perpendicularly matched marker distances
-# Distances: [D_x, D_y]
-if "wand_distances_reference" not in st.session_state:
-    st.session_state.wand_distances_reference = np.array([7.5e-2, 15e-2])  # In meters
 
 # Collected calibration data
 if "calibration_blobs" not in st.session_state:
@@ -177,6 +168,15 @@ with calibration_tab:
             "Extrinsic Calibration", use_container_width=True
         )
 
+        st.caption("AB Distance (cm)")
+        AB = st.number_input(
+            label="AB Distance (cm)",
+            min_value=0.0,
+            value=5.0,
+            format="%0.3f",
+            label_visibility="collapsed",
+        )
+
     with extrinsic_calibration_columns[1]:
         st.caption("Capture Duration (s)")
         calibration_duration = st.number_input(
@@ -187,6 +187,21 @@ with calibration_tab:
             format="%0.1f",
             label_visibility="collapsed",
         )
+
+        st.caption("BC Distance (cm)")
+        BC = st.number_input(
+            label="BC Distance (cm)",
+            min_value=0.0,
+            value=10.0,
+            format="%0.3f",
+            label_visibility="collapsed",
+        )
+
+    # Calibration wand distances
+    if "wand_distances_calibration" not in st.session_state:
+        st.session_state.wand_distances_calibration = (
+            np.array([AB, BC, AB + BC]) * 1e-2
+        )  # In meters
 
     if extrinsic_calibration_flag:
         placeholder = st.empty()
@@ -287,6 +302,15 @@ with calibration_tab:
         st.caption("\u200d")
         reference_update_flag = st.button("Reference Update", use_container_width=True)
 
+        st.caption("OX Distance (cm)")
+        OX = st.number_input(
+            label="OX Distance (cm)",
+            min_value=0.0,
+            value=7.5,
+            format="%0.3f",
+            label_visibility="collapsed",
+        )
+
     with reference_update_columns[1]:
         st.caption("Capture Duration (s)")
         reference_duration = st.number_input(
@@ -297,6 +321,21 @@ with calibration_tab:
             format="%0.1f",
             label_visibility="collapsed",
         )
+
+        st.caption("OY Distance (cm)")
+        OY = st.number_input(
+            label="OY Distance (cm)",
+            min_value=0.0,
+            value=15.0,
+            format="%0.3f",
+            label_visibility="collapsed",
+        )
+
+    # Measured distances between perpendicularly matched marker distances
+    if "wand_distances_reference" not in st.session_state:
+        st.session_state.wand_distances_reference = (
+            np.array([OX, OY]) * 1e-2
+        )  # In meters
 
     if reference_update_flag:
         placeholder = st.empty()
