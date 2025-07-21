@@ -190,7 +190,9 @@ with calibration_tab:
         placeholder.info("Extrinsic calibration requested", icon="ℹ️")
 
         # Request capture (start simulation)
-        if not st.session_state.server.request_sync_calibration(calibration_duration):
+        if not st.session_state.server.request_sync_capture(
+            delay_time=0.0, capture_time=calibration_duration
+        ):
             placeholder.error("Calibration request failed!", icon="🚨")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
@@ -324,7 +326,9 @@ with calibration_tab:
         placeholder.info("Reference update requested", icon="ℹ️")
 
         # Request capture (start simulation)
-        if not st.session_state.server.request_sync_reference(reference_duration):
+        if not st.session_state.server.request_sync_capture(
+            delay_time=0.0, capture_time=reference_duration
+        ):
             placeholder.error("Reference request failed!", icon="🚨")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
@@ -430,7 +434,9 @@ with capture_tab:
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
-        elif not st.session_state.server.request_sync_capture(capture_duration):
+        elif not st.session_state.server.request_sync_capture(
+            delay_time=0.0, capture_time=capture_duration
+        ):
             placeholder.error("Capture request failed!", icon="🚨")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
