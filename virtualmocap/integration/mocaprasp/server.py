@@ -172,8 +172,8 @@ class MoCapRasp_Server(Server):
         while True:
             # Wait for message - Event guided!
             try:
-                message_bytes, address = self.server.udp_socket.recvfrom(
-                    self.server.buffer_size
+                message_bytes, address = self.udp_socket.recvfrom(
+                    self.buffer_size
                 )
 
             except TimeoutError:
@@ -186,7 +186,7 @@ class MoCapRasp_Server(Server):
 
             # Check if message comes from any of the clients
             try:
-                ID = self.server.client_addresses[address]  # Client Identifier
+                ID = self.client_addresses[address]  # Client Identifier
 
             except:
                 if verbose:
@@ -241,7 +241,7 @@ class MoCapRasp_Server(Server):
             blob_centroids = blob_data[:, :2]  # Ignoring their area
 
             # Undistorting blobs centroids
-            undistorted_blobs = self.server.clients[ID].camera.undistort_points(
+            undistorted_blobs = self.clients[ID].camera.undistort_points(
                 blob_centroids
             )
 
@@ -250,7 +250,7 @@ class MoCapRasp_Server(Server):
                 print(f"\tDetected Blobs - {frame_idx}")
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
-            triangulated_markers = self.server.triangulator.triangulate(
+            triangulated_markers = self.triangulator.triangulate(
                 ID, frame_idx, undistorted_blobs
             )
 
@@ -262,7 +262,7 @@ class MoCapRasp_Server(Server):
 
             # Send data to CoppeliaSim
             buffer = triangulated_markers.astype(np.float32).ravel().tobytes()
-            self.server.udp_socket.sendto(buffer, visualizer_address)
+            self.udp_socket.sendto(buffer, visualizer_address)
 
             # Save data for plotting
             try:
