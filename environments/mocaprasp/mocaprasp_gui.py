@@ -37,19 +37,6 @@ if "server" not in st.session_state:
     # Create server
     st.session_state.server = MoCapRasp_Server(server_address=("0.0.0.0", 25565))
 
-# Calibration wand distances
-if "wand_distances_calibration" not in st.session_state:
-    st.session_state.wand_distances_calibration = np.array(
-        [5.35e-2, 10.30e-2, 15.70e-2]
-    )  # In meters
-
-# Measured distances between perpendicularly matched marker distances
-# Distances: [D_x, D_y]
-if "wand_distances_reference" not in st.session_state:
-    st.session_state.wand_distances_reference = np.array(
-        [10.10e-2, 15.05e-2]
-    )  # In meters
-
 # Collected calibration data
 if "wand_blobs" not in st.session_state:
     st.session_state.wand_blobs = None
