@@ -388,16 +388,16 @@ with capture_tab:
             label="Marker count", min_value=1, step=1, label_visibility="collapsed"
         )
 
-        st.caption("Publishing IP")
-        publishing_ip = st.text_input(
-            label="Publishing IP",
-            value="127.0.0.1",
+        st.caption("Publishing Hostname")
+        publishing_hostname = st.text_input(
+            label="Publishing Hostname",
+            value=socket.gethostname(),
             label_visibility="collapsed",
         )
 
-        # Check if publishing IP is resolvable
+        # Check if publishing hostname is resolvable
         try:
-            socket.gethostbyaddr(publishing_ip)
+            publishing_ip = socket.gethostbyname(publishing_hostname)
 
         except:
             publishing_ip = None
@@ -430,7 +430,7 @@ with capture_tab:
 
         # Request capture (start simulation)
         if publishing_ip is None:
-            placeholder.error("Publishing IP is not valid!", icon="🚨")
+            placeholder.error("Publishing hostname is not valid!", icon="🚨")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
