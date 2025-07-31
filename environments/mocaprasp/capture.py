@@ -379,6 +379,8 @@ def turn_off_capture():
     while not frame_queue.empty():
         continue
 
+    print("[INFO] Capture turned off")
+
 
 def run_capture_loop():
     # Wait for server start trigger
