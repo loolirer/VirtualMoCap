@@ -20,10 +20,11 @@ def plot_calibration(server, title):
     scene = Viewer3D(title=title, size=10)
 
     # Add camera frames to the scene
-    for ID, camera in enumerate(server.multiple_view.camera_models):
-        scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
+    if server.multiple_view is not None:
+        for ID, camera in enumerate(server.multiple_view.camera_models):
+            scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
 
-    scene.add_frame(np.eye(4), f"Reference", axis_size=0.4)
+        scene.add_frame(np.eye(4), f"Reference", axis_size=0.4)
 
     return scene
 
@@ -44,6 +45,10 @@ if "wand_blobs" not in st.session_state:
 # Collected capture data
 if "triangulated_markers" not in st.session_state:
     st.session_state.triangulated_markers = None
+
+# Timed capture flag
+if "timed_capture" not in st.session_state:
+    st.session_state.timed_capture = False
 
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
 st.image("mocaprasp.png")
@@ -380,7 +385,7 @@ with calibration_tab:
 with capture_tab:
     st.subheader("📸 Capture Scene")
 
-    capture_columns = st.columns([1, 1])
+    capture_columns = st.columns([1, 1, 1])
 
     with capture_columns[0]:
         st.caption("Expected Markers")
@@ -402,13 +407,14 @@ with capture_tab:
         except:
             publishing_ip = None
 
+        start_capture_flag = st.button("Start Capture", use_container_width=True)
+
     with capture_columns[1]:
-        st.caption("Capture Duration (s)")
-        capture_duration = st.number_input(
-            label="Capture Duration (s)",
-            min_value=1.0,
-            step=1.0,
-            format="%0.1f",
+        st.caption("Capture Delay (s)")
+        capture_delay = st.number_input(
+            label="Capture Delay (s)",
+            min_value=0,
+            step=1,
             label_visibility="collapsed",
         )
 
@@ -422,9 +428,29 @@ with capture_tab:
             label_visibility="collapsed",
         )
 
-    capture_flag = st.button("Start Capture", use_container_width=True)
+        terminate_capture_flag = st.button(
+            "Terminate Capture", use_container_width=True
+        )
 
-    if capture_flag:
+    with capture_columns[2]:
+        st.caption("Capture Duration (s)")
+        capture_time = st.number_input(
+            label="Capture Duration (s)",
+            min_value=1,
+            step=1,
+            label_visibility="collapsed",
+            disabled=st.session_state.timed_capture
+        )
+
+        if not st.session_state.timed_capture:
+            capture_time = -1
+
+        st.caption("Make capture timed")
+        st.session_state.timed_capture = st.checkbox("Timed Capture")
+
+
+
+    if start_capture_flag:
         placeholder = st.empty()
         placeholder.info("Standard capture requested", icon="ℹ️")
 
@@ -435,7 +461,7 @@ with capture_tab:
             placeholder.empty()
 
         elif not st.session_state.server.request_sync_capture(
-            delay_time=0.0, capture_time=capture_duration
+            delay_time=capture_delay, capture_time=capture_time
         ):
             placeholder.error("Capture request failed!", icon="🚨")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
@@ -445,24 +471,49 @@ with capture_tab:
             placeholder.success("Capture request successful!", icon="✅")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-            all_triangulated_markers = st.session_state.server.online_capture(
-                expected_markers=expected_markers,
-                visualizer_address=(publishing_ip, publishing_port),
+            st.session_state.triangulated_markers = (
+                st.session_state.server.online_capture(
+                    expected_markers=expected_markers,
+                    visualizer_address=(publishing_ip, publishing_port),
+                )
             )
 
-            scene = plot_calibration(
-                server=st.session_state.server, title="Capture Profile"
-            )
+        if terminate_capture_flag:
+            placeholder = st.empty()
+            placeholder.info("Requested capture termination", icon="ℹ️")
 
-            # Add triangulated markers to the scene
-            scene.add_points(all_triangulated_markers, f"Triangulated positions")
+            # Request capture (start simulation)
+            if publishing_ip is None:
+                placeholder.error("Publishing hostname is not valid!", icon="🚨")
+                time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+                placeholder.empty()
 
-            # Plot scene
-            st.plotly_chart(scene.figure)
+            elif not st.session_state.server.request_sync_capture(
+                delay_time=0, capture_time=0
+            ):
+                placeholder.error("Termination request failed!", icon="🚨")
+                time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+                placeholder.empty()
 
-            placeholder.success("Standard capture successful!", icon="✅")
-            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-            placeholder.empty()
+            else:
+                placeholder.success("Termination request successful!", icon="✅")
+                time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+
+                st.session_state.triangulated_markers = (
+                    st.session_state.server.online_capture(
+                        expected_markers=expected_markers,
+                        visualizer_address=(publishing_ip, publishing_port),
+                    )
+                )
+
+    scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
+
+    # Add triangulated markers to the scene
+    if st.session_state.triangulated_markers is not None:
+        scene.add_points(st.session_state.triangulated_markers, f"Triangulated positions")
+
+    # Plot scene
+    st.plotly_chart(scene.figure)
 
 
 st.markdown("---")
