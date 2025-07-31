@@ -478,33 +478,33 @@ with capture_tab:
                 )
             )
 
-        if terminate_capture_flag:
-            placeholder = st.empty()
-            placeholder.info("Requested capture termination", icon="ℹ️")
+    if terminate_capture_flag:
+        placeholder = st.empty()
+        placeholder.info("Requested capture termination", icon="ℹ️")
 
-            # Request capture (start simulation)
-            if publishing_ip is None:
-                placeholder.error("Publishing hostname is not valid!", icon="🚨")
-                time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-                placeholder.empty()
+        # Request capture (start simulation)
+        if publishing_ip is None:
+            placeholder.error("Publishing hostname is not valid!", icon="🚨")
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+            placeholder.empty()
 
-            elif not st.session_state.server.request_sync_capture(
-                delay_time=0, capture_time=0
-            ):
-                placeholder.error("Termination request failed!", icon="🚨")
-                time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-                placeholder.empty()
+        elif not st.session_state.server.request_sync_capture(
+            delay_time=0, capture_time=0
+        ):
+            placeholder.error("Termination request failed!", icon="🚨")
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+            placeholder.empty()
 
-            else:
-                placeholder.success("Termination request successful!", icon="✅")
-                time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+        else:
+            placeholder.success("Termination request successful!", icon="✅")
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-                st.session_state.triangulated_markers = (
-                    st.session_state.server.online_capture(
-                        expected_markers=expected_markers,
-                        visualizer_address=(publishing_ip, publishing_port),
-                    )
+            st.session_state.triangulated_markers = (
+                st.session_state.server.online_capture(
+                    expected_markers=expected_markers,
+                    visualizer_address=(publishing_ip, publishing_port),
                 )
+            )
 
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
