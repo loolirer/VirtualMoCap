@@ -439,7 +439,7 @@ with capture_tab:
             min_value=1,
             step=1,
             label_visibility="collapsed",
-            disabled=not st.session_state.timed_capture
+            disabled=st.session_state.timed_capture,
         )
 
         if not st.session_state.timed_capture:
