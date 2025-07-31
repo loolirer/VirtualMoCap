@@ -7,6 +7,7 @@ import time
 import queue
 import atexit
 import socket
+import select
 import threading
 import numpy as np
 
@@ -174,6 +175,11 @@ picam2.set_controls({"AeEnable": False, "AwbEnable": False})  # Set camera contr
 time.sleep(1)  # Warm-up
 
 
+# Display setup
+WINDOW_NAME = "Camera Feed"
+cv2.namedWindow(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN)
+
+
 # Socket Setup
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
@@ -233,6 +239,7 @@ def process_and_send():
     while True:
         try:
             shot_number, timestamp, frame = frame_queue.get(timeout=1)
+
         except queue.Empty:
             continue
 
@@ -298,7 +305,7 @@ def blob_calib():
             cv2.circle(frame_rgb, (cx, cy), r, (0, 255, 0), 2)
             cv2.circle(frame_rgb, (cx, cy), 2, (0, 0, 255), -1)
 
-        cv2.imshow("Round Blob Detection", frame_rgb)
+        cv2.imshow("Camera Feed", frame_rgb)
         cv2.waitKey(1)
 
         frame_queue.task_done()
@@ -346,38 +353,80 @@ atexit.register(cleanup)
 
 
 # Service loop
-try:
-    while True:
-        # Wait for server start trigger
-        print("[INFO] Waiting for server trigger...")
-        message_bytes, address = client_socket.recvfrom(1024)
-
-        # Decode message and wait for delay
-        message = np.frombuffer(message_bytes, dtype=np.float32)
-        delay, capture_time = message
-        print(f"[INFO] Capture request received. Waiting {delay} s...")
-        time.sleep(float(delay))  # Wait for delay
-
-        rows = []  # Reset rows
-
+def turn_on_capture(capture_time):
+    if capture_time > 0:
         print(f"[INFO] Running Capture for {capture_time} s...")
-        pi.hardware_PWM(CLOCK_PIN, FPS, DUTY_CYCLE)  # Turn on capture trigger
-        time.sleep(float(capture_time))  # Wait for capture time
-        pi.hardware_PWM(CLOCK_PIN, 0, 0)  # Turn off capture trigger
-        shot_counter = 0  # Reset shot counter for next capture
 
-        # Clear processing queue
-        with frame_queue.mutex:  # Ensure thread safety
-            frame_queue.queue.clear()
+    else:
+        print(f"[INFO] Running Capture indefinitely...")
 
-        # Wait for queue to clear
-        while not frame_queue.empty():
-            continue
+    pi.hardware_PWM(CLOCK_PIN, FPS, DUTY_CYCLE)  # Turn on capture trigger
 
-        cv2.destroyAllWindows()
 
-        if rows:
-            print_calib_values(rows)
+def turn_off_capture():
+    pi.hardware_PWM(CLOCK_PIN, 0, 0)  # Turn off capture trigger
 
-except KeyboardInterrupt:
-    print("\n[INFO] Exiting by external trigger...")
+    global shot_counter
+    with lock:
+        shot_counter = 0
+
+    # Clear processing queue
+    with frame_queue.mutex:  # Ensure thread safety
+        frame_queue.queue.clear()
+
+    # Wait for queue to clear
+    while not frame_queue.empty():
+        continue
+
+
+def run_capture_loop():
+    print(f"Waiting for messages...")
+
+    timeout = None  # Wait indefinitely
+
+    try:
+        while True:
+            ready, _, _ = select.select([client_socket], [], [], timeout)
+
+            if ready:
+                try:
+                    # Wait for server start trigger
+                    print("[INFO] Waiting for server trigger...")
+                    message_bytes, _ = client_socket.recvfrom(1024)
+
+                    # Decode message and wait for delay
+                    message = np.frombuffer(message_bytes, dtype=int)
+                    delay, capture_time = message
+                    print(f"[INFO] Capture request received. Waiting {delay} s...")
+                    time.sleep(float(delay))  # Wait for delay
+
+                    if timeout < 0:
+                        turn_on_capture(capture_time)
+                        timeout = None
+                        continue
+
+                    elif timeout == 0:
+                        turn_off_capture()
+                        print("Waiting indefinetely...")
+                        timeout = None
+                        continue
+
+                    else:
+                        turn_on_capture(capture_time)
+                        continue
+
+                except ValueError:
+                    continue
+
+            # If it reaches timeout
+            else:
+                turn_off_capture()
+                print("Waiting indefinetely...")
+                timeout = None
+
+    except KeyboardInterrupt:
+        print("\n[INFO] Exiting by external trigger...")
+
+
+if __name__ == "__main__":
+    run_capture_loop()
