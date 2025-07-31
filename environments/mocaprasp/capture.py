@@ -177,7 +177,7 @@ time.sleep(1)  # Warm-up
 
 # Display setup
 WINDOW_NAME = "Camera Feed"
-cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
+cv2.namedWindow(WINDOW_NAME)
 
 # Socket Setup
 try:
