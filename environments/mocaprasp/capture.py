@@ -380,7 +380,8 @@ def turn_off_capture():
 
 
 def run_capture_loop():
-    print(f"Waiting for messages...")
+    # Wait for server start trigger
+    print("[INFO] Waiting for server trigger...")
 
     timeout = None  # Wait indefinitely
 
@@ -390,18 +391,16 @@ def run_capture_loop():
 
             if ready:
                 try:
-                    # Wait for server start trigger
-                    print("[INFO] Waiting for server trigger...")
                     message_bytes, _ = client_socket.recvfrom(1024)
 
                     # Decode message and wait for delay
                     message = np.frombuffer(message_bytes, dtype=int)
-                    delay, capture_time = message
+                    delay, timeout = message
                     print(f"[INFO] Capture request received. Waiting {delay} s...")
                     time.sleep(float(delay))  # Wait for delay
 
                     if timeout < 0:
-                        turn_on_capture(capture_time)
+                        turn_on_capture(timeout)
                         timeout = None
                         continue
 
@@ -412,7 +411,7 @@ def run_capture_loop():
                         continue
 
                     else:
-                        turn_on_capture(capture_time)
+                        turn_on_capture(timeout)
                         continue
 
                 except ValueError:
