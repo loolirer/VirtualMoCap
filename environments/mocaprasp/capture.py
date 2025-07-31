@@ -177,6 +177,7 @@ time.sleep(1)  # Warm-up
 
 # Display setup
 WINDOW_NAME = "Camera Feed"
+cv2.namedWindow("My OpenCV Window", cv2.WINDOW_NORMAL)
 
 # Socket Setup
 try:
