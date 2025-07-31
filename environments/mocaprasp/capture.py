@@ -266,8 +266,8 @@ def process_and_send():
                 thickness=-1,
             )
 
-        if shot_number == 0:
-            cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        #if shot_number == 0:
+        #    cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
             
         cv2.imshow(WINDOW_NAME, frame_display)
         cv2.waitKey(1)
