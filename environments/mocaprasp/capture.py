@@ -177,7 +177,7 @@ time.sleep(1)  # Warm-up
 
 # Display setup
 WINDOW_NAME = "Camera Feed"
-cv2.namedWindow(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN)
+cv2.namedWindow(WINDOW_NAME)
 
 
 # Socket Setup
@@ -267,7 +267,7 @@ def process_and_send():
                 thickness=-1,
             )
 
-        cv2.imshow("Camera Feed", frame_display)
+        cv2.imshow(WINDOW_NAME, frame_display)
         cv2.waitKey(1)
 
         message = np.append(np.ravel(blobs), [shot_number, timestamp]).astype(
@@ -305,7 +305,7 @@ def blob_calib():
             cv2.circle(frame_rgb, (cx, cy), r, (0, 255, 0), 2)
             cv2.circle(frame_rgb, (cx, cy), 2, (0, 0, 255), -1)
 
-        cv2.imshow("Camera Feed", frame_rgb)
+        cv2.imshow(WINDOW_NAME, frame_rgb)
         cv2.waitKey(1)
 
         frame_queue.task_done()
