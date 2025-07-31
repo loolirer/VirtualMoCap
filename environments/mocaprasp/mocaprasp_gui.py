@@ -434,16 +434,16 @@ with capture_tab:
 
     with capture_columns[2]:
         st.caption("Capture Duration (s)")
-        capture_time = st.number_input(
+        capture_duration = st.number_input(
             label="Capture Duration (s)",
             min_value=1,
             step=1,
             label_visibility="collapsed",
-            disabled=st.session_state.timed_capture
+            disabled=not st.session_state.timed_capture
         )
 
         if not st.session_state.timed_capture:
-            capture_time = -1
+            capture_duration = -1
 
         st.caption("Make capture timed")
         st.session_state.timed_capture = st.checkbox("Timed Capture")
@@ -461,7 +461,7 @@ with capture_tab:
             placeholder.empty()
 
         elif not st.session_state.server.request_sync_capture(
-            delay_time=capture_delay, capture_time=capture_time
+            delay_time=capture_delay, capture_time=capture_duration
         ):
             placeholder.error("Capture request failed!", icon="🚨")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
