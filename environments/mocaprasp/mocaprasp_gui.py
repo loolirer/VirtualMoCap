@@ -29,6 +29,7 @@ def plot_calibration(server, title):
 
     return scene
 
+
 # Global lock for thread safety
 lock = threading.Lock()
 
@@ -499,7 +500,7 @@ with capture_tab:
                     "condensed_output": st.session_state.condensed_output,
                     "verbose": False,
                 },
-                daemon=True
+                daemon=True,
             )
 
             st.session_state.online_capture_thread.start()
@@ -514,21 +515,21 @@ with capture_tab:
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
+    if st.session_state.online_capture_thread.is_alive():
+        placeholder.success("Running capture!", icon="✅")
+
+    # Block plotting if the thread is running
+    while st.session_state.online_capture_thread.is_alive():
+        continue
+
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
-    # Add triangulated markers to the scene
     try:
-        print(st.session_state.condensed_output)
-        if st.session_state.condensed_output:
-            condensed_output = np.hstack(st.session_state.condensed_output)
-            scene.add_points(
-                np.hstack(st.session_state.condensed_output), f"Triangulated positions"
-            )
+        condensed_output = np.loadtxt("cache/capture.tmp")
+        scene.add_points(condensed_output, f"Triangulated markers")
 
-    except:
-        placeholder.error("Currupted Output!", icon="🚨")
-        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-        placeholder.empty()
+    except FileNotFoundError:
+        pass
 
     # Plot scene
     st.plotly_chart(scene.figure)

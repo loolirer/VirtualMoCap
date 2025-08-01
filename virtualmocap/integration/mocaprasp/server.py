@@ -160,13 +160,13 @@ class MoCapRasp_Server(Server):
                 self.triangulator.save(ID, frame_idx, undistorted_blobs)
 
     def online_capture(
-        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), condensed_output=[], verbose=True
+        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), verbose=True
     ):
         timeout = 5  # In seconds
         self.udp_socket.settimeout(timeout)  # Set server timeout
         print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
-        condensed_output.clear()
+        condensed_output = []
 
         # Breaks in the timeout
         while True:
@@ -270,3 +270,6 @@ class MoCapRasp_Server(Server):
 
             except:
                 pass  # Don't access array if index is out of bounds
+        
+        # Save into .csv
+        np.savetxt("cache/capture.tmp", np.hstack(condensed_output), delimiter=",")
