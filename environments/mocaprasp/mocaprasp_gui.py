@@ -47,8 +47,8 @@ if "triangulated_markers" not in st.session_state:
     st.session_state.triangulated_markers = None
 
 # Timed capture flag
-if "timed_capture" not in st.session_state:
-    st.session_state.timed_capture = False
+if "disable_timed_capture" not in st.session_state:
+    st.session_state.disable_timed_capture = True
 
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
 st.image("mocaprasp.png")
@@ -385,13 +385,26 @@ with calibration_tab:
 with capture_tab:
     st.subheader("📸 Capture Scene")
 
-    capture_columns = st.columns([1, 1, 1])
+    capture_columns = st.columns([1, 1])
 
     with capture_columns[0]:
-        st.caption("Expected Markers")
-        expected_markers = st.number_input(
-            label="Marker count", min_value=1, step=1, label_visibility="collapsed"
+        st.caption("Time Limited Capture")
+        st.session_state.disable_timed_capture = not st.checkbox(
+            "Enable Timed Capture", value=False
         )
+        st.write("")
+
+        st.caption("Capture Duration (s)")
+        capture_duration = st.number_input(
+            label="Capture Duration (s)",
+            min_value=1,
+            step=1,
+            label_visibility="collapsed",
+            disabled=st.session_state.disable_timed_capture,
+        )
+
+        if st.session_state.disable_timed_capture:
+            capture_duration = -1
 
         st.caption("Publishing Hostname")
         publishing_hostname = st.text_input(
@@ -410,13 +423,22 @@ with capture_tab:
         start_capture_flag = st.button("Start Capture", use_container_width=True)
 
     with capture_columns[1]:
+        st.caption("Expected Markers")
+        expected_markers = st.number_input(
+            label="Marker count", min_value=1, step=1, label_visibility="collapsed"
+        )
+
         st.caption("Capture Delay (s)")
         capture_delay = st.number_input(
             label="Capture Delay (s)",
             min_value=0,
             step=1,
             label_visibility="collapsed",
+            disabled=st.session_state.disable_timed_capture,
         )
+
+        if st.session_state.disable_timed_capture:
+            capture_delay = 0
 
         st.caption("Publishing Port")
         publishing_port = st.number_input(
@@ -431,24 +453,6 @@ with capture_tab:
         terminate_capture_flag = st.button(
             "Terminate Capture", use_container_width=True
         )
-
-    with capture_columns[2]:
-        st.caption("Capture Duration (s)")
-        capture_duration = st.number_input(
-            label="Capture Duration (s)",
-            min_value=1,
-            step=1,
-            label_visibility="collapsed",
-            disabled=st.session_state.timed_capture,
-        )
-
-        if not st.session_state.timed_capture:
-            capture_duration = -1
-
-        st.caption("Make capture timed")
-        st.session_state.timed_capture = st.checkbox("Timed Capture")
-
-
 
     if start_capture_flag:
         placeholder = st.empty()
@@ -510,7 +514,9 @@ with capture_tab:
 
     # Add triangulated markers to the scene
     if st.session_state.triangulated_markers is not None:
-        scene.add_points(st.session_state.triangulated_markers, f"Triangulated positions")
+        scene.add_points(
+            st.session_state.triangulated_markers, f"Triangulated positions"
+        )
 
     # Plot scene
     st.plotly_chart(scene.figure)
