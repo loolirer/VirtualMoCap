@@ -524,7 +524,7 @@ with capture_tab:
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
     try:
-        condensed_output = np.loadtxt("cache/capture.tmp")
+        condensed_output = np.loadtxt("cache/capture.tmp", delimiter=",")
         scene.add_points(condensed_output, f"Triangulated markers")
 
     except FileNotFoundError:
