@@ -502,9 +502,8 @@ with capture_tab:
                     "condensed_output": st.session_state.condensed_output,
                 },
             )
-            st.session_state.online_capture_thread.start()
 
-            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+            st.session_state.online_capture_thread.start()
 
     if terminate_capture_flag:
         placeholder = st.empty()
@@ -527,9 +526,14 @@ with capture_tab:
             placeholder.success("Termination request successful!", icon="✅")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-    # Blocks updates until the capture stops
+
+    if st.session_state.online_capture_thread.is_alive():
+        placeholder.success("Running capture!", icon="✅")
+
     while st.session_state.online_capture_thread.is_alive():
         pass
+
+    placeholder.empty()
 
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
