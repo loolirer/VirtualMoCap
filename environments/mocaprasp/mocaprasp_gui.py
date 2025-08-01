@@ -460,7 +460,7 @@ with capture_tab:
             kwargs={
                 "expected_markers": expected_markers,
                 "visualizer_address": (publishing_ip, publishing_port),
-                "all_triangulated_markers": st.session_state.condensed_output,
+                "condensed_output": st.session_state.condensed_output,
             },
             use_container_width=True,
             disabled=publishing_ip is None,
