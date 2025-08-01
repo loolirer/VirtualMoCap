@@ -497,7 +497,6 @@ with capture_tab:
                 kwargs={
                     "expected_markers": expected_markers,
                     "visualizer_address": (publishing_ip, publishing_port),
-                    "condensed_output": st.session_state.condensed_output,
                     "verbose": False,
                 },
                 daemon=True,
