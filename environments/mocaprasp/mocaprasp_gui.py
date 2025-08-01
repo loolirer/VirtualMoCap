@@ -475,7 +475,9 @@ with capture_tab:
             placeholder.empty()
 
         elif st.session_state.online_capture_thread.is_alive():
-            placeholder.error("Last capture is still alive! Finish it to begin new one.", icon="🚨")
+            placeholder.error(
+                "Last capture is still alive! Finish it to begin new one.", icon="🚨"
+            )
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
@@ -490,7 +492,7 @@ with capture_tab:
             placeholder.success(
                 "Capture request successful! Waiting for new capture...", icon="✅"
             )
-        
+
             # Call new thread
             st.session_state.online_capture_thread = threading.Thread(
                 target=st.session_state.server.online_capture,
@@ -524,11 +526,6 @@ with capture_tab:
         else:
             placeholder.success("Termination request successful!", icon="✅")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-
-            st.session_state.condensed_output = st.session_state.server.online_capture(
-                expected_markers=expected_markers,
-                visualizer_address=(publishing_ip, publishing_port),
-            )
 
     # Blocks updates until the capture stops
     while st.session_state.online_capture_thread.is_alive():
