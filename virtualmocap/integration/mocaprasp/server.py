@@ -272,4 +272,10 @@ class MoCapRasp_Server(Server):
                 pass  # Don't access array if index is out of bounds
         
         # Save into .csv
-        np.savetxt("cache/capture.tmp", np.hstack(condensed_output), delimiter=",")
+        cache_directory = "cache/"
+        os.makedirs(
+            cache_directory, exist_ok=True
+        )  # Create the folder if it doesn't exist
+        file_path = os.path.join(cache_directory, "capture.tmp")
+        
+        np.savetxt(file_path, np.hstack(condensed_output), delimiter=",")
