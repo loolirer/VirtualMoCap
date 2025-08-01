@@ -29,6 +29,8 @@ def plot_calibration(server, title):
 
     return scene
 
+# Global lock for thread safety
+lock = threading.Lock()
 
 # How much time to wait before disappearing
 if "message_timeout" not in st.session_state:
@@ -52,7 +54,7 @@ if "disable_timed_capture" not in st.session_state:
     st.session_state.disable_timed_capture = True
 
 if "online_capture_thread" not in st.session_state:
-    st.session_state.online_capture_thread = threading.Thread()
+    st.session_state.online_capture_thread = threading.Thread(daemon=True)
 
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
 st.image("mocaprasp.png")
@@ -497,6 +499,7 @@ with capture_tab:
                     "condensed_output": st.session_state.condensed_output,
                     "verbose": False,
                 },
+                daemon=True
             )
 
             st.session_state.online_capture_thread.start()
