@@ -510,17 +510,6 @@ with capture_tab:
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
-
-    placeholder = st.empty()
-
-    if st.session_state.online_capture_thread.is_alive():
-        placeholder.success("Running capture!", icon="✅")
-
-    while st.session_state.online_capture_thread.is_alive():
-        pass
-
-    placeholder.empty()
-
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
     # Add triangulated markers to the scene
