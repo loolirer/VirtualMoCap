@@ -388,10 +388,11 @@ with capture_tab:
     capture_columns = st.columns([1, 1])
 
     with capture_columns[1]:
-        st.caption("Expected Markers")
-        expected_markers = st.number_input(
-            label="Marker count", min_value=1, step=1, label_visibility="collapsed"
+        st.caption("Time Limited Capture")
+        st.session_state.disable_timed_capture = not st.checkbox(
+            "Enable Timed Capture", value=False
         )
+        st.write("")
 
         st.caption("Capture Delay (s)")
         capture_delay = st.number_input(
@@ -420,11 +421,10 @@ with capture_tab:
         )
 
     with capture_columns[0]:
-        st.caption("Time Limited Capture")
-        st.session_state.disable_timed_capture = not st.checkbox(
-            "Enable Timed Capture", value=False
+        st.caption("Expected Markers")
+        expected_markers = st.number_input(
+            label="Marker count", min_value=1, step=1, label_visibility="collapsed"
         )
-        st.write("")
 
         st.caption("Capture Duration (s)")
         capture_duration = st.number_input(
