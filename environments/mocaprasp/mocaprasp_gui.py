@@ -466,7 +466,6 @@ with capture_tab:
 
     if start_capture_flag:
         placeholder = st.empty()
-        placeholder.info("Standard capture requested", icon="ℹ️")
 
         # Request capture (start simulation)
         if publishing_ip is None:
