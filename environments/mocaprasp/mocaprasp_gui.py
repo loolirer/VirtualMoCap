@@ -4,6 +4,7 @@ import time
 import socket
 import numpy as np
 import streamlit as st
+import threading
 
 from virtualmocap.plot.viewer3d import Viewer3D
 from virtualmocap.vision.camera import Camera
@@ -31,7 +32,7 @@ def plot_calibration(server, title):
 
 # How much time to wait before disappearing
 if "message_timeout" not in st.session_state:
-    st.session_state.message_timeout = 3  # In seconds
+    st.session_state.message_timeout = 2  # In seconds
 
 # Create server
 if "server" not in st.session_state:
@@ -49,6 +50,9 @@ if "triangulated_markers" not in st.session_state:
 # Timed capture flag
 if "disable_timed_capture" not in st.session_state:
     st.session_state.disable_timed_capture = True
+
+if "online_capture_thread" not in st.session_state:
+    st.session_state.online_capture_thread = threading.Thread()
 
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
 st.image("mocaprasp.png")
@@ -456,12 +460,6 @@ with capture_tab:
 
         start_capture_flag = st.button(
             label="Start Capture",
-            on_click=st.session_state.server.online_capture,
-            kwargs={
-                "expected_markers": expected_markers,
-                "visualizer_address": (publishing_ip, publishing_port),
-                "condensed_output": st.session_state.condensed_output,
-            },
             use_container_width=True,
             disabled=publishing_ip is None,
         )
@@ -476,6 +474,11 @@ with capture_tab:
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
+        elif st.session_state.online_capture_thread.is_alive():
+            placeholder.error("Last capture is still alive! Finish it to begin new one.", icon="🚨")
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+            placeholder.empty()
+
         elif not st.session_state.server.request_sync_capture(
             delay_time=capture_delay, capture_time=capture_duration
         ):
@@ -484,8 +487,21 @@ with capture_tab:
             placeholder.empty()
 
         else:
-            placeholder.success("Capture request successful!", icon="✅")
+            placeholder.success(
+                "Capture request successful! Waiting for new capture...", icon="✅"
+            )
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+        
+            # Call new thread
+            st.session_state.online_capture_thread = threading.Thread(
+                target=st.session_state.server.online_capture,
+                kwargs={
+                    "expected_markers": expected_markers,
+                    "visualizer_address": (publishing_ip, publishing_port),
+                    "condensed_output": st.session_state.condensed_output,
+                },
+            )
+            st.session_state.online_capture_thread.start()
 
     if terminate_capture_flag:
         placeholder = st.empty()
