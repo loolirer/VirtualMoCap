@@ -44,7 +44,7 @@ if "wand_blobs" not in st.session_state:
 
 # Collected capture data
 if "triangulated_markers" not in st.session_state:
-    st.session_state.triangulated_markers = None
+    st.session_state.condensed_output = []
 
 # Timed capture flag
 if "disable_timed_capture" not in st.session_state:
@@ -387,6 +387,38 @@ with capture_tab:
 
     capture_columns = st.columns([1, 1])
 
+    with capture_columns[1]:
+        st.caption("Expected Markers")
+        expected_markers = st.number_input(
+            label="Marker count", min_value=1, step=1, label_visibility="collapsed"
+        )
+
+        st.caption("Capture Delay (s)")
+        capture_delay = st.number_input(
+            label="Capture Delay (s)",
+            min_value=0,
+            step=1,
+            label_visibility="collapsed",
+            disabled=st.session_state.disable_timed_capture,
+        )
+
+        if st.session_state.disable_timed_capture:
+            capture_delay = 0
+
+        st.caption("Publishing Port")
+        publishing_port = st.number_input(
+            label="Publishing Port",
+            min_value=1024,
+            max_value=65535,
+            value=6666,
+            step=1,
+            label_visibility="collapsed",
+        )
+
+        terminate_capture_flag = st.button(
+            "Terminate Capture", use_container_width=True
+        )
+
     with capture_columns[0]:
         st.caption("Time Limited Capture")
         st.session_state.disable_timed_capture = not st.checkbox(
@@ -420,38 +452,18 @@ with capture_tab:
         except:
             publishing_ip = None
 
-        start_capture_flag = st.button("Start Capture", use_container_width=True)
+        start_capture_flag = False
 
-    with capture_columns[1]:
-        st.caption("Expected Markers")
-        expected_markers = st.number_input(
-            label="Marker count", min_value=1, step=1, label_visibility="collapsed"
-        )
-
-        st.caption("Capture Delay (s)")
-        capture_delay = st.number_input(
-            label="Capture Delay (s)",
-            min_value=0,
-            step=1,
-            label_visibility="collapsed",
-            disabled=st.session_state.disable_timed_capture,
-        )
-
-        if st.session_state.disable_timed_capture:
-            capture_delay = 0
-
-        st.caption("Publishing Port")
-        publishing_port = st.number_input(
-            label="Publishing Port",
-            min_value=1024,
-            max_value=65535,
-            value=6666,
-            step=1,
-            label_visibility="collapsed",
-        )
-
-        terminate_capture_flag = st.button(
-            "Terminate Capture", use_container_width=True
+        start_capture_flag = st.button(
+            label="Start Capture",
+            on_click=st.session_state.server.online_capture,
+            kwargs={
+                "expected_markers": expected_markers,
+                "visualizer_address": (publishing_ip, publishing_port),
+                "all_triangulated_markers": st.session_state.condensed_output,
+            },
+            use_container_width=True,
+            disabled=publishing_ip is None,
         )
 
     if start_capture_flag:
@@ -475,13 +487,6 @@ with capture_tab:
             placeholder.success("Capture request successful!", icon="✅")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-            st.session_state.triangulated_markers = (
-                st.session_state.server.online_capture(
-                    expected_markers=expected_markers,
-                    visualizer_address=(publishing_ip, publishing_port),
-                )
-            )
-
     if terminate_capture_flag:
         placeholder = st.empty()
         placeholder.info("Requested capture termination", icon="ℹ️")
@@ -503,20 +508,25 @@ with capture_tab:
             placeholder.success("Termination request successful!", icon="✅")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-            st.session_state.triangulated_markers = (
-                st.session_state.server.online_capture(
-                    expected_markers=expected_markers,
-                    visualizer_address=(publishing_ip, publishing_port),
-                )
+            st.session_state.condensed_output = st.session_state.server.online_capture(
+                expected_markers=expected_markers,
+                visualizer_address=(publishing_ip, publishing_port),
             )
 
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
     # Add triangulated markers to the scene
-    if st.session_state.triangulated_markers is not None:
-        scene.add_points(
-            st.session_state.triangulated_markers, f"Triangulated positions"
-        )
+    try:
+        if st.session_state.condensed_output:
+            condensed_output = np.hstack(st.session_state.condensed_output)
+            scene.add_points(
+                np.hstack(st.session_state.condensed_output), f"Triangulated positions"
+            )
+
+    except:
+        placeholder.error("Currupted Output!", icon="🚨")
+        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+        placeholder.empty()
 
     # Plot scene
     st.plotly_chart(scene.figure)

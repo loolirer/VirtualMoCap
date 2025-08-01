@@ -160,13 +160,13 @@ class MoCapRasp_Server(Server):
                 self.triangulator.save(ID, frame_idx, undistorted_blobs)
 
     def online_capture(
-        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), verbose=True
+        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), condensed_output=[], verbose=True
     ):
         timeout = 5  # In seconds
         self.udp_socket.settimeout(timeout)  # Set server timeout
         print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
-        all_triangulated_markers = []
+        condensed_output.clear()
 
         # Breaks in the timeout
         while True:
@@ -266,11 +266,7 @@ class MoCapRasp_Server(Server):
 
             # Save data for plotting
             try:
-                all_triangulated_markers.append(triangulated_markers)
+                condensed_output.append(triangulated_markers)
 
             except:
                 pass  # Don't access array if index is out of bounds
-
-        # Join collected data
-        all_triangulated_markers = np.hstack(all_triangulated_markers)
-        return all_triangulated_markers
