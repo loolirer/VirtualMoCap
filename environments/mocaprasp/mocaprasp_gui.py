@@ -490,7 +490,6 @@ with capture_tab:
             placeholder.success(
                 "Capture request successful! Waiting for new capture...", icon="✅"
             )
-            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         
             # Call new thread
             st.session_state.online_capture_thread = threading.Thread(
@@ -502,6 +501,8 @@ with capture_tab:
                 },
             )
             st.session_state.online_capture_thread.start()
+
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
     if terminate_capture_flag:
         placeholder = st.empty()
@@ -528,6 +529,10 @@ with capture_tab:
                 expected_markers=expected_markers,
                 visualizer_address=(publishing_ip, publishing_port),
             )
+
+    # Blocks updates until the capture stops
+    while st.session_state.online_capture_thread.is_alive():
+        pass
 
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
