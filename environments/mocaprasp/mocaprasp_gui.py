@@ -526,7 +526,8 @@ with capture_tab:
             placeholder.success("Termination request successful!", icon="✅")
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
-
+    placeholder = st.empty()
+    
     if st.session_state.online_capture_thread.is_alive():
         placeholder.success("Running capture!", icon="✅")
 
