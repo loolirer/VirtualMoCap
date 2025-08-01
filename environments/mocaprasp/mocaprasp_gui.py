@@ -489,10 +489,6 @@ with capture_tab:
             placeholder.empty()
 
         else:
-            placeholder.success(
-                "Capture request successful! Waiting for new capture...", icon="✅"
-            )
-
             # Call new thread
             st.session_state.online_capture_thread = threading.Thread(
                 target=st.session_state.server.online_capture,
@@ -527,7 +523,7 @@ with capture_tab:
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
     placeholder = st.empty()
-    
+
     if st.session_state.online_capture_thread.is_alive():
         placeholder.success("Running capture!", icon="✅")
 
