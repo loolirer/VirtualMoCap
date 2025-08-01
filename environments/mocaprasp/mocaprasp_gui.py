@@ -495,6 +495,7 @@ with capture_tab:
                     "expected_markers": expected_markers,
                     "visualizer_address": (publishing_ip, publishing_port),
                     "condensed_output": st.session_state.condensed_output,
+                    "verbose": False,
                 },
             )
 
@@ -514,6 +515,7 @@ with capture_tab:
 
     # Add triangulated markers to the scene
     try:
+        print(st.session_state.condensed_output)
         if st.session_state.condensed_output:
             condensed_output = np.hstack(st.session_state.condensed_output)
             scene.add_points(
