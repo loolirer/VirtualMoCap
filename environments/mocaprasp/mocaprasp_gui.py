@@ -517,9 +517,6 @@ with capture_tab:
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
-        else:
-            placeholder.success("Termination request successful!", icon="✅")
-            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
 
     placeholder = st.empty()
 
