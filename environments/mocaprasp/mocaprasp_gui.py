@@ -51,7 +51,7 @@ if "triangulated_markers" not in st.session_state:
 if "disable_timed_capture" not in st.session_state:
     st.session_state.disable_timed_capture = True
 
-if "online_capture_thread" not in st.session_state:
+if "online_capture_process" not in st.session_state:
     st.session_state.online_capture_process = Process(daemon=True)
 
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
