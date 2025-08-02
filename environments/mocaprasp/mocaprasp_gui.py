@@ -29,7 +29,6 @@ def plot_calibration(server, title):
 
     return scene
 
-
 # How much time to wait before disappearing
 if "message_timeout" not in st.session_state:
     st.session_state.message_timeout = 2  # In seconds
@@ -53,6 +52,12 @@ if "disable_timed_capture" not in st.session_state:
 
 if "online_capture_process" not in st.session_state:
     st.session_state.online_capture_process = Process(daemon=True)
+
+if "cache_directory" not in st.session_state:
+    st.session_state.cache_directory = "cache/"
+    os.makedirs(
+        st.session_state.cache_directory, exist_ok=True
+    )  # Create the folder if it doesn't exist
 
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
 st.image("mocaprasp.png")
@@ -400,6 +405,8 @@ with calibration_tab:
 with capture_tab:
     st.subheader("📸 Capture Scene")
 
+    capture_path = os.path.join(st.session_state.cache_directory, "capture.csv")
+
     capture_columns = st.columns([1, 1])
 
     with capture_columns[1]:
@@ -505,6 +512,7 @@ with capture_tab:
                 kwargs={
                     "expected_markers": expected_markers,
                     "visualizer_address": (publishing_ip, publishing_port),
+                    "capture_path": capture_path, 
                     "verbose": False,
                 },
                 daemon=True,
@@ -536,7 +544,7 @@ with capture_tab:
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
     try:
-        condensed_output = np.loadtxt("cache/capture.tmp", delimiter=",")
+        condensed_output = np.loadtxt(capture_path, delimiter=",")
         scene.add_points(condensed_output, f"Triangulated markers")
 
     except FileNotFoundError:

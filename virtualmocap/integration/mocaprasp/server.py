@@ -160,7 +160,7 @@ class MoCapRasp_Server(Server):
                 self.triangulator.save(ID, frame_idx, undistorted_blobs)
 
     def online_capture(
-        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), save_capture=False, verbose=True
+        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), capture_path="", verbose=True
     ):
         timeout = 5  # In seconds
         self.udp_socket.settimeout(timeout)  # Set server timeout
@@ -264,7 +264,7 @@ class MoCapRasp_Server(Server):
             buffer = triangulated_markers.astype(np.float32).ravel().tobytes()
             self.udp_socket.sendto(buffer, visualizer_address)
 
-            if save_capture:
+            if capture_path:
                 # Save data for plotting
                 try:
                     all_triangulated_markers.append(triangulated_markers)
@@ -272,11 +272,10 @@ class MoCapRasp_Server(Server):
                 except:
                     pass  # Don't access array if index is out of bounds
         
-        if save_capture:
-            cache_directory = "cache/"
-            os.makedirs(
-                cache_directory, exist_ok=True
-            )  # Create the folder if it doesn't exist
-            file_path = os.path.join(cache_directory, "capture.tmp")
-            
-            np.savetxt(file_path, np.hstack(all_triangulated_markers), delimiter=",")
+        if capture_path:
+            try:
+                np.savetxt(capture_path, np.hstack(all_triangulated_markers), delimiter=",")
+
+            except:
+                print("[ERROR] Could not save capture")
+                pass
