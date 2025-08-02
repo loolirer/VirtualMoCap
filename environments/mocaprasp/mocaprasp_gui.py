@@ -529,6 +529,8 @@ with capture_tab:
     while st.session_state.online_capture_process.is_alive():
         continue
 
+    placeholder.empty()
+
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
     try:
