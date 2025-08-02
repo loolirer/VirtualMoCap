@@ -154,6 +154,17 @@ with calibration_tab:
         time.sleep(st.session_state.message_timeout)  # Wait before disappearing
         placeholder.empty()
 
+        # Register clients
+        if not st.session_state.server.register_clients():
+            placeholder.error("Client register failed!", icon="🚨")
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+            placeholder.empty()
+
+        else:
+            placeholder.success(f"Client register successful!", icon="✅")
+            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
+            placeholder.empty()
+
     extrinsic_calibration_columns = st.columns([1, 1])
 
     with extrinsic_calibration_columns[0]:
