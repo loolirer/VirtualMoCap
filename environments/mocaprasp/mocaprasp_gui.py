@@ -4,7 +4,7 @@ import time
 import socket
 import numpy as np
 import streamlit as st
-import threading
+from multiprocessing import Process
 
 from virtualmocap.plot.viewer3d import Viewer3D
 from virtualmocap.vision.camera import Camera
@@ -30,9 +30,6 @@ def plot_calibration(server, title):
     return scene
 
 
-# Global lock for thread safety
-lock = threading.Lock()
-
 # How much time to wait before disappearing
 if "message_timeout" not in st.session_state:
     st.session_state.message_timeout = 2  # In seconds
@@ -55,7 +52,7 @@ if "disable_timed_capture" not in st.session_state:
     st.session_state.disable_timed_capture = True
 
 if "online_capture_thread" not in st.session_state:
-    st.session_state.online_capture_thread = threading.Thread(daemon=True)
+    st.session_state.online_capture_process = Process(daemon=True)
 
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
 st.image("mocaprasp.png")
@@ -487,7 +484,7 @@ with capture_tab:
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
-        elif st.session_state.online_capture_thread.is_alive():
+        elif st.session_state.online_capture_process.is_alive():
             placeholder.error(
                 "Last capture is still alive! Finish it to begin new one.", icon="🚨"
             )
@@ -503,7 +500,7 @@ with capture_tab:
 
         else:
             # Call new thread
-            st.session_state.online_capture_thread = threading.Thread(
+            st.session_state.online_capture_process = Process(
                 target=st.session_state.server.online_capture,
                 kwargs={
                     "expected_markers": expected_markers,
@@ -513,7 +510,7 @@ with capture_tab:
                 daemon=True,
             )
 
-            st.session_state.online_capture_thread.start()
+            st.session_state.online_capture_process.start()
 
     if terminate_capture_flag:
         placeholder = st.empty()
@@ -525,11 +522,11 @@ with capture_tab:
             time.sleep(st.session_state.message_timeout)  # Wait before disappearing
             placeholder.empty()
 
-    if st.session_state.online_capture_thread.is_alive():
+    if st.session_state.online_capture_process.is_alive():
         placeholder.success("Running capture!", icon="✅")
 
     # Block plotting if the thread is running
-    while st.session_state.online_capture_thread.is_alive():
+    while st.session_state.online_capture_process.is_alive():
         continue
 
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
