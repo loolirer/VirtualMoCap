@@ -160,13 +160,13 @@ class MoCapRasp_Server(Server):
                 self.triangulator.save(ID, frame_idx, undistorted_blobs)
 
     def online_capture(
-        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), verbose=True
+        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), save_capture=False, verbose=True
     ):
         timeout = 5  # In seconds
         self.udp_socket.settimeout(timeout)  # Set server timeout
         print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
-        condensed_output = []
+        all_triangulated_markers = []
 
         # Breaks in the timeout
         while True:
@@ -264,18 +264,19 @@ class MoCapRasp_Server(Server):
             buffer = triangulated_markers.astype(np.float32).ravel().tobytes()
             self.udp_socket.sendto(buffer, visualizer_address)
 
-            # Save data for plotting
-            try:
-                condensed_output.append(triangulated_markers)
+            if save_capture:
+                # Save data for plotting
+                try:
+                    all_triangulated_markers.append(triangulated_markers)
 
-            except:
-                pass  # Don't access array if index is out of bounds
+                except:
+                    pass  # Don't access array if index is out of bounds
         
-        # Save into .csv
-        cache_directory = "cache/"
-        os.makedirs(
-            cache_directory, exist_ok=True
-        )  # Create the folder if it doesn't exist
-        file_path = os.path.join(cache_directory, "capture.tmp")
-        
-        np.savetxt(file_path, np.hstack(condensed_output), delimiter=",")
+        if save_capture:
+            cache_directory = "cache/"
+            os.makedirs(
+                cache_directory, exist_ok=True
+            )  # Create the folder if it doesn't exist
+            file_path = os.path.join(cache_directory, "capture.tmp")
+            
+            np.savetxt(file_path, np.hstack(all_triangulated_markers), delimiter=",")
