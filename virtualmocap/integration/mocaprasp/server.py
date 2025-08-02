@@ -1,37 +1,121 @@
 import copy
 import time
+import yaml
 
+from virtualmocap.integration.arp import *
 from virtualmocap.integration.server import *
 from virtualmocap.vision.synchronizer import *
 from virtualmocap.vision.triangulator import *
 
 
 class MoCapRasp_Server(Server):
-    def __init__(self, clients=[], server_address=("127.0.0.1", 25565)):
+    def __init__(self, config_path="", server_address=("127.0.0.1", 25565)):
 
+        clients = self.load_client_configs(config_path)
         Server.__init__(self, clients, server_address)
         self.buffer_size = 1024  # In bytes
 
+    def load_client_configs(self, config_path):
+        try:
+            with open(config_path, "r") as file:
+                client_configs = yaml.safe_load(file)
+
+            clients = []
+            for client in client_configs.get("clients", []):
+                alias = client["alias"]
+                mac_address = client["mac_address"]
+                resolution = tuple(client["resolution"])
+                intrinsic_matrix = np.array(client["intrinsic_matrix"])
+                distortion_model = client["distortion_model"]
+                distortion_coefficients = np.array(client["distortion_coefficients"])
+
+                camera = Camera(
+                    resolution=resolution,
+                    intrinsic_matrix=intrinsic_matrix,
+                    distortion_model=distortion_model,
+                    distortion_coefficients=distortion_coefficients,
+                )
+
+                clients.append(
+                    Client(alias=alias, mac_address=mac_address, camera=camera)
+                )
+
+            return clients
+
+        except FileNotFoundError:
+            return []
+
     def register_clients(self):
-        # Clearing the previous addresses (client addresses may change from capture to capture)
-        self.client_addresses.clear()
+        try:
+            # Clearing the previous addresses (client addresses may change from capture to capture)
+            self.client_addresses.clear()
 
-        # Check client connection to network
-        for ID in range(self.n_clients):
+            mac_list = [client.mac_address for client in self.clients]
+            self.mac_to_client = {client.mac_address: client for client in self.clients}
+            self.mac_to_ip, self.ip_to_mac = get_mac_mapping(mac_list)
+
+            for mac_address, ip in self.mac_to_ip.items():
+                if mac_address in mac_list:
+                    self.mac_to_client[mac_address].active = True
+                    self.mac_to_client[mac_address].address = (ip, 25565)
+
+                else:
+                    self.mac_to_client[mac_address].active = False
+                    self.mac_to_client[mac_address].address = ()
+
+            return True
+        
+        except:
+            return False
+        
+    def save_calibration(self):
+        now = datetime.now()
+        ymd, HMS = now.strftime("%y-%m-%d"), now.strftime("%H-%M-%S")
+
+        directory = os.path.join(os.getcwd(), "calibration", "-".join([ymd, HMS]))
+
+        # Check whether directory already exists
+        if not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
+
+        # Save data to pickle file
+        for client in self.clients:
+            # Save the object to a file (Pickling)
             try:
-                IP = socket.gethostbyname(f"mocaprasp-client-{ID}.local")
-                address = (IP, 25565)  # Pre-established standard client port
-                self.client_addresses[address] = ID
-                self.clients[ID].address = address  # Update the client address
-
-                print(f"\tClient {ID} registered")
+                file_name = client.mac_address.replace(":", "")
+                with open(os.path.join(directory, f"{file_name}.pkl"), "wb") as file:
+                    pickle.dump(client.camera, file)
 
             except:
-                print(f"[SERVER] Client {ID} not connected!")
-                return False
+                continue
 
-        return True
+    def load_calibration(self, path):
+        self.mac_to_client = {client.mac_address: client for client in self.clients}
 
+        for pickled_camera_model in os.listdir(path):
+            mac = pickled_camera_model.removesuffix(".pkl")
+            mac_address = ':'.join(mac[i:i + 2] for i in range(0, len(mac), 2))
+
+            # Check if client is present
+            try:
+                client = self.mac_to_client[mac_address]
+
+            except:
+                continue
+            
+            # Load the object from the file (Unpickling)
+            try:
+                with open(os.path.join(path, pickled_camera_model), "rb") as file:
+                    camera_model = pickle.load(file)
+
+                    client.camera = camera_model
+
+            except:
+                continue
+
+        self.update_clients(self.clients)
+
+    # LEGACY
     def request_async_capture(self, delay_time, synchronizer):
         # Initialize synchronizers and message logs
         for client in self.clients:
@@ -67,7 +151,6 @@ class MoCapRasp_Server(Server):
         return True
 
     def offline_capture(self, expected_markers=1, timeout=5, verbose=True):
-        timeout = 5  # In seconds
         self.udp_socket.settimeout(timeout)  # Set server timeout
         print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
@@ -76,6 +159,7 @@ class MoCapRasp_Server(Server):
             # Wait for message - Event guided!
             try:
                 message_bytes, address = self.udp_socket.recvfrom(self.buffer_size)
+                ip, port = address
 
             except TimeoutError:
                 print("\n[SERVER] Timed Out!")
@@ -87,22 +171,22 @@ class MoCapRasp_Server(Server):
 
             # Check if message comes from any of the clients
             try:
-                ID = self.client_addresses[address]  # Client Identifier
+                client = self.mac_to_client[self.ip_to_mac[ip]]  # Get client
 
             except:
                 if verbose:
-                    print("> Client not recognized")
+                    print("\tClient not recognized")
 
                 continue  # Jump to wait for the next message
 
             # Show sender
             if verbose:
                 print(
-                    f"> Received message from Client {ID} ({address[0]}, {address[1]})"
+                    f"\tReceived message from {client.alias} @ {ip}:{port}"
                 )
 
             # Save message
-            self.clients[ID].message_log.append(message_bytes)
+            client.message_log.append(message_bytes)
 
         # Post-processing
         for ID, client in enumerate(self.clients):
@@ -114,7 +198,7 @@ class MoCapRasp_Server(Server):
 
                 except:
                     if verbose:
-                        print("> Couldn't decode message")
+                        print("\tCouldn't decode message")
 
                     continue  # Jump to the next message
 
@@ -160,9 +244,13 @@ class MoCapRasp_Server(Server):
                 self.triangulator.save(ID, frame_idx, undistorted_blobs)
 
     def online_capture(
-        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), capture_path="", verbose=True
+        self,
+        expected_markers=1,
+        visualizer_address=("127.0.0.1", 6666),
+        capture_path="",
+        timeout=5, # In seconds
+        verbose=True,
     ):
-        timeout = 5  # In seconds
         self.udp_socket.settimeout(timeout)  # Set server timeout
         print(f"[SERVER] Timeout set to {timeout} seconds\n")
 
@@ -172,9 +260,8 @@ class MoCapRasp_Server(Server):
         while True:
             # Wait for message - Event guided!
             try:
-                message_bytes, address = self.udp_socket.recvfrom(
-                    self.buffer_size
-                )
+                message_bytes, address = self.udp_socket.recvfrom(self.buffer_size)
+                ip, port = address
 
             except TimeoutError:
                 print("\n[SERVER] Timed Out!")
@@ -186,18 +273,18 @@ class MoCapRasp_Server(Server):
 
             # Check if message comes from any of the clients
             try:
-                ID = self.client_addresses[address]  # Client Identifier
+                client = self.mac_to_client[self.ip_to_mac[ip]]  # Get client
 
             except:
                 if verbose:
-                    print("> Address not recognized")
+                    print("\tAddress not recognized")
 
                 continue  # Jump to wait for the next message
 
             # Show sender
             if verbose:
                 print(
-                    f"> Received message from Client {ID} ({address[0]}, {address[1]}):"
+                    f"\tReceived message from {client.alias} @ {ip}:{port}"
                 )
 
             # Decode message
@@ -206,7 +293,7 @@ class MoCapRasp_Server(Server):
 
             except:
                 if verbose:
-                    print("> Couldn't decode message")
+                    print("\touldn't decode message")
 
                 continue  # Jump to wait for the next message
 
@@ -241,9 +328,7 @@ class MoCapRasp_Server(Server):
             blob_centroids = blob_data[:, :2]  # Ignoring their area
 
             # Undistorting blobs centroids
-            undistorted_blobs = self.clients[ID].camera.undistort_points(
-                blob_centroids
-            )
+            undistorted_blobs = client.camera.undistort_points(blob_centroids)
 
             # Print blobs
             if verbose:
@@ -251,7 +336,7 @@ class MoCapRasp_Server(Server):
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
             triangulated_markers = self.triangulator.triangulate(
-                ID, frame_idx, undistorted_blobs
+                int(client.alias[-1]), frame_idx, undistorted_blobs
             )
 
             if triangulated_markers is None:
@@ -271,10 +356,12 @@ class MoCapRasp_Server(Server):
 
                 except:
                     pass  # Don't access array if index is out of bounds
-        
+
         if capture_path:
             try:
-                np.savetxt(capture_path, np.hstack(all_triangulated_markers), delimiter=",")
+                np.savetxt(
+                    capture_path, np.hstack(all_triangulated_markers), delimiter=","
+                )
 
             except:
                 print("[ERROR] Could not save capture")

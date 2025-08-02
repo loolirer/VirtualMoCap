@@ -10,10 +10,11 @@ from virtualmocap.plot.viewer3d import Viewer3D
 from virtualmocap.vision.camera import Camera
 from virtualmocap.integration.client import Client
 from virtualmocap.integration.mocaprasp.server import MoCapRasp_Server
-from virtualmocap.integration.mocaprasp.calib_data import (
-    all_intrinsic_matrices,
-    all_distortion_coefficients,
-)
+
+
+def format_matrix_latex(matrix):
+    rows = [" & ".join(map(str, row)) for row in matrix]
+    return "\\begin{bmatrix}\n" + " \\\\ \n".join(rows) + "\n\\end{bmatrix}"
 
 
 def plot_calibration(server, title):
@@ -21,22 +22,22 @@ def plot_calibration(server, title):
     scene = Viewer3D(title=title, size=10)
 
     # Add camera frames to the scene
-    if server.multiple_view is not None:
-        for ID, camera in enumerate(server.multiple_view.camera_models):
-            scene.add_frame(camera.pose, f"Camera {ID}", axis_size=0.4)
+    for client in server.clients:
+        scene.add_frame(client.camera.pose, client.alias, axis_size=0.4)
 
-        scene.add_frame(np.eye(4), f"Reference", axis_size=0.4)
+    scene.add_frame(np.eye(4), f"Reference", axis_size=0.4)
 
     return scene
+
+
+if "first_run" not in st.session_state:
+    st.session_state.first_run = True
+else:
+    st.session_state.first_run = False
 
 # How much time to wait before disappearing
 if "message_timeout" not in st.session_state:
     st.session_state.message_timeout = 2  # In seconds
-
-# Create server
-if "server" not in st.session_state:
-    # Create server
-    st.session_state.server = MoCapRasp_Server(server_address=("0.0.0.0", 25565))
 
 # Collected calibration data
 if "wand_blobs" not in st.session_state:
@@ -67,57 +68,43 @@ setup_tab, calibration_tab, capture_tab = st.tabs(["⚙️", "⚖️", "📸"])
 with setup_tab:
     st.subheader("⚙️ Arena Setup")
 
-    client_setup_columns = st.columns([1, 1])
-
-    with client_setup_columns[0]:
-        st.caption("\u200d")
-        load_intrinsics_flag = st.button("Load Intrinsics", use_container_width=True)
-
-    with client_setup_columns[1]:
-        st.caption("\u200d")
-        register_clients_flag = st.button("Register Clients", use_container_width=True)
-
-    if load_intrinsics_flag:
+    # Create server
+    if "server" not in st.session_state:
         placeholder = st.empty()
         placeholder.info("Preparing clients...", icon="ℹ️")
 
-        clients = []  # Clients list
-
-        # Create clients
-        for K, k_d in zip(all_intrinsic_matrices, all_distortion_coefficients):
-            # Generate associated camera model
-            camera = Camera(  # Intrinsic Parameters
-                resolution=(960, 720),
-                intrinsic_matrix=K.copy(),
-                # Fisheye Lens Distortion Model
-                distortion_model="fisheye",
-                distortion_coefficients=k_d.copy(),
-            )
-
-            clients.append(Client(camera=camera))
-
         # Create server
-        st.session_state.server.update_clients(clients=clients)
+        st.session_state.server = MoCapRasp_Server(
+            config_path="config.yaml", server_address=("0.0.0.0", 25565)
+        )
 
         placeholder.empty()  # Clear info message
 
-        placeholder.success("Intrinsic parameters loaded successfully!", icon="✅")
-        time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-        placeholder.empty()
+    register_clients_flag = st.button("Register Clients", use_container_width=True)
 
-    if register_clients_flag:
-        placeholder = st.empty()
+    if register_clients_flag or st.session_state.first_run:
+        st.session_state.server.register_clients()
 
-        # Register clients
-        if not st.session_state.server.register_clients():
-            placeholder.error("Client register failed!", icon="🚨")
-            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-            placeholder.empty()
+    for client in st.session_state.server.clients:
+        status_color = "green" if client.active else "red"
+        status_icon = "🟢" if client.active else "🔴"
+        status_text = "Online" if client.active else "Offline"
 
-        else:
-            placeholder.success(f"Client register successful!", icon="✅")
-            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-            placeholder.empty()
+        with st.expander(label=rf"### {status_icon} :{status_color}[**{client.alias}**]"):
+            st.markdown(f"**Status:** {status_text}")
+            if client.address:
+                st.markdown(f"**IP Address:** `{client.address[0]}`")
+            st.markdown(f"**MAC Address:** `{client.mac_address}`")
+
+            # Intrinsics matrix as LaTeX
+            st.markdown("**Intrinsic Matrix:**")
+            st.latex(r"K = " + format_matrix_latex(client.camera.intrinsic_matrix))
+
+            # Distortion coefficients as LaTeX array
+            distortion_str = " & ".join(map(str, client.camera.distortion_coefficients))
+            st.markdown("**Distortion Coefficients:**")
+            st.latex(r"k_d = " + r"\begin{bmatrix}" + distortion_str + r"\end{bmatrix}")
+
 
 with calibration_tab:
     st.subheader("⚖️ System Calibration")
@@ -157,15 +144,7 @@ with calibration_tab:
         placeholder.empty()
 
         # Register clients
-        if not st.session_state.server.register_clients():
-            placeholder.error("Client register failed!", icon="🚨")
-            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-            placeholder.empty()
-
-        else:
-            placeholder.success(f"Client register successful!", icon="✅")
-            time.sleep(st.session_state.message_timeout)  # Wait before disappearing
-            placeholder.empty()
+        st.session_state.server.register_clients()
 
     extrinsic_calibration_columns = st.columns([1, 1])
 
@@ -512,7 +491,7 @@ with capture_tab:
                 kwargs={
                     "expected_markers": expected_markers,
                     "visualizer_address": (publishing_ip, publishing_port),
-                    "capture_path": capture_path, 
+                    "capture_path": capture_path,
                     "verbose": False,
                 },
                 daemon=True,

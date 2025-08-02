@@ -1,0 +1,40 @@
+clients:
+  - alias: "Camera 0"
+    mac_address: "E4:5F:01:00:21:CC"
+    resolution: [960, 720]
+    intrinsic_matrix:
+      - [720.313, 000.000, 481.014]
+      - [000.000, 719.521, 360.991]
+      - [000.000, 000.000, 001.000]
+    distortion_model: "fisheye"
+    distortion_coefficients: [0.395621, 0.63370, -2.41723, 2.11079]
+
+  - alias: "Camera 1"
+    mac_address: "E4:5F:01:90:05:B8"
+    resolution: [960, 720]
+    intrinsic_matrix:
+      - [768.113, 000.000, 472.596]
+      - [000.000, 767.935, 350.978]
+      - [000.000, 000.000, 001.000]
+    distortion_model: "fisheye"
+    distortion_coefficients: [0.368917, 1.50111, -7.94126, 11.9171]
+
+  - alias: "Camera 2"
+    mac_address: "E4:5F:01:90:03:BA"
+    resolution: [960, 720]
+    intrinsic_matrix:
+      - [728.237, 000.000, 459.854]
+      - [000.000, 729.419, 351.590]
+      - [000.000, 000.000, 001.000]
+    distortion_model: "fisheye"
+    distortion_coefficients: [0.276114, 2.09465, -9.97956, 14.1921]
+
+  - alias: "Camera 3"
+    mac_address: "E4:5F:01:90:03:5C"
+    resolution: [960, 720]
+    intrinsic_matrix:
+      - [750.149, 000.000, 492.144]
+      - [000.000, 748.903, 350.213]
+      - [000.000, 000.000, 001.000]
+    distortion_model: "fisheye"
+    distortion_coefficients: [0.400774, 1.15995, -7.10257, 11.4150]
