@@ -2,3 +2,5 @@
 *venv*
 *calibration*
 *cache*
+*.yaml
+*.pkl
