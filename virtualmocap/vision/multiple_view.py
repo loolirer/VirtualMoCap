@@ -77,6 +77,77 @@ class MultipleView:
 
         return triangulated_points_3D
 
+    # This can re-triangulate the same point
+    # This doesn't account any ordering method
+    def triangulate_by_multiview(
+        self,
+        points_in_images,
+        reprojection_tol=1,
+        collinearity_tol=0.005,
+    ):
+        # Camera identifiers
+        camera_ids = np.arange(self.n_cameras)
+
+        # Sort cameras and their respective image points from highest number of detected markers to lowest
+        camera_ids, self.camera_models, points_in_images = zip(
+            *sorted(
+                zip(camera_ids, self.camera_models, points_in_images),
+                key=lambda x: len(x[-1]),
+                reverse=True,
+            )
+        )
+        views = [view for view in zip(camera_ids, self.camera_models, points_in_images)]
+
+        # Iterate through each view, going from highest number of detected markers to lowest
+        triangulated_points = []
+        for v, (ref, camera_ref, points_in_image) in enumerate(views[:-1]):
+            # In a view, search each point
+            for point_in_image_ref in points_in_image:
+                # Save each unique complimentary view here
+                triangulation_buffer = [
+                    [camera_ref.projection_matrix, point_in_image_ref]
+                ]
+
+                # For the current point, get all views in which a correspondence
+                # can be made in a non-ambiguous way
+                for aux, camera_aux, points_in_image_aux in views[v + 1 :]:
+                    other_views = get_other_view(
+                        point_in_image_ref,
+                        points_in_image_aux,
+                        self.fundamental_matrix[ref][aux],
+                        collinearity_tol,
+                    )
+
+                    # Check if the point has only one correspondence (not ambiguous)
+                    if len(other_views) == 1:
+                        triangulation_buffer.append(
+                            [camera_aux.projection_matrix, other_views[0]]
+                        )
+
+                # Do not try to triangulate if only one view is available
+                if len(triangulation_buffer) > 1:
+                    # Triangulate a marker with multiple views
+                    triangulated_point = triangulate_marker(*zip(*triangulation_buffer))
+
+                    # If maximum reprojection error is within the tolerance
+                    if (
+                        max_reprojection_error(
+                            triangulated_point, *zip(*triangulation_buffer)
+                        )
+                        < reprojection_tol
+                    ):
+                        triangulated_points.append(triangulated_point)
+
+            # Continue the same process in another camera
+
+        # If any point was triangulated
+        if triangulated_points:
+            return np.array(triangulated_points).T
+
+        # No point triangulated
+        return np.full((3, 1), np.nan)
+
+
     def calibrate(self, wand_blobs, wand_distances):
         # Getting wand data
         wand_ratio = (1.0, wand_distances[1] / wand_distances[0])
@@ -480,3 +551,63 @@ def collinear_order(blobs, wand_ratio):
 
     # Blobs too close may lead wrong ordering, discard data for robustness
     return np.full_like(blobs, np.nan)
+
+
+def get_other_view(
+    point_reference, points_auxiliary, fundamental_matrix, collinearity_tol=0.005
+):
+    # Homogeneous coordinates
+    point_reference_h = np.append(point_reference, 1).reshape(-1, 1)
+
+    # Epipolar line in auxiliary view
+    epiline = fundamental_matrix @ point_reference_h
+
+    # Add homogeneous coordinates to auxiliary points
+    ones = np.ones((points_auxiliary.shape[0], 1))
+    points_auxiliary_h = np.hstack((points_auxiliary, ones))
+
+    # Vectorized distance computation
+    distances = np.ravel(np.abs(points_auxiliary_h @ epiline))
+
+    # Get matches within tolerance
+    return points_auxiliary[distances < collinearity_tol]
+
+
+def max_reprojection_error(world_point, projection_matrices, image_points):
+    # Homogeneous coordinates
+    world_point = np.hstack((world_point, [1])).reshape(-1, 1)
+
+    # Stack projection matrices
+    projection_matrices = np.stack(projection_matrices)
+
+    # Reproject points
+    reprojected_points = (projection_matrices @ world_point).squeeze(-1)
+    reprojected_points /= reprojected_points[
+        :, [-1]
+    ]  # Normalize homogeneous coordinates
+    reprojected_points = reprojected_points[:, :-1]  # Discard the last column
+
+    # Get maximum reprojection_error
+    max_reprojection_error = np.max(
+        np.linalg.norm(np.array(image_points) - reprojected_points, axis=1)
+    )
+
+    return max_reprojection_error
+
+
+def triangulate_marker(projection_matrices, point_in_images):
+    # Generate linear system
+    A = []
+    for [P0, P1, P2], [u, v] in zip(projection_matrices, point_in_images):
+        A.append(u * P2 - P0)
+        A.append(v * P2 - P1)
+
+    # Decompose singular values
+    _, _, Vt = np.linalg.svd(A)
+
+    world_point_h = Vt[-1]  # Get homogeneous solution
+    world_point = (
+        world_point_h[:3] / world_point_h[3]
+    )  # Normalize homogeneous coordinates
+
+    return world_point
