@@ -10,6 +10,7 @@ class Triangulator:
         self.blobs_lists = []  # Stores every blob sent
         self.blobs_queues = []  # Stores blobs in queues for triangulation
         self.tri_idx = -1
+        self.newest_frame_idx = 0
 
         # Setup configuration
         self.reset()
@@ -23,6 +24,7 @@ class Triangulator:
         self.blobs_queues = [[] for _ in range(self.multiple_view.n_cameras)]
 
         self.tri_idx = -1
+        self.newest_frame_idx = 0
 
     def save(self, id, frame_idx, blobs):
         # Log data
@@ -45,7 +47,7 @@ class Triangulator:
 
         return sync_blobs
 
-    def triangulate(self, reference, frame_idx, blobs_reference):
+    def triangulate_by_pair(self, reference, frame_idx, blobs_reference):
         # Log data
         self.save(reference, frame_idx, blobs_reference)
 
@@ -83,6 +85,7 @@ class Triangulator:
             self.blobs_queues[reference].append(
                 (blobs_reference, frame_idx)
             )  # Add blobs to queue
+
             return None
 
         # If there is data available
@@ -112,7 +115,7 @@ class Triangulator:
                 ]  # Only points after triangulation remains
 
             # Update triangulation index
-            self.tri_index = frame_idx
+            self.tri_idx = frame_idx
 
             # Return successfully triangulated markers
             return triangulated_markers
