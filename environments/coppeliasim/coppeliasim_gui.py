@@ -399,7 +399,7 @@ with capture_tab:
     with capture_columns[0]:
         st.caption("Expected Markers")
         expected_markers = st.number_input(
-            label="Marker count", min_value=1, step=1, label_visibility="collapsed"
+            label="Marker count", min_value=0, step=1, label_visibility="collapsed"
         )
 
         st.caption("Publishing IP")
