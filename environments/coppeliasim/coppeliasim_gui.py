@@ -48,7 +48,7 @@ if "triangulated_markers" not in st.session_state:
     st.session_state.triangulated_markers = None
 
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
-st.image("mocaprasp.png")
+st.image("assets/mocaprasp.png")
 
 setup_tab, calibration_tab, capture_tab = st.tabs(["⚙️", "⚖️", "📸"])
 
