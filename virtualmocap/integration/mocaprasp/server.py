@@ -64,10 +64,10 @@ class MoCapRasp_Server(Server):
                     self.mac_to_client[mac_address].address = ()
 
             return True
-        
+
         except:
             return False
-        
+
     def save_calibration(self):
         now = datetime.now()
         ymd, HMS = now.strftime("%y-%m-%d"), now.strftime("%H-%M-%S")
@@ -94,7 +94,7 @@ class MoCapRasp_Server(Server):
 
         for pickled_camera_model in os.listdir(path):
             mac = pickled_camera_model.removesuffix(".pkl")
-            mac_address = ':'.join(mac[i:i + 2] for i in range(0, len(mac), 2))
+            mac_address = ":".join(mac[i : i + 2] for i in range(0, len(mac), 2))
 
             # Check if client is present
             try:
@@ -102,7 +102,7 @@ class MoCapRasp_Server(Server):
 
             except:
                 continue
-            
+
             # Load the object from the file (Unpickling)
             try:
                 with open(os.path.join(path, pickled_camera_model), "rb") as file:
@@ -181,9 +181,7 @@ class MoCapRasp_Server(Server):
 
             # Show sender
             if verbose:
-                print(
-                    f"\tReceived message from {client.alias} @ {ip}:{port}"
-                )
+                print(f"\tReceived message from {client.alias} @ {ip}:{port}")
 
             # Save message
             client.message_log.append(message_bytes)
@@ -248,7 +246,7 @@ class MoCapRasp_Server(Server):
         expected_markers=1,
         visualizer_address=("127.0.0.1", 6666),
         capture_path="",
-        timeout=5, # In seconds
+        timeout=5,  # In seconds
         verbose=True,
     ):
         self.udp_socket.settimeout(timeout)  # Set server timeout
@@ -283,9 +281,7 @@ class MoCapRasp_Server(Server):
 
             # Show sender
             if verbose:
-                print(
-                    f"\tReceived message from {client.alias} @ {ip}:{port}"
-                )
+                print(f"\tReceived message from {client.alias} @ {ip}:{port}")
 
             # Decode message
             try:
@@ -335,7 +331,7 @@ class MoCapRasp_Server(Server):
                 print(f"\tDetected Blobs - {frame_idx}")
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
-            triangulated_markers = self.triangulator.triangulate(
+            triangulated_markers = self.triangulator.triangulate_by_pair(
                 int(client.alias[-1]), frame_idx, undistorted_blobs
             )
 
