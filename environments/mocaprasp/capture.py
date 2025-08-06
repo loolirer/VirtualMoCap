@@ -171,7 +171,7 @@ config = picam2.create_video_configuration(
 picam2.configure(config)
 picam2.start()  # Begin camera connection
 picam2.set_controls(
-    {"AeEnable": False, "AwbEnable": False, "AnalogueGain": 2.0}
+    {"AeEnable": False, "AwbEnable": False, "AnalogueGain": 1.0}
 )  # Set camera controls
 
 time.sleep(1)  # Warm-up
