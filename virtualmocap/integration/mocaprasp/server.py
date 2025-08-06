@@ -23,7 +23,7 @@ class MoCapRasp_Server(Server):
             clients = []
             for client in client_configs.get("clients", []):
                 alias = client["alias"]
-                mac_address = client["mac_address"]
+                mac_address = client["mac_address"].upper()
                 resolution = tuple(client["resolution"])
                 intrinsic_matrix = np.array(client["intrinsic_matrix"])
                 distortion_model = client["distortion_model"]
