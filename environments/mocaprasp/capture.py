@@ -170,7 +170,9 @@ config = picam2.create_video_configuration(
 )
 picam2.configure(config)
 picam2.start()  # Begin camera connection
-picam2.set_controls({"AeEnable": False, "AwbEnable": False})  # Set camera controls
+picam2.set_controls(
+    {"AeEnable": False, "AwbEnable": False, "AnalogueGain": 2.0}
+)  # Set camera controls
 
 time.sleep(1)  # Warm-up
 
@@ -265,9 +267,9 @@ def process_and_send():
                 thickness=-1,
             )
 
-        #if shot_number == 0:
+        # if shot_number == 0:
         #    cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-            
+
         cv2.imshow(WINDOW_NAME, frame_display)
         cv2.waitKey(1)
 
