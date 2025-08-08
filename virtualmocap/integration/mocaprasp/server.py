@@ -355,8 +355,14 @@ class MoCapRasp_Server(Server):
 
         if capture_path:
             try:
+                if not all_triangulated_markers:
+                    all_triangulated_markers = np.full((3, 1), np.nan)
+
+                else:
+                    all_triangulated_markers = np.hstack(all_triangulated_markers)
+
                 np.savetxt(
-                    capture_path, np.hstack(all_triangulated_markers), delimiter=","
+                    capture_path, all_triangulated_markers, delimiter=","
                 )
 
             except:
