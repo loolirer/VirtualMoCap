@@ -22,7 +22,7 @@ class CoppeliaSim_Server(Server):
         # Clearing the previous addresses (client addresses may change from capture to capture)
         self.client_addresses.clear()
 
-        print("[SERVER] Waiting for clients...")
+        print("[INFO] Waiting for clients...")
 
         # Address registration
         while (
@@ -41,7 +41,7 @@ class CoppeliaSim_Server(Server):
 
             print(f"\tClient {ID} registered")
 
-        print("[SERVER] All clients registered!")
+        print("[INFO] All clients registered!")
 
     def request_scene(self):
         # Send scene request
@@ -52,7 +52,7 @@ class CoppeliaSim_Server(Server):
         # Initializing buffer
         buffer_array = None
 
-        print("[SERVER] Wrapping up CoppeliaSim scene info")
+        print("[INFO] Wrapping up CoppeliaSim scene info")
 
         for camera in [c.camera for c in self.clients]:
             # Wrap vision sensor parameters
@@ -98,7 +98,7 @@ class CoppeliaSim_Server(Server):
         buffer = buffer_array.astype(np.float32).tobytes()
         self.udp_socket.sendto(buffer, self.controller_address)
 
-        print("[SERVER] Scene info sent")
+        print("[INFO] Scene info sent")
 
         # Wait for controller setup confirmation
         try:
@@ -106,16 +106,16 @@ class CoppeliaSim_Server(Server):
             confirmation = confirmation_bytes.decode()
 
             if confirmation == "Success":
-                print("[SERVER] Scene set!")
+                print("[INFO] Scene set!")
 
                 return True
 
-            print("[SERVER] Scene setup failed!")
+            print("[ERROR] Scene setup failed!")
 
             return False  # Did not confirm
 
         except:
-            print("[SERVER] Parsing failed!")
+            print("[ERROR] Parsing failed!")
 
             return False  # Confirmation parsing failed
 
@@ -135,7 +135,7 @@ class CoppeliaSim_Server(Server):
         message_bytes = message.encode()
         self.udp_socket.sendto(message_bytes, self.controller_address)
 
-        print("[SERVER] Extrinsic Calibration info sent")
+        print("[INFO] Extrinsic Calibration info sent")
 
         # Wait for controller setup confirmation
         try:
@@ -143,16 +143,16 @@ class CoppeliaSim_Server(Server):
             confirmation = confirmation_bytes.decode()
 
             if confirmation == "Success":
-                print("[SERVER] Extrinsic Calibration confirmed!")
+                print("[INFO] Extrinsic Calibration confirmed!")
 
                 return True
 
-            print("[SERVER] Extrinsic Calibration start failed!")
+            print("[ERROR] Extrinsic Calibration start failed!")
 
             return False  # Did not confirm
 
         except:
-            print("[SERVER] Parsing failed!")
+            print("[ERROR] Parsing failed!")
 
             return False  # Confirmation parsing failed
 
@@ -172,7 +172,7 @@ class CoppeliaSim_Server(Server):
         message_bytes = message.encode()
         self.udp_socket.sendto(message_bytes, self.controller_address)
 
-        print("[SERVER] Reference Update info sent")
+        print("[INFO] Reference Update info sent")
 
         # Wait for controller setup confirmation
         try:
@@ -180,16 +180,16 @@ class CoppeliaSim_Server(Server):
             confirmation = confirmation_bytes.decode()
 
             if confirmation == "Success":
-                print("[SERVER] Reference Update confirmed!")
+                print("[INFO] Reference Update confirmed!")
 
                 return True
 
-            print("[SERVER] Reference Update start failed!")
+            print("[ERROR] Reference Update start failed!")
 
             return False  # Did not confirm
 
         except:
-            print("[SERVER] Parsing failed!")
+            print("[ERROR] Parsing failed!")
 
             return False  # Confirmation parsing failed
 
@@ -209,7 +209,7 @@ class CoppeliaSim_Server(Server):
         message_bytes = message.encode()
         self.udp_socket.sendto(message_bytes, self.controller_address)
 
-        print("[SERVER] Capture info sent")
+        print("[INFO] Capture info sent")
 
         # Wait for controller setup confirmation
         try:
@@ -217,16 +217,16 @@ class CoppeliaSim_Server(Server):
             confirmation = confirmation_bytes.decode()
 
             if confirmation == "Success":
-                print("[SERVER] Capture confirmed!")
+                print("[INFO] Capture confirmed!")
 
                 return True
 
-            print("[SERVER] Capture start failed!")
+            print("[ERROR] Capture start failed!")
 
             return False  # Did not confirm
 
         except:
-            print("[SERVER] Parsing failed!")
+            print("[ERROR] Parsing failed!")
 
             return False  # Confirmation parsing failed
 
@@ -248,7 +248,7 @@ class CoppeliaSim_Server(Server):
         message_bytes = message.encode()
         self.udp_socket.sendto(message_bytes, self.controller_address)
 
-        print("[SERVER] Extrinsic Calibration info sent")
+        print("[INFO] Extrinsic Calibration info sent")
 
         # Wait for controller setup confirmation
         try:
@@ -256,16 +256,16 @@ class CoppeliaSim_Server(Server):
             confirmation = confirmation_bytes.decode()
 
             if confirmation == "Success":
-                print("[SERVER] Extrinsic Calibration confirmed!")
+                print("[INFO] Extrinsic Calibration confirmed!")
 
                 return True
 
-            print("[SERVER] Extrinsic Calibration start failed!")
+            print("[ERROR] Extrinsic Calibration start failed!")
 
             return False  # Did not confirm
 
         except:
-            print("[SERVER] Parsing failed!")
+            print("[ERROR] Parsing failed!")
 
             return False  # Confirmation parsing failed
 
@@ -287,7 +287,7 @@ class CoppeliaSim_Server(Server):
         message_bytes = message.encode()
         self.udp_socket.sendto(message_bytes, self.controller_address)
 
-        print("[SERVER] Reference Update info sent")
+        print("[INFO] Reference Update info sent")
 
         # Wait for controller setup confirmation
         try:
@@ -295,16 +295,16 @@ class CoppeliaSim_Server(Server):
             confirmation = confirmation_bytes.decode()
 
             if confirmation == "Success":
-                print("[SERVER] Reference Update confirmed!")
+                print("[INFO] Reference Update confirmed!")
 
                 return True
 
-            print("[SERVER] Reference Update start failed!")
+            print("[ERROR] Reference Update start failed!")
 
             return False  # Did not confirm
 
         except:
-            print("[SERVER] Parsing failed!")
+            print("[ERROR] Parsing failed!")
 
             return False  # Confirmation parsing failed
 
@@ -326,7 +326,7 @@ class CoppeliaSim_Server(Server):
         message_bytes = message.encode()
         self.udp_socket.sendto(message_bytes, self.controller_address)
 
-        print("[SERVER] Capture info sent")
+        print("[INFO] Capture info sent")
 
         # Wait for controller setup confirmation
         try:
@@ -334,38 +334,39 @@ class CoppeliaSim_Server(Server):
             confirmation = confirmation_bytes.decode()
 
             if confirmation == "Success":
-                print("[SERVER] Capture confirmed!")
+                print("[INFO] Capture confirmed!")
 
                 return True
 
-            print("[SERVER] Capture start failed!")
+            print("[ERROR] Capture start failed!")
 
             return False  # Did not confirm
 
         except:
-            print("[SERVER] Parsing failed!")
+            print("[ERROR] Parsing failed!")
 
             return False  # Confirmation parsing failed
-        
-    def offline_capture(self, expected_markers=1, timeout=5, verbose=True):
+
+    def offline_capture(self, expected_markers=3, timeout=5, verbose=True):
         # Wait for client identification
         self.register_clients()
 
         self.udp_socket.settimeout(timeout)  # Set server timeout
-        print(f"[SERVER] Timeout set to {timeout} seconds\n")
+        print(f"[INFO] Timeout set to {timeout} seconds\n")
 
         # Receiving messages
         while True:
             # Wait for message - Event guided!
             try:
                 message_bytes, address = self.udp_socket.recvfrom(self.buffer_size)
+                ip, port = address
 
             except TimeoutError:
-                print("\n[SERVER] Timed Out!")
+                print("\n[INFO] Timed Out!")
                 break  # Close capture loop due to timeout
 
             except ConnectionResetError:
-                print("\n[SERVER] Connection Reset!")
+                print("\n[INFO] Connection Reset!")
                 continue  # Jump to wait for the next message
 
             # Check if client exists
@@ -374,13 +375,15 @@ class CoppeliaSim_Server(Server):
 
             except:
                 if verbose:
-                    print("> Client not recognized")
+                    print("\t[WARNING] Address not recognized")
 
                 continue  # Jump to wait for the next message
 
             # Show sender
             if verbose:
-                print(f"> Received message from Client {ID} ({address[0]}, {address[1]})")
+                print(
+                    f"\t[INFO] Received message from {ip}:{port}"
+                )
 
             # Save message
             self.clients[ID].message_log.append(message_bytes)
@@ -395,14 +398,14 @@ class CoppeliaSim_Server(Server):
 
                 except:
                     if verbose:
-                        print("> Couldn't decode message")
+                        print("\t[ERROR] Couldn't decode message")
 
                     continue  # Jump to the next message
 
                 # Empty message
                 if not message.size:
                     if verbose:
-                        print("\tEmpty message")
+                        print("\t[INFO] Empty message")
 
                     continue  # Jump to the next message
 
@@ -414,12 +417,12 @@ class CoppeliaSim_Server(Server):
 
                     if message.size == 2:  # Only PTS
                         if verbose:
-                            print(f"\tNo blobs were detected - {frame_idx} s")
+                            print(f"\t[INFO] No blobs were detected - {frame_idx}")
 
                     else:
                         if verbose:
-                            print(f"\tWrong blob count or corrupted message")
-                            print(f"\tCorrupted Message: {message}")
+                            print(f"\t[INFO] Wrong blob count or corrupted message")
+                            print(f"\t{message}")
 
                     continue  # Jump to the next message
 
@@ -434,21 +437,21 @@ class CoppeliaSim_Server(Server):
 
                 # Print blobs
                 if verbose:
-                    print(f"\tDetected Blobs - {frame_idx} s")
+                    print(f"\t[INFO] Detected Blobs - {frame_idx}")
                     print("\t" + str(blob_data).replace("\n", "\n\t"))
 
                 # Save data
                 self.triangulator.save(ID, frame_idx, undistorted_blobs)
 
     def online_capture(
-        self, expected_markers=1, visualizer_address=("127.0.0.1", 6666), verbose=True
+        self, expected_markers=0, visualizer_address=("127.0.0.1", 6666), verbose=True
     ):
         # Wait for client identification
         self.register_clients()
 
         timeout = 5  # In seconds
         self.udp_socket.settimeout(timeout)  # Set server timeout
-        print(f"[SERVER] Timeout set to {timeout} seconds\n")
+        print(f"[INFO] Timeout set to {timeout} seconds\n")
 
         all_triangulated_markers = []
 
@@ -457,13 +460,14 @@ class CoppeliaSim_Server(Server):
             # Wait for message - Event guided!
             try:
                 message_bytes, address = self.udp_socket.recvfrom(self.buffer_size)
+                ip, port = address
 
             except TimeoutError:
-                print("\n[SERVER] Timed Out!")
+                print("\n[INFO] Timed Out!")
                 break  # Close capture loop due to timeout
 
             except ConnectionResetError:
-                print("\n[SERVER] Connection Reset!")
+                print("\n[INFO] Connection Reset!")
                 continue  # Jump to wait for the next message
 
             # Check if message comes from any of the clients
@@ -472,13 +476,13 @@ class CoppeliaSim_Server(Server):
 
             except:
                 if verbose:
-                    print("> Address not recognized")
+                    print("\t[WARNING] Address not recognized")
 
                 continue  # Jump to wait for the next message
 
             # Show sender
             if verbose:
-                print(f"> Received message from Client {ID} ({address[0]}, {address[1]}):")
+                print(f"\t[INFO] Received message from {ip}:{port}")
 
             # Decode message
             try:
@@ -486,14 +490,14 @@ class CoppeliaSim_Server(Server):
 
             except:
                 if verbose:
-                    print("> Couldn't decode message")
+                    print("\t[ERROR] Couldn't decode message")
 
                 continue  # Jump to wait for the next message
 
             # Empty message
             if not message.size:
                 if verbose:
-                    print("\tEmpty message")
+                    print("\t[INFO] Empty message")
 
                 continue  # Jump to wait for the next message
 
@@ -501,42 +505,59 @@ class CoppeliaSim_Server(Server):
             frame_idx = int(message[-1])
 
             # Valid message is [u, v, A] per blob, PTS and frame index
-            if message.size != 3 * expected_markers + 2:
+            if expected_markers and message.size != 3 * expected_markers + 2:
 
                 if message.size == 2:
                     if verbose:
-                        print(f"\tNo blobs were detected - {frame_idx}")
+                        print(f"\t[INFO] No blobs were detected - {frame_idx}")
 
                 else:
                     if verbose:
-                        print(f"\tWrong blob count or corrupted message")
-                        print(f"\tCorrupted Message: {message}")
+                        print(f"\t[INFO] Wrong blob count or corrupted message")
+                        print(f"\t{message}")
 
                 continue  # Jump to wait for the next message
 
-            # Extracting blob data (coordinates & area)
-            blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
+            try:
+                # Extracting blob data (coordinates & area)
+                blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
 
-            # Extracting centroids
-            blob_centroids = blob_data[:, :2]  # Ignoring their area
+                # Extracting centroids
+                blob_centroids = blob_data[:, :2]  # Ignoring their area
 
-            # Undistorting blobs centroids
-            undistorted_blobs = self.clients[ID].camera.undistort_points(blob_centroids)
+                # Undistorting blobs centroids
+                undistorted_blobs = self.clients[ID].camera.undistort_points(
+                    blob_centroids
+                )
+
+            except:
+                undistorted_blobs = np.array([])  # No blobs detected
 
             # Print blobs
             if verbose:
-                print(f"\tDetected Blobs - {frame_idx}")
+                print(f"\t[INFO] Detected Blobs - {frame_idx}")
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
-            triangulated_markers = self.triangulator.triangulate(
-                ID, frame_idx, undistorted_blobs
-            )
+            # If no marker count is expected, triangulate by multiview
+            if not expected_markers:
+                triangulated_markers = self.triangulator.triangulate_by_multiview(
+                    reference=ID,
+                    frame_idx=frame_idx,
+                    blobs_reference=undistorted_blobs,
+                    max_hold=2,
+                )
+
+            # If a marker count is expected, triangulate by pair
+            else:
+                triangulated_markers = self.triangulator.triangulate_by_pair(
+                    ID, frame_idx, undistorted_blobs
+                )
 
             if triangulated_markers is None:
                 continue  # Jump to wait for the next message
 
             if verbose:
-                print("Triangulated!")
+                print("[INFO] Triangulation Successful!")
 
             # Send data to CoppeliaSim
             buffer = triangulated_markers.astype(np.float32).ravel().tobytes()
@@ -550,5 +571,10 @@ class CoppeliaSim_Server(Server):
                 pass  # Don't access array if index is out of bounds
 
         # Join collected data
-        all_triangulated_markers = np.hstack(all_triangulated_markers)
+        if not all_triangulated_markers:
+            all_triangulated_markers = np.full((3, 1), np.nan)
+
+        else:
+            all_triangulated_markers = np.hstack(all_triangulated_markers)
+
         return all_triangulated_markers

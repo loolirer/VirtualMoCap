@@ -150,9 +150,9 @@ class MoCapRasp_Server(Server):
 
         return True
 
-    def offline_capture(self, expected_markers=1, timeout=5, verbose=True):
+    def offline_capture(self, expected_markers=3, timeout=5, verbose=True):
         self.udp_socket.settimeout(timeout)  # Set server timeout
-        print(f"[SERVER] Timeout set to {timeout} seconds\n")
+        print(f"[INFO] Timeout set to {timeout} seconds\n")
 
         # Receiving messages
         while True:
@@ -162,11 +162,11 @@ class MoCapRasp_Server(Server):
                 ip, port = address
 
             except TimeoutError:
-                print("\n[SERVER] Timed Out!")
+                print("\n[INFO] Timed Out!")
                 break  # Close capture loop due to timeout
 
             except ConnectionResetError:
-                print("\n[SERVER] Connection Reset!")
+                print("\n[INFO] Connection Reset!")
                 continue  # Jump to wait for the next message
 
             # Check if message comes from any of the clients
@@ -175,13 +175,13 @@ class MoCapRasp_Server(Server):
 
             except:
                 if verbose:
-                    print("\tClient not recognized")
+                    print("\t[WARNING] Address not recognized")
 
                 continue  # Jump to wait for the next message
 
             # Show sender
             if verbose:
-                print(f"\tReceived message from {client.alias} @ {ip}:{port}")
+                print(f"\t[INFO] Received message from {client.alias} @ {ip}:{port}")
 
             # Save message
             client.message_log.append(message_bytes)
@@ -196,14 +196,14 @@ class MoCapRasp_Server(Server):
 
                 except:
                     if verbose:
-                        print("\tCouldn't decode message")
+                        print("\t[ERROR] Couldn't decode message")
 
                     continue  # Jump to the next message
 
                 # Empty message
                 if not message.size:
                     if verbose:
-                        print("\tEmpty message")
+                        print("\t[INFO] Empty message")
 
                     continue  # Jump to the next message
 
@@ -215,12 +215,12 @@ class MoCapRasp_Server(Server):
 
                     if message.size == 2:  # Only PTS
                         if verbose:
-                            print(f"\tNo blobs were detected - {frame_idx}")
+                            print(f"\t[INFO] No blobs were detected - {frame_idx}")
 
                     else:
                         if verbose:
-                            print(f"\tWrong blob count or corrupted message")
-                            print(f"\tCorrupted Message: {message}")
+                            print(f"\t[INFO] Wrong blob count or corrupted message")
+                            print(f"\t{message}")
 
                     continue  # Jump to the next message
 
@@ -235,7 +235,7 @@ class MoCapRasp_Server(Server):
 
                 # Print blobs
                 if verbose:
-                    print(f"\tDetected Blobs - {frame_idx}")
+                    print(f"\t[INFO] Detected Blobs - {frame_idx}")
                     print("\t" + str(blob_data).replace("\n", "\n\t"))
 
                 # Save data
@@ -243,14 +243,14 @@ class MoCapRasp_Server(Server):
 
     def online_capture(
         self,
-        expected_markers=1,
+        expected_markers=0,
         visualizer_address=("127.0.0.1", 6666),
         capture_path="",
         timeout=5,  # In seconds
         verbose=True,
     ):
         self.udp_socket.settimeout(timeout)  # Set server timeout
-        print(f"[SERVER] Timeout set to {timeout} seconds\n")
+        print(f"[INFO] Timeout set to {timeout} seconds\n")
 
         all_triangulated_markers = []
 
@@ -262,11 +262,11 @@ class MoCapRasp_Server(Server):
                 ip, port = address
 
             except TimeoutError:
-                print("\n[SERVER] Timed Out!")
+                print("\n[INFO] Timed Out!")
                 break  # Close capture loop due to timeout
 
             except ConnectionResetError:
-                print("\n[SERVER] Connection Reset!")
+                print("\n[INFO] Connection Reset!")
                 continue  # Jump to wait for the next message
 
             # Check if message comes from any of the clients
@@ -275,13 +275,13 @@ class MoCapRasp_Server(Server):
 
             except:
                 if verbose:
-                    print("\tAddress not recognized")
+                    print("\t[WARNING] Address not recognized")
 
                 continue  # Jump to wait for the next message
 
             # Show sender
             if verbose:
-                print(f"\tReceived message from {client.alias} @ {ip}:{port}")
+                print(f"\t[INFO] Received message from {client.alias} @ {ip}:{port}")
 
             # Decode message
             try:
@@ -289,14 +289,14 @@ class MoCapRasp_Server(Server):
 
             except:
                 if verbose:
-                    print("\touldn't decode message")
+                    print("\t[ERROR] Couldn't decode message")
 
                 continue  # Jump to wait for the next message
 
             # Empty message
             if not message.size:
                 if verbose:
-                    print("\tEmpty message")
+                    print("\t[INFO] Empty message")
 
                 continue  # Jump to wait for the next message
 
@@ -308,12 +308,12 @@ class MoCapRasp_Server(Server):
 
                 if message.size == 2:
                     if verbose:
-                        print(f"\tNo blobs were detected - {frame_idx}")
+                        print(f"\t[INFO] No blobs were detected - {frame_idx}")
 
                 else:
                     if verbose:
-                        print(f"\tWrong blob count or corrupted message")
-                        print(f"\tCorrupted Message: {message}")
+                        print(f"\t[INFO] Wrong blob count or corrupted message")
+                        print(f"\t{message}")
 
                 continue  # Jump to wait for the next message
 
@@ -328,18 +328,30 @@ class MoCapRasp_Server(Server):
 
             # Print blobs
             if verbose:
-                print(f"\tDetected Blobs - {frame_idx}")
+                print(f"\t[INFO] Detected Blobs - {frame_idx}")
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
-            triangulated_markers = self.triangulator.triangulate_by_pair(
-                int(client.alias[-1]), frame_idx, undistorted_blobs
-            )
+
+            # If no marker count is expected, triangulate by multiview
+            if not expected_markers:
+                triangulated_markers = self.triangulator.triangulate_by_multiview(
+                    reference=int(client.alias[-1]),
+                    frame_idx=frame_idx,
+                    blobs_reference=undistorted_blobs,
+                    max_hold=2,
+                )
+
+            # If a marker count is expected, triangulate by pair
+            else:
+                triangulated_markers = self.triangulator.triangulate_by_pair(
+                    int(client.alias[-1]), frame_idx, undistorted_blobs
+                )
 
             if triangulated_markers is None:
                 continue  # Jump to wait for the next message
 
             if verbose:
-                print("Triangulated!")
+                print("[INFO] Triangulation Successful!")
 
             # Send data to CoppeliaSim
             buffer = triangulated_markers.astype(np.float32).ravel().tobytes()

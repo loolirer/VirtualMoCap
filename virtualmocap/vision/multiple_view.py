@@ -556,6 +556,9 @@ def collinear_order(blobs, wand_ratio):
 def get_other_view(
     point_reference, points_auxiliary, fundamental_matrix, collinearity_tol=0.005
 ):
+    if not len(points_auxiliary):
+        return np.array([])
+
     # Homogeneous coordinates
     point_reference_h = np.append(point_reference, 1).reshape(-1, 1)
 

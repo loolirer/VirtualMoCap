@@ -10,7 +10,7 @@ class Triangulator:
         self.blobs_lists = []  # Stores every blob sent
         self.blobs_queues = []  # Stores blobs in queues for triangulation
         self.tri_idx = -1
-        self.newest_frame_idx = 0
+        self.last_frame_idx = 0
 
         # Setup configuration
         self.reset()
@@ -61,7 +61,7 @@ class Triangulator:
             if queue_id == reference:
                 continue
 
-            # Do not search blob queue is empty
+            # Do not search blob queue if is empty
             if not len(blob_queue):
                 continue
 
@@ -121,3 +121,103 @@ class Triangulator:
             return triangulated_markers
 
         return None  # No triangulation was possible with available data
+
+    def triangulate_by_multiview(
+        self, reference, frame_idx, blobs_reference, max_hold=2
+    ):
+        # Log data
+        self.save(reference, frame_idx, blobs_reference)
+
+        # Do not triangulate if triangulation is ahead from received data
+        if frame_idx <= self.tri_idx:
+            # Update last frame index
+            if frame_idx >= self.last_frame_idx:
+                self.last_frame_idx = frame_idx
+
+            return None
+
+        # Add received blobs to queue
+        self.blobs_queues[reference].append((blobs_reference, frame_idx))
+
+        # Build triangulation buffer
+        ahead_views = 0
+        to_triangulate_views = 0
+        blobs_in_images = [[] for _ in range(self.multiple_view.n_cameras)]
+        for queue_id, blob_queue in enumerate(self.blobs_queues):
+            # Do not search if blob queue is empty
+            if not len(blob_queue):
+                blobs_in_images[queue_id] = np.array([])
+
+                continue
+            
+            # Search for the last frame index in the blob queue
+            try:
+                queue_position = list(zip(*blob_queue))[1].index(
+                    self.last_frame_idx
+                )  # Get queue position of the last frame index
+
+                to_triangulate_views += 1
+
+            except:  # Did not find frame index, go to next queue
+                blobs_in_images[queue_id] = np.array([])
+
+                continue
+
+            # Search for the current frame index in the blob queue
+            try:
+                list(zip(*blob_queue))[1].index(
+                    frame_idx
+                )  # Check if current frame is present
+
+                # If so, add to ahead view counter
+                ahead_views += 1
+
+            except:  # Did not find current frame index, go to next queue
+                continue
+
+            blobs_in_images[queue_id] = blob_queue[queue_position][0]  # Get blobs
+
+        # Still receiving messages from the triangulation target frame 
+        # and still waiting to triangulate with more views
+        if not(ahead_views > 1 or to_triangulate_views >= max_hold):
+            # Update last frame index
+            if frame_idx >= self.last_frame_idx:
+                self.last_frame_idx = frame_idx
+
+            return None
+
+        # Triangulate markers with viewd
+        triangulated_markers = self.multiple_view.triangulate_by_multiview(
+            blobs_in_images
+        )
+
+        # No points were triangulated
+        if np.isnan(triangulated_markers).any():
+            # Update last frame index
+            if frame_idx >= self.last_frame_idx:
+                self.last_frame_idx = frame_idx
+
+            return None
+        
+        print()
+        print(f"Triangulated with {len([[] for blobs_in_image in blobs_in_images if len(blobs_in_image)])} views at frame {self.last_frame_idx}")
+        print(blobs_in_images)
+        print()
+
+        # If triangulation was possible, clear queue
+        for queue_id, blob_queue in enumerate(self.blobs_queues):
+            self.blobs_queues[queue_id] = [
+                queue_element
+                for queue_element in blob_queue
+                if queue_element[1] > self.last_frame_idx
+            ]  # Only points after triangulation remains
+
+        # Update triangulation index
+        self.tri_idx = self.last_frame_idx
+
+        # Update last frame index
+        if frame_idx >= self.last_frame_idx:
+            self.last_frame_idx = frame_idx
+
+        # Return successfully triangulated markers
+        return triangulated_markers
