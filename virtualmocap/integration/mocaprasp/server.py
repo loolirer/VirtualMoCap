@@ -272,6 +272,7 @@ class MoCapRasp_Server(Server):
             # Check if message comes from any of the clients
             try:
                 client = self.mac_to_client[self.ip_to_mac[ip]]  # Get client
+                ID = int(client.alias[-1])
 
             except:
                 if verbose:
@@ -304,7 +305,7 @@ class MoCapRasp_Server(Server):
             frame_idx = int(message[-2])
 
             # Valid message is [u, v, A] per blob, PTS and frame index
-            if message.size != 3 * expected_markers + 2:
+            if expected_markers and message.size != 3 * expected_markers + 2:
 
                 if message.size == 2:
                     if verbose:
@@ -316,15 +317,19 @@ class MoCapRasp_Server(Server):
                         print(f"\t{message}")
 
                 continue  # Jump to wait for the next message
+            
+            try:
+                # Extracting blob data (coordinates & area)
+                blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
 
-            # Extracting blob data (coordinates & area)
-            blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
+                # Extracting centroids
+                blob_centroids = blob_data[:, :2]  # Ignoring their area
 
-            # Extracting centroids
-            blob_centroids = blob_data[:, :2]  # Ignoring their area
+                # Undistorting blobs centroids
+                undistorted_blobs = client.camera.undistort_points(blob_centroids)
 
-            # Undistorting blobs centroids
-            undistorted_blobs = client.camera.undistort_points(blob_centroids)
+            except:
+                undistorted_blobs = np.array([])
 
             # Print blobs
             if verbose:
@@ -335,7 +340,7 @@ class MoCapRasp_Server(Server):
             # If no marker count is expected, triangulate by multiview
             if not expected_markers:
                 triangulated_markers = self.triangulator.triangulate_by_multiview(
-                    reference=int(client.alias[-1]),
+                    reference=ID,
                     frame_idx=frame_idx,
                     blobs_reference=undistorted_blobs,
                     max_hold=2,
@@ -344,7 +349,7 @@ class MoCapRasp_Server(Server):
             # If a marker count is expected, triangulate by pair
             else:
                 triangulated_markers = self.triangulator.triangulate_by_pair(
-                    int(client.alias[-1]), frame_idx, undistorted_blobs
+                    ID, frame_idx, undistorted_blobs
                 )
 
             if triangulated_markers is None:
