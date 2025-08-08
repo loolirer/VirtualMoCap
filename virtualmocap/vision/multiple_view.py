@@ -127,7 +127,7 @@ class MultipleView:
                 # Do not try to triangulate if only one view is available
                 if len(triangulation_buffer) > 1:
                     # Triangulate a marker with multiple views
-                    triangulated_point = triangulate_marker(*zip(*triangulation_buffer))
+                    triangulated_point = triangulate_by_multigeometry(*zip(*triangulation_buffer))
 
                     # If maximum reprojection error is within the tolerance
                     if (
@@ -595,7 +595,7 @@ def max_reprojection_error(world_point, projection_matrices, image_points):
     return max_reprojection_error
 
 
-def triangulate_marker(projection_matrices, point_in_images):
+def triangulate_by_multigeometry(projection_matrices, point_in_images):
     # Generate linear system
     A = []
     for [P0, P1, P2], [u, v] in zip(projection_matrices, point_in_images):
