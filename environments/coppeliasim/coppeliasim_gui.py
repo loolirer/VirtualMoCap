@@ -47,6 +47,12 @@ if "reference_blobs" not in st.session_state:
 if "triangulated_markers" not in st.session_state:
     st.session_state.triangulated_markers = None
 
+if "cache_directory" not in st.session_state:
+    st.session_state.cache_directory = "cache/"
+    os.makedirs(
+        st.session_state.cache_directory, exist_ok=True
+    )  # Create the folder if it doesn't exist
+
 st.set_page_config(page_title="Motion Capture Arena", layout="centered")
 st.image("assets/mocaprasp.png")
 
@@ -394,6 +400,8 @@ with calibration_tab:
 with capture_tab:
     st.subheader("📸 Capture Scene")
 
+    capture_path = os.path.join(st.session_state.cache_directory, "capture.csv")
+
     capture_columns = st.columns([1, 1])
 
     with capture_columns[0]:
@@ -460,6 +468,11 @@ with capture_tab:
             all_triangulated_markers = st.session_state.server.online_capture(
                 expected_markers=expected_markers,
                 visualizer_address=(publishing_ip, publishing_port),
+                max_head=4,
+                max_hold=4,
+                reprojection_tol=1.0,
+                collinearity_tol=0.005,
+                capture_path=capture_path,
             )
 
             scene = plot_calibration(

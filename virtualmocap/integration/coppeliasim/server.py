@@ -381,9 +381,7 @@ class CoppeliaSim_Server(Server):
 
             # Show sender
             if verbose:
-                print(
-                    f"\t[INFO] Received message from {ip}:{port}"
-                )
+                print(f"\t[INFO] Received message from {ip}:{port}")
 
             # Save message
             self.clients[ID].message_log.append(message_bytes)
@@ -444,7 +442,16 @@ class CoppeliaSim_Server(Server):
                 self.triangulator.save(ID, frame_idx, undistorted_blobs)
 
     def online_capture(
-        self, expected_markers=0, visualizer_address=("127.0.0.1", 6666), verbose=True
+        self,
+        expected_markers=0,
+        visualizer_address=("127.0.0.1", 6666),
+        max_head=2,
+        max_hold=2,
+        reprojection_tol=1,
+        collinearity_tol=0.005,
+        capture_path="",
+        timeout=5,  # In seconds
+        verbose=True,
     ):
         # Wait for client identification
         self.register_clients()
@@ -540,16 +547,21 @@ class CoppeliaSim_Server(Server):
 
             # If no marker count is expected, triangulate by multiview
             if not expected_markers:
-                triangulated_markers = self.triangulator.triangulate_by_multiview(
-                    reference=ID,
-                    frame_idx=frame_idx,
-                    blobs_reference=undistorted_blobs,
-                    max_hold=2,
+                triangulated_markers = (
+                    self.triangulator.multivision_triangulation_pipeline(
+                        reference=ID,
+                        frame_idx=frame_idx,
+                        blobs_reference=undistorted_blobs,
+                        max_head=max_head,
+                        max_hold=max_hold,
+                        reprojection_tol=reprojection_tol,
+                        collinearity_tol=collinearity_tol,
+                    )
                 )
 
             # If a marker count is expected, triangulate by pair
             else:
-                triangulated_markers = self.triangulator.triangulate_by_pair(
+                triangulated_markers = self.triangulator.stereo_triangulation_pipeline(
                     ID, frame_idx, undistorted_blobs
                 )
 
@@ -570,11 +582,18 @@ class CoppeliaSim_Server(Server):
             except:
                 pass  # Don't access array if index is out of bounds
 
-        # Join collected data
         if not all_triangulated_markers:
             all_triangulated_markers = np.full((3, 1), np.nan)
 
         else:
             all_triangulated_markers = np.hstack(all_triangulated_markers)
+
+        if capture_path:
+            try:
+                np.savetxt(capture_path, all_triangulated_markers, delimiter=",")
+
+            except:
+                print("[ERROR] Could not save capture")
+                pass
 
         return all_triangulated_markers

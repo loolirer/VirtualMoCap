@@ -492,6 +492,8 @@ with capture_tab:
                     "expected_markers": expected_markers,
                     "visualizer_address": (publishing_ip, publishing_port),
                     "capture_path": capture_path,
+                    "min_hold": 2,
+                    "max_hold": 2,
                     "verbose": False,
                 },
                 daemon=True,

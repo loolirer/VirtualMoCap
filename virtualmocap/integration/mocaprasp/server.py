@@ -245,6 +245,8 @@ class MoCapRasp_Server(Server):
         self,
         expected_markers=0,
         visualizer_address=("127.0.0.1", 6666),
+        min_hold=2,
+        max_hold=2,
         capture_path="",
         timeout=5,  # In seconds
         verbose=True,
@@ -317,7 +319,7 @@ class MoCapRasp_Server(Server):
                         print(f"\t{message}")
 
                 continue  # Jump to wait for the next message
-            
+
             try:
                 # Extracting blob data (coordinates & area)
                 blob_data = message[:-2].reshape(-1, 3)  # All but last two elements
@@ -336,19 +338,21 @@ class MoCapRasp_Server(Server):
                 print(f"\t[INFO] Detected Blobs - {frame_idx}")
                 print("\t" + str(blob_data).replace("\n", "\n\t"))
 
-
             # If no marker count is expected, triangulate by multiview
             if not expected_markers:
-                triangulated_markers = self.triangulator.triangulate_by_multiview(
-                    reference=ID,
-                    frame_idx=frame_idx,
-                    blobs_reference=undistorted_blobs,
-                    max_hold=2,
+                triangulated_markers = (
+                    self.triangulator.multivision_triangulation_pipeline(
+                        reference=ID,
+                        frame_idx=frame_idx,
+                        blobs_reference=undistorted_blobs,
+                        min_hold=min_hold,
+                        max_hold=max_hold,
+                    )
                 )
 
             # If a marker count is expected, triangulate by pair
             else:
-                triangulated_markers = self.triangulator.triangulate_by_pair(
+                triangulated_markers = self.triangulator.stereo_triangulation_pipeline(
                     ID, frame_idx, undistorted_blobs
                 )
 
@@ -370,17 +374,15 @@ class MoCapRasp_Server(Server):
                 except:
                     pass  # Don't access array if index is out of bounds
 
+        if not all_triangulated_markers:
+            all_triangulated_markers = np.full((3, 1), np.nan)
+
+        else:
+            all_triangulated_markers = np.hstack(all_triangulated_markers)
+
         if capture_path:
             try:
-                if not all_triangulated_markers:
-                    all_triangulated_markers = np.full((3, 1), np.nan)
-
-                else:
-                    all_triangulated_markers = np.hstack(all_triangulated_markers)
-
-                np.savetxt(
-                    capture_path, all_triangulated_markers, delimiter=","
-                )
+                np.savetxt(capture_path, all_triangulated_markers, delimiter=",")
 
             except:
                 print("[ERROR] Could not save capture")

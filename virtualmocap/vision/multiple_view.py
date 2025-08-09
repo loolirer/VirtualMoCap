@@ -40,7 +40,7 @@ class MultipleView:
 
                 self.fundamental_matrix[reference][auxiliary] = F
 
-    def triangulate_by_pair(self, pair, blobs_pair, order=True):
+    def stereo_triangulation_logic(self, pair, blobs_pair, order=True):
         reference, auxiliary = (0, 1)  # Naming for the sake of code readability
 
         # Gathering pair info
@@ -79,7 +79,7 @@ class MultipleView:
 
     # This can re-triangulate the same point
     # This doesn't account any ordering method
-    def triangulate_by_multiview(
+    def multivision_triangulation_logic(
         self,
         points_in_images,
         reprojection_tol=1,
@@ -89,14 +89,14 @@ class MultipleView:
         camera_ids = np.arange(self.n_cameras)
 
         # Sort cameras and their respective image points from highest number of detected markers to lowest
-        camera_ids, self.camera_models, points_in_images = zip(
+        camera_ids, camera_models, points_in_images = zip(
             *sorted(
                 zip(camera_ids, self.camera_models, points_in_images),
                 key=lambda x: len(x[-1]),
                 reverse=True,
             )
         )
-        views = [view for view in zip(camera_ids, self.camera_models, points_in_images)]
+        views = [view for view in zip(camera_ids, camera_models, points_in_images)]
 
         # Iterate through each view, going from highest number of detected markers to lowest
         triangulated_points = []
@@ -127,7 +127,9 @@ class MultipleView:
                 # Do not try to triangulate if only one view is available
                 if len(triangulation_buffer) > 1:
                     # Triangulate a marker with multiple views
-                    triangulated_point = triangulate_by_multigeometry(*zip(*triangulation_buffer))
+                    triangulated_point = triangulate_by_multivision(
+                        *zip(*triangulation_buffer)
+                    )
 
                     # If maximum reprojection error is within the tolerance
                     if (
@@ -146,7 +148,6 @@ class MultipleView:
 
         # No point triangulated
         return np.full((3, 1), np.nan)
-
 
     def calibrate(self, wand_blobs, wand_distances):
         # Getting wand data
@@ -346,7 +347,7 @@ class MultipleView:
             triangulated_points = []
             for blobs_in_frame in all_ordered_blobs_per_frame:
                 triangulated_points.append(
-                    self.triangulate_by_pair(
+                    self.stereo_triangulation_logic(
                         pair,
                         [blobs_in_frame[reference], blobs_in_frame[auxiliary]],
                         order=False,
@@ -430,7 +431,9 @@ class MultipleView:
         # Order all wand markers
         all_triangulated_markers = []
         for sync_blobs in zip(*wand_blobs):
-            triangulated_markers = self.triangulate_by_pair(pair, list(sync_blobs))
+            triangulated_markers = self.stereo_triangulation_logic(
+                pair, list(sync_blobs)
+            )
             ordered_triangulated_markers = perpendicular_order(
                 triangulated_markers.T, wand_distances
             )
@@ -598,7 +601,7 @@ def max_reprojection_error(world_point, projection_matrices, image_points):
     return max_reprojection_error
 
 
-def triangulate_by_multigeometry(projection_matrices, point_in_images):
+def triangulate_by_multivision(projection_matrices, point_in_images):
     # Generate linear system
     A = []
     for [P0, P1, P2], [u, v] in zip(projection_matrices, point_in_images):

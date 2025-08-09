@@ -47,7 +47,7 @@ class Triangulator:
 
         return sync_blobs
 
-    def triangulate_by_pair(self, reference, frame_idx, blobs_reference):
+    def stereo_triangulation_pipeline(self, reference, frame_idx, blobs_reference):
         # Log data
         self.save(reference, frame_idx, blobs_reference)
 
@@ -98,7 +98,7 @@ class Triangulator:
                 blobs_auxiliary,
             ]
 
-            triangulated_markers = self.multiple_view.triangulate_by_pair(
+            triangulated_markers = self.multiple_view.stereo_triangulation_logic(
                 (reference, auxiliary), blobs_pair
             )
 
@@ -122,13 +122,20 @@ class Triangulator:
 
         return None  # No triangulation was possible with available data
 
-    def triangulate_by_multiview(
-        self, reference, frame_idx, blobs_reference, max_hold=2
+    def multivision_triangulation_pipeline(
+        self,
+        reference,
+        frame_idx,
+        blobs_reference,
+        max_head=2,
+        max_hold=2,
+        reprojection_tol=1,
+        collinearity_tol=0.005,
     ):
         # Log data
         self.save(reference, frame_idx, blobs_reference)
 
-        # Do not triangulate if triangulation is ahead from received data
+        # Do not even add data if it is behind triangulation
         if frame_idx <= self.tri_idx:
             # Update last frame index
             if frame_idx >= self.last_frame_idx:
@@ -149,7 +156,7 @@ class Triangulator:
                 blobs_in_images[queue_id] = np.array([])
 
                 continue
-            
+
             # Search for the last frame index in the blob queue
             try:
                 queue_position = list(zip(*blob_queue))[1].index(
@@ -177,18 +184,20 @@ class Triangulator:
 
             blobs_in_images[queue_id] = blob_queue[queue_position][0]  # Get blobs
 
-        # Still receiving messages from the triangulation target frame 
+        # Still receiving messages from the triangulation target frame
         # and still waiting to triangulate with more views
-        if not(ahead_views > 1 or to_triangulate_views >= max_hold):
+        if not (ahead_views >= max_head or to_triangulate_views >= max_hold):
             # Update last frame index
             if frame_idx >= self.last_frame_idx:
                 self.last_frame_idx = frame_idx
 
             return None
 
-        # Triangulate markers with viewd
-        triangulated_markers = self.multiple_view.triangulate_by_multiview(
-            blobs_in_images
+        # Triangulate markers with views
+        triangulated_markers = self.multiple_view.multivision_triangulation_logic(
+            blobs_in_images,
+            reprojection_tol=reprojection_tol,
+            collinearity_tol=collinearity_tol,
         )
 
         # No points were triangulated
@@ -198,11 +207,6 @@ class Triangulator:
                 self.last_frame_idx = frame_idx
 
             return None
-        
-        print()
-        print(f"Triangulated with {len([[] for blobs_in_image in blobs_in_images if len(blobs_in_image)])} views at frame {self.last_frame_idx}")
-        print(blobs_in_images)
-        print()
 
         # If triangulation was possible, clear queue
         for queue_id, blob_queue in enumerate(self.blobs_queues):
