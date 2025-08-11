@@ -495,6 +495,7 @@ with capture_tab:
                     "max_hold": 2,
                     "reprojection_tol": 1,
                     "collinearity_tol": 0.005,
+                    "min_views": 2, 
                     "capture_path": capture_path,
                     "verbose": False,
                 },

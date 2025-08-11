@@ -84,9 +84,11 @@ class MultipleView:
         points_in_images,
         reprojection_tol=1,
         collinearity_tol=0.005,
+        min_views=2,
     ):
         # Camera identifiers
         camera_ids = np.arange(self.n_cameras)
+        min_views = max(min_views, 2)  # Only 2 views or more
 
         # Sort cameras and their respective image points from highest number of detected markers to lowest
         camera_ids, camera_models, points_in_images = zip(
@@ -125,7 +127,7 @@ class MultipleView:
                         )
 
                 # Do not try to triangulate if only one view is available
-                if len(triangulation_buffer) > 1:
+                if len(triangulation_buffer) >= min_views:
                     # Triangulate a marker with multiple views
                     triangulated_point = triangulate_by_multivision(
                         *zip(*triangulation_buffer)

@@ -131,6 +131,7 @@ class Triangulator:
         max_hold=2,
         reprojection_tol=1,
         collinearity_tol=0.005,
+        min_views=2,
     ):
         # Log data
         self.save(reference, frame_idx, blobs_reference)
@@ -198,6 +199,7 @@ class Triangulator:
             blobs_in_images,
             reprojection_tol=reprojection_tol,
             collinearity_tol=collinearity_tol,
+            min_views=min_views,
         )
 
         # No points were triangulated
