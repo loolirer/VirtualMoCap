@@ -249,6 +249,7 @@ class MoCapRasp_Server(Server):
         max_hold=2,
         reprojection_tol=1,
         collinearity_tol=0.005,
+        min_views=2,
         capture_path="",
         timeout=5,  # In seconds
         verbose=True,
@@ -351,6 +352,7 @@ class MoCapRasp_Server(Server):
                         max_hold=max_hold,
                         reprojection_tol=reprojection_tol,
                         collinearity_tol=collinearity_tol,
+                        min_views=min_views
                     )
                 )
 
