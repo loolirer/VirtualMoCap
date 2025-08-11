@@ -491,9 +491,11 @@ with capture_tab:
                 kwargs={
                     "expected_markers": expected_markers,
                     "visualizer_address": (publishing_ip, publishing_port),
-                    "capture_path": capture_path,
-                    "min_hold": 2,
+                    "max_head": 2,
                     "max_hold": 2,
+                    "reprojection_tol": 1,
+                    "collinearity_tol": 0.005,
+                    "capture_path": capture_path,
                     "verbose": False,
                 },
                 daemon=True,

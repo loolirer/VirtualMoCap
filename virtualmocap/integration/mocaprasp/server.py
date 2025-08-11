@@ -245,8 +245,10 @@ class MoCapRasp_Server(Server):
         self,
         expected_markers=0,
         visualizer_address=("127.0.0.1", 6666),
-        min_hold=2,
+        max_head=2,
         max_hold=2,
+        reprojection_tol=1,
+        collinearity_tol=0.005,
         capture_path="",
         timeout=5,  # In seconds
         verbose=True,
@@ -345,8 +347,10 @@ class MoCapRasp_Server(Server):
                         reference=ID,
                         frame_idx=frame_idx,
                         blobs_reference=undistorted_blobs,
-                        min_hold=min_hold,
+                        max_head=max_head,
                         max_hold=max_hold,
+                        reprojection_tol=reprojection_tol,
+                        collinearity_tol=collinearity_tol,
                     )
                 )
 
