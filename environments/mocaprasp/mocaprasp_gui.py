@@ -528,10 +528,15 @@ with capture_tab:
     scene = plot_calibration(server=st.session_state.server, title="Capture Profile")
 
     try:
-        condensed_output = np.loadtxt(capture_path, delimiter=",")
-        scene.add_points(condensed_output, f"Triangulated markers")
+        condensed_capture_output = np.loadtxt(capture_path, delimiter=",").reshape((3, -1))
+        scene.add_points(condensed_capture_output, f"Triangulated markers")
 
     except FileNotFoundError:
+        print("[ERROR] File not found")
+        pass
+
+    except:
+        print("[ERROR] Corrupted file")
         pass
 
     # Plot scene
