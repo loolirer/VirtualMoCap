@@ -119,7 +119,7 @@ class MultipleView:
                     # If the other view has no points, just skip
                     if not len(points_in_image_aux):
                         continue
-                    
+
                     # Get matches of the reference point in the auxiliar view
                     matches = get_other_view(
                         point_in_image_ref,
