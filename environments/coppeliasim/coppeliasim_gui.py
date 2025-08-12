@@ -472,6 +472,7 @@ with capture_tab:
                 max_hold=4,
                 reprojection_tol=1.0,
                 collinearity_tol=0.005,
+                min_views=3,
                 capture_path=capture_path,
             )
 
