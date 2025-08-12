@@ -110,21 +110,32 @@ class MultipleView:
                     [camera_ref.projection_matrix, point_in_image_ref]
                 ]
 
+                # Save points to be deleted
+                updated_views = []
+
                 # For the current point, get all views in which a correspondence
                 # can be made in a non-ambiguous way
                 for aux, camera_aux, points_in_image_aux in views[v + 1 :]:
-                    other_views = get_other_view(
+                    matches = get_other_view(
                         point_in_image_ref,
                         points_in_image_aux,
                         self.fundamental_matrix[ref][aux],
                         collinearity_tol,
                     )
 
+                    # Other views of the point in reference image
+                    other_views = points_in_image_aux[matches]
+
                     # Check if the point has only one correspondence (not ambiguous)
                     if len(other_views) == 1:
                         triangulation_buffer.append(
                             [camera_aux.projection_matrix, other_views[0]]
                         )
+
+                        points_in_image_aux = np.delete(points_in_image_aux, matches, axis=0)
+
+                    # Generate possible updated view
+                    updated_views.append((aux, camera_aux, points_in_image_aux))
 
                 # Do not try to triangulate if only one view is available
                 if len(triangulation_buffer) >= min_views:
@@ -139,8 +150,13 @@ class MultipleView:
                             triangulated_point, *zip(*triangulation_buffer)
                         )
                         < reprojection_tol
-                    ):
+                    ):  
+                        # Save triangulated points
                         triangulated_points.append(triangulated_point)
+
+                        # If triangulation was made with 3 or more views, update views
+                        if len(triangulation_buffer) >= 3:
+                            views[v + 1 :] = updated_views
 
             # Continue the same process in another camera
 
@@ -560,9 +576,10 @@ def collinear_order(blobs, wand_ratio):
 
 def get_other_view(
     point_reference, points_auxiliary, fundamental_matrix, collinearity_tol=0.005
-):
+):  
+    # No correspondence
     if not len(points_auxiliary):
-        return np.array([])
+        return np.full(len(points_auxiliary), False)
 
     # Homogeneous coordinates
     point_reference_h = np.append(point_reference, 1).reshape(-1, 1)
@@ -577,8 +594,11 @@ def get_other_view(
     # Vectorized distance computation
     distances = np.ravel(np.abs(points_auxiliary_h @ epiline))
 
+    # Point mapping
+    matches = distances < collinearity_tol
+
     # Get matches within tolerance
-    return points_auxiliary[distances < collinearity_tol]
+    return matches
 
 
 def max_reprojection_error(world_point, projection_matrices, image_points):
