@@ -116,6 +116,11 @@ class MultipleView:
                 # For the current point, get all views in which a correspondence
                 # can be made in a non-ambiguous way
                 for aux, camera_aux, points_in_image_aux in views[v + 1 :]:
+                    # If the other view has no points, just skip
+                    if not len(points_in_image_aux):
+                        continue
+                    
+                    # Get matches of the reference point in the auxiliar view
                     matches = get_other_view(
                         point_in_image_ref,
                         points_in_image_aux,
@@ -128,11 +133,15 @@ class MultipleView:
 
                     # Check if the point has only one correspondence (not ambiguous)
                     if len(other_views) == 1:
+                        other_view = other_views[0]
+
                         triangulation_buffer.append(
-                            [camera_aux.projection_matrix, other_views[0]]
+                            [camera_aux.projection_matrix, other_view]
                         )
 
-                        points_in_image_aux = np.delete(points_in_image_aux, matches, axis=0)
+                        points_in_image_aux = np.delete(
+                            points_in_image_aux, matches, axis=0
+                        )
 
                     # Generate possible updated view
                     updated_views.append((aux, camera_aux, points_in_image_aux))
@@ -150,7 +159,7 @@ class MultipleView:
                             triangulated_point, *zip(*triangulation_buffer)
                         )
                         < reprojection_tol
-                    ):  
+                    ):
                         # Save triangulated points
                         triangulated_points.append(triangulated_point)
 
@@ -576,10 +585,10 @@ def collinear_order(blobs, wand_ratio):
 
 def get_other_view(
     point_reference, points_auxiliary, fundamental_matrix, collinearity_tol=0.005
-):  
-    # No correspondence
+):
+    # No correspondence can be made
     if not len(points_auxiliary):
-        return np.full(len(points_auxiliary), False)
+        return np.array([])
 
     # Homogeneous coordinates
     point_reference_h = np.append(point_reference, 1).reshape(-1, 1)
