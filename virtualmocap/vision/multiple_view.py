@@ -110,7 +110,7 @@ class MultipleView:
                     [camera_ref.projection_matrix, point_in_image_ref]
                 ]
 
-                # Save points to be deleted
+                # Updated views
                 updated_views = []
 
                 # For the current point, get all views in which a correspondence
