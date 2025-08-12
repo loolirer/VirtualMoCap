@@ -102,7 +102,7 @@ class MultipleView:
 
         # Iterate through each view, going from highest number of detected markers to lowest
         triangulated_points = []
-        for v, (ref, camera_ref, points_in_image) in enumerate(views[:-1]):
+        for v, (ref, camera_ref, points_in_image) in enumerate(views):
             # In a view, search each point
             for point_in_image_ref in points_in_image:
                 # Save each unique complimentary view here
