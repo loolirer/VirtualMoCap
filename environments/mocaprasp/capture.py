@@ -198,8 +198,8 @@ except socket.error as err:
 # Try searching for the server address until it is found
 while True:
     try:
-        # server_ip = socket.gethostbyname("mocaprasp-server.local")
-        server_ip = '192.168.0.133'
+        server_ip = socket.gethostbyname("mocaprasp-server.local")
+        # server_ip = '192.168.0.133'
         server_port = 25565
         server_address = (server_ip, server_port)
         print(f"[INFO] Server found at: {server_ip}...")
